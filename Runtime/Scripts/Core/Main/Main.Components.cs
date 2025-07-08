@@ -103,13 +103,22 @@ namespace OSK
             var current = SGameFrameworkComponents.First;
             while (current != null)
             {
+                var componentName = current.Value?.GetType().Name ?? "Unknown";
                 try
                 {
-                    current.Value.OnInit();
+                    if (current.Value == null)
+                    {
+                        Logg.LogError($"[InitData] Component '{componentName}' is NULL.");
+                    }
+                    else
+                    {
+                        Logg.Log($"[InitData] Initializing '{componentName}'...", Color.cyan, isLogInit);
+                        current.Value.OnInit();
+                    }
                 }
                 catch (Exception e)
                 {
-                    Logg.LogError($"[InitData] Failed to initialize data component: {e.Message}");
+                    Logg.LogError($"[InitData] Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
                 }
 
                 current = current.Next;

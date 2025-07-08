@@ -6,7 +6,7 @@ using UnityEditor;
 namespace OSK
 {
     [System.Serializable]
-    public class ConfigInit 
+    public class ConfigInit  
     {
         [TextArea]
         [SerializeField, ReadOnly]
