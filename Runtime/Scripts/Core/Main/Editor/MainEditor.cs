@@ -78,7 +78,7 @@ namespace OSK
         [MenuItem("Tools/Force Reimport Package")]
             public static void ReimportPackage()
             {
-                string path = "com.osk.osk-framework";
+                string path = "Packages/com.osk.osk-framework";
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
                 Debug.Log("Package reimported: " + path);
             }
