@@ -50,6 +50,16 @@ namespace OSK
         {
             return RootUI.Open<T>(data, hidePrevView);
         }
+        
+        public void OpenAddStack<T>(object[] data = null, bool hidePrevView = false) where T : View
+        {
+             RootUI.OpenAddStack<T>(data, hidePrevView);
+        }
+        
+        public void OpenAddStack(View view, object[] data = null, bool hidePrevView = false) 
+        {
+            RootUI.OpenAddStack(view, data, hidePrevView);
+        }
 
         public View OpenPrevious(bool hidePrevView = false)
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
@@ -10,6 +11,19 @@ namespace OSK
     [DefaultExecutionOrder(-101)]
     public class RootUI : MonoBehaviour
     {
+        private class QueuedView
+        {
+            public View view;
+            public object[] data;
+            public bool hidePrevView;
+        }
+
+        [ShowInInspector, ReadOnly]
+        private List<QueuedView> _queuedViews = new List<QueuedView>();
+        
+        [ShowInInspector, ReadOnly]
+        private bool _isProcessingQueue = false;
+        
         [ShowInInspector, ReadOnly] [SerializeField]
         private List<View> _listViewInit = new List<View>();
 
@@ -183,7 +197,7 @@ namespace OSK
 
         public View Open(View view, object[] data = null, bool hidePrevView = false, bool checkShowing = true)
         {
-            var _view = _listCacheView.FirstOrDefault(v => v.GetType() == typeof(View)) as View;
+            var _view = _listCacheView.FirstOrDefault(v => v.GetType() == view.GetType());
             if (hidePrevView && _viewHistory.Count > 0)
             {
                 var prevView = _viewHistory.Peek();
@@ -192,7 +206,7 @@ namespace OSK
 
             if (_view == null)
             {
-                var viewPrefab = _listViewInit.FirstOrDefault(v => v.GetType() == typeof(View)) as View;
+                var viewPrefab = _listViewInit.FirstOrDefault(v => v.GetType() == view.GetType());
                 if (viewPrefab == null)
                 {
                     Logg.LogError($"[View] Can't find view prefab for type: {view.GetType().Name}", isLog: enableLog);
@@ -251,7 +265,82 @@ namespace OSK
         {
             return Open<T>(data, hidePrevView, false);
         }
+        
+        public void OpenAddStack(View view, object[] data = null, bool hidePrevView = false)
+        {
+            _queuedViews.Add(new QueuedView
+            {
+                view = view,
+                data = data,
+                hidePrevView = hidePrevView
+            });
 
+            // Sort the queue by priority
+            _queuedViews = _queuedViews.OrderByDescending(q => q.view.depth).ToList();
+
+            if (!_isProcessingQueue)
+            {
+                StartCoroutine(ProcessQueue());
+            }
+        }
+        
+        public void OpenAddStack<T>(object[] data = null, bool hidePrevView = false) where T : View
+        {
+            var view = _listCacheView.FirstOrDefault(v => v is T) as T; 
+
+            if (view == null)
+            {
+                var prefab = _listViewInit.FirstOrDefault(v => v is T) as T;
+                if (prefab == null)
+                {
+                    Logg.LogError($"[OpenAddStack<{typeof(T).Name}>] Not found view prefab for type: {typeof(T).Name}", isLog: enableLog);
+
+                    return;
+                }
+
+                view = SpawnViewCache(prefab);
+            }
+
+            if (view == null)
+            {
+                Logg.LogError($"[OpenAddStack<{typeof(T).Name}>] View is null after spawning. ");
+                return;
+            }
+
+            OpenAddStack(view, data, hidePrevView);
+        }
+
+        
+        private IEnumerator ProcessQueue()
+        {
+            _isProcessingQueue = true;
+
+            while (_queuedViews.Count > 0)
+            {
+                var current = _queuedViews[0];
+
+                if (current.view == null)
+                {
+                    Logg.LogWarning("[Queue] View null, removing from queue", isLog: enableLog);
+                    _queuedViews.RemoveAt(0);
+                    continue;
+                }
+
+                // ✅ Nếu chưa hiển thị thì gọi Open
+                if (!current.view.IsShowing)
+                {
+                    Open(current.view, current.data, current.hidePrevView);
+                }
+
+                // ❗ Wait until the view is closed
+                yield return new WaitUntil(() => current.view == null || !current.view.IsShowing);
+
+                _queuedViews.RemoveAt(0);
+            }
+
+            _isProcessingQueue = false;
+        }
+        
         /// <summary>
         /// Open previous view in history
         /// </summary>
