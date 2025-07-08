@@ -28,8 +28,13 @@ namespace OSK
         [Header("Settings")] [EnumToggleButtons]
         public EViewType viewType = EViewType.Popup;
 
+        /// Depth is used to determine the order of views in the stack
         public int depth;
         private int _depth;
+
+        public int Priority => _priority;
+        [SerializeField] private int _priority; // used for sorting views, higher value means higher priority in the stack
+
 
         [Space] [ToggleLeft] public bool isAddToViewManager = true;
         [ToggleLeft] public bool isPreloadSpawn = true;

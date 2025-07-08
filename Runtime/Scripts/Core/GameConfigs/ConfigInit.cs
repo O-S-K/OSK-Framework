@@ -1,33 +1,38 @@
 using UnityEngine;
-using System.Collections.Generic;
 using Sirenix.OdinInspector;
-using UnityEditor;
 
 namespace OSK
 {
     [System.Serializable]
-    public class ConfigInit  
+    public class ConfigInit
     {
-        [TextArea]
-        [SerializeField, ReadOnly]
-        private string tooltip = "This is the configuration for the game. " +
-                                 "It contains all the settings and data that are used in the game. " +
-                                 "You can modify this file to change the game settings.";
-        
-        [Header("Game Settings")]
-        public int targetFrameRate = 60;
-        public bool logTest = true;
+        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+        public int TargetFrameRate = 60;
 
-        public string packageName = "";
+        [BoxGroup("🎮 Game Settings"), LabelText("Encrypt Storage")]
+        public bool IsEncryptStorage = false;
+
+        [BoxGroup("🎮 Game Settings"), LabelText("Enable Logs")]
+        public bool IsEnableLogg = true;
+
+        [BoxGroup("📱 Store IDs")]
+        [LabelText("App Store ID")]
         public string appstoreID = "";
-         
-        [Space]
-        [Header("Game Configs")]
+
+        [BoxGroup("📱 Store IDs")]
+        [LabelText("Google Play ID")]
+        public string googlePlayID = "";
+
+        [BoxGroup("📦 Game Configs")]
+        [HideLabel, InlineProperty]
         public DataConfigs data;
+
+        //[BoxGroup("⚙ Settings")]
         //public SettingConfigs setting;
-        public PathConfigs path; 
-        
-        
+
+        [BoxGroup("📂 Paths")]
+        [HideLabel, InlineProperty]
+        public PathConfigs path;
     }
 
 
@@ -43,8 +48,9 @@ namespace OSK
 
     [System.Serializable]
     public class DataConfigs
-    { 
+    {
         public ListViewSO listViewS0;
+
         public ListSoundSO listSoundSo;
         public UIParticleSO uiParticleSO;
     }

@@ -48,7 +48,7 @@ namespace OSK
         }
 
         public string GetUrlAppstore => "https://apps.apple.com/app/id" + init.appstoreID;
-        public string GetUrlGooglePlay => "https://play.google.com/store/apps/details?id=" + init.packageName;
+        public string GetUrlGooglePlay => "https://play.google.com/store/apps/details?id=" + init.googlePlayID;
 
         public void GetLinkURL()
         {

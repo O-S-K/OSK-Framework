@@ -3,6 +3,7 @@ using UnityEngine;
 using DG.Tweening;
 using System.Linq;
 using System.Collections;
+using Sirenix.OdinInspector;
 
 namespace OSK
 {
@@ -20,12 +21,32 @@ namespace OSK
     public class UIParticle : MonoBehaviour
     {
         private readonly Dictionary<string, Coroutine> _activeCoroutines = new Dictionary<string, Coroutine>();
+        
+        [ShowInInspector, ReadOnly]
         private List<GameObject> _parentEffects = new List<GameObject>();
+        
+        [ShowInInspector, ReadOnly]
         private List<EffectSetting> _effectSettings = new List<EffectSetting>();
 
+        [ShowInInspector, ReadOnly]
         private Transform _canvasTransform;
+        
+        [ShowInInspector, ReadOnly]
         private Camera _mainCamera;
+        public Camera MainCamera
+        {
+            get => _mainCamera;
+            set => _mainCamera = value;
+        }
+        
+        [ShowInInspector, ReadOnly]
         private Camera _uiCamera;
+
+        public Camera UICamera
+        {
+            get => _uiCamera;
+            set => _uiCamera = value;
+        }
 
         public enum ETypeSpawn
         {

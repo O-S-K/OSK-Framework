@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using Sirenix.OdinInspector;
@@ -51,9 +52,9 @@ namespace OSK
             return RootUI.Open<T>(data, hidePrevView);
         }
         
-        public void OpenAddStack<T>(object[] data = null, bool hidePrevView = false) where T : View
+        public void OpenAddStack<T>(object[] data = null, bool hidePrevView = false, Action<T> onOpened = null) where T : View
         {
-             RootUI.OpenAddStack<T>(data, hidePrevView);
+             RootUI.OpenAddStack<T>(data, hidePrevView, onOpened);
         }
         
         public void OpenAddStack(View view, object[] data = null, bool hidePrevView = false) 

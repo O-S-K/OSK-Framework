@@ -1,57 +1,61 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace OSK
 {
-    [System.Serializable]
-    public class MainModules 
+    [Serializable]
+    public class MainModules
     {
-        private Dictionary<string, Type> componentTypeCache = new Dictionary<string, Type>();
+        // Cache nội bộ không cần hiển thị
+        [HideInInspector]
+        private Dictionary<string, Type> componentTypeCache = new();
 
-        [Title("Modules Selection")]
+        [BoxGroup("⚙ Modules Selection")]
         [EnumToggleButtons]
-        [SerializeField] private ModuleType _modules; 
+        [SerializeField]
+        private ModuleType _modules;
         public ModuleType Modules => _modules;
 
-        public System.Type GetComponentType(string moduleName)
+        [BoxGroup("⚙ Modules Selection")]
+        [ReadOnly, InfoBox("Select the modules you want to enable for this project.", InfoMessageType.None)]
+        [HideLabel]
+        public string title = "";
+
+        [BoxGroup("⚙ Modules Selection/Actions")]
+        [HorizontalGroup("⚙ Modules Selection/Actions/Row")]
+        [Button(ButtonSizes.Medium)]
+        private void EnableAllModule()
+        {
+            _modules = (ModuleType)~0;
+            Debug.Log("✅ All modules have been selected.");
+        }
+
+        [HorizontalGroup("⚙ Modules Selection/Actions/Row")]
+        [Button(ButtonSizes.Medium)]
+        private void DisableAllModule()
+        {
+            _modules = 0;
+            Debug.Log("❌ All modules have been deselected.");
+        }
+
+        // Public method for resolving Type
+        public Type GetComponentType(string moduleName)
         {
             if (componentTypeCache.TryGetValue(moduleName, out var type))
                 return type;
 
-            string fullTypeName = "OSK." + moduleName;
-
-            var componentType = System.Type.GetType(fullTypeName);
+            var fullTypeName = "OSK." + moduleName;
+            var componentType = Type.GetType(fullTypeName);
             if (componentType != null)
-            {
                 componentTypeCache[moduleName] = componentType;
-            }
 
             return componentType;
         }
-
-        [Space(10)] [Title("Setup Modules")]
-        [ReadOnly]
-        public string title = "Select the modules you want to enable use in the game.";
-
-        [Button]
-        private void EnableAllModule()
-        {
-            _modules = (ModuleType)~0;
-            Debug.Log("All modules have been selected.");
-        }
-
-        [Button]
-        private void DisableAllModule()
-        {
-            _modules = 0;
-            Debug.Log("All modules have been deselected.");
-        }
     }
 
-    [System.Flags]
+    [Flags]
     public enum ModuleType
     {
         None = 0,

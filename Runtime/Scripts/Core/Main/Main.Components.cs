@@ -1,4 +1,5 @@
 using System;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace OSK
@@ -32,7 +33,10 @@ namespace OSK
         public static ProcedureManager Procedure { get; private set; }
         public static GameInit GameInit { get; private set; }
 
+        [HideLabel, InlineProperty]
         public ConfigInit configInit;
+        
+        [HideLabel, InlineProperty]
         public MainModules mainModules;
 
         public bool isDestroyingOnLoad = false;
@@ -135,7 +139,13 @@ namespace OSK
                 return;
             }
 
-            Application.targetFrameRate = configInit.targetFrameRate;
+            Application.targetFrameRate = configInit.TargetFrameRate;
+            Main.Storage.isEncrypt = configInit.IsEncryptStorage;
+            Logg.SetLogEnabled(configInit.IsEnableLogg);
+            Main.Configs.CheckVersion(() =>
+            {
+                Debug.Log("New version");
+            });
             Logg.Log("[InitConfigs] Configs initialized successfully.", Color.green, isLogInit);
         }
 

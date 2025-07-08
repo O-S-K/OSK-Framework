@@ -16,40 +16,74 @@ namespace OSK
             public View view;
             public object[] data;
             public bool hidePrevView;
+            public Action<View> onOpened;
         }
 
+        #region Lists
+        [BoxGroup("🔍 Views", ShowLabel = true)]
+        [ShowInInspector, ReadOnly] [SerializeField]
+        private List<View> _listViewInit = new();
+
+        [BoxGroup("🔍 Views")]
+        [ShowInInspector, ReadOnly] [SerializeField]
+        private List<View> _listCacheView = new();
+
+        [HideInInspector] // Ẩn Stack nếu không cần xem
+        private Stack<View> _viewHistory = new();
+
+        [ShowInInspector, BoxGroup("🔍 Views")]
+        public Stack<View> ListViewHistory => _viewHistory;
+
+        [ShowInInspector, BoxGroup("🔍 Views")]
+        public List<View> ListCacheView => _listCacheView;
+
+        [ShowInInspector, BoxGroup("🔍 Views")]
+        public List<View> ListViewInit => _listViewInit;
+        
         [ShowInInspector, ReadOnly]
         private List<QueuedView> _queuedViews = new List<QueuedView>();
         
         [ShowInInspector, ReadOnly]
         private bool _isProcessingQueue = false;
-        
-        [ShowInInspector, ReadOnly] [SerializeField]
-        private List<View> _listViewInit = new List<View>();
 
-        [ShowInInspector, ReadOnly] [SerializeField]
-        private List<View> _listCacheView = new List<View>();
+        #endregion
 
-        private Stack<View> _viewHistory = new Stack<View>();
+        #region References
 
-        public Stack<View> ListViewHistory => _viewHistory;
-        public List<View> ListCacheView => _listCacheView;
-        public List<View> ListViewInit => _listViewInit;
-
-        [Space] [Title("References")] [Required] [SerializeField]
+        [Title("📌 References")]
+        [Required, BoxGroup("📌 References")] [SerializeField]
         private Camera _uiCamera;
 
-        [Required] [SerializeField] private Canvas _canvas;
-        [Required] [SerializeField] private CanvasScaler _canvasScaler;
-        [SerializeField] private UIParticle _uiParticle;
-        [SerializeField] private Transform _viewContainer;
+        [Required, BoxGroup("📌 References")] [SerializeField]
+        private Canvas _canvas;
 
-        [Space] [Title("Settings")] [SerializeField]
+        [Required, BoxGroup("📌 References")] [SerializeField]
+        private CanvasScaler _canvasScaler;
+
+        [BoxGroup("📌 References")] [SerializeField]
+        private UIParticle _uiParticle;
+
+        [BoxGroup("📌 References")] [SerializeField]
+        private Transform _viewContainer;
+
+        #endregion
+
+        #region Settings
+
+        [Title("⚙️ Settings")]
+        [BoxGroup("⚙️ Settings")] [SerializeField]
         private bool isPortrait = true;
 
-        [SerializeField] private bool dontDestroyOnLoad = true;
-        [SerializeField] private bool isUpdateRatioScaler = true;
-        [SerializeField] private bool enableLog = true;
+        [BoxGroup("⚙️ Settings")] [SerializeField]
+        private bool dontDestroyOnLoad = true;
+
+        [BoxGroup("⚙️ Settings")] [SerializeField]
+        private bool isUpdateRatioScaler = true;
+
+        [BoxGroup("⚙️ Settings")] [SerializeField]
+        private bool enableLog = true;
+
+        #endregion
 
 
         public UIParticle Particle => _uiParticle;
@@ -284,30 +318,35 @@ namespace OSK
             }
         }
         
-        public void OpenAddStack<T>(object[] data = null, bool hidePrevView = false) where T : View
+        public void OpenAddStack<T>(object[] data = null, bool hidePrev = false, Action<T> onOpened = null) where T : View
         {
-            var view = _listCacheView.FirstOrDefault(v => v is T) as T; 
+            var _view = _listCacheView.FirstOrDefault(v => v is T) as T;
 
-            if (view == null)
+            if (_view == null)
             {
                 var prefab = _listViewInit.FirstOrDefault(v => v is T) as T;
                 if (prefab == null)
                 {
                     Logg.LogError($"[OpenAddStack<{typeof(T).Name}>] Not found view prefab for type: {typeof(T).Name}", isLog: enableLog);
-
                     return;
                 }
 
-                view = SpawnViewCache(prefab);
+                _view = SpawnViewCache(prefab);
             }
 
-            if (view == null)
+            var queued = new QueuedView
             {
-                Logg.LogError($"[OpenAddStack<{typeof(T).Name}>] View is null after spawning. ");
-                return;
-            }
+                view = _view,
+                data = data,
+                hidePrevView = hidePrev,
+                onOpened = v => onOpened?.Invoke(v as T)
+            };
 
-            OpenAddStack(view, data, hidePrevView);
+            _queuedViews.Add(queued);
+ 
+            // ✅ Luôn start lại queue nếu chưa chạy
+            if (!_isProcessingQueue)
+                StartCoroutine(ProcessQueue());
         }
 
         
@@ -317,25 +356,26 @@ namespace OSK
 
             while (_queuedViews.Count > 0)
             {
-                var current = _queuedViews[0];
+                // Chọn view chưa được mở và có độ ưu tiên cao nhất
+                var next = _queuedViews
+                    .Where(q => q.view != null && !q.view.IsShowing)
+                    .OrderByDescending(q => q.view.Priority) // hoặc priority nếu bạn muốn
+                    .FirstOrDefault();
 
-                if (current.view == null)
+                if (next == null)
                 {
-                    Logg.LogWarning("[Queue] View null, removing from queue", isLog: enableLog);
-                    _queuedViews.RemoveAt(0);
+                    // Tất cả view hiện tại đang mở → đợi 1 frame rồi thử lại
+                    yield return null;
                     continue;
                 }
+                 
+                var openedView = Open(next.view, next.data, next.hidePrevView);
+                next.onOpened?.Invoke(openedView);
 
-                // ✅ Nếu chưa hiển thị thì gọi Open
-                if (!current.view.IsShowing)
-                {
-                    Open(current.view, current.data, current.hidePrevView);
-                }
-
-                // ❗ Wait until the view is closed
-                yield return new WaitUntil(() => current.view == null || !current.view.IsShowing);
-
-                _queuedViews.RemoveAt(0);
+                // Wait cho tới khi view này được đóng lại
+                yield return new WaitUntil(() => next.view == null || !next.view.IsShowing);
+                // Gỡ view này khỏi queue sau khi hoàn tất
+                _queuedViews.Remove(next);
             }
 
             _isProcessingQueue = false;

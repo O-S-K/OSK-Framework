@@ -3,18 +3,19 @@ using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Sirenix.OdinInspector.Editor;
 
 namespace OSK
 {
     [CustomEditor(typeof(RootUI))]
-    public class UIManagerEditor : Editor
+    public class UIManagerEditor : OdinEditor
     {
         private RootUI uiManager;
         private void OnEnable() => uiManager = (RootUI)target;
 
         public override void OnInspectorGUI()
         {
-            DrawDefaultInspector();
+            base.OnInspectorGUI();
 
             EditorGUILayout.Space();
             EditorGUILayout.Space();
