@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -12,9 +13,16 @@ namespace OSK
  
         private async void Start()
         {
-            InternetChecker = gameObject.GetOrAdd<InternetChecker>();
-            IsOnline = await InternetChecker.CheckNetwork();
-            OSK.Logg.Log($"Is online: {IsOnline}");
+            try
+            {
+                InternetChecker = gameObject.GetOrAdd<InternetChecker>();
+                IsOnline = await InternetChecker.CheckNetwork();
+                OSK.Logg.Log($"Is online: {IsOnline}");
+            }
+            catch (Exception e)
+            {
+                OSK.Logg.LogError($"NetworkManager Start error: {e.Message}");
+            }
         }
     }
 }

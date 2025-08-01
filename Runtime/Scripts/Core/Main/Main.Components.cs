@@ -140,9 +140,9 @@ namespace OSK
             }
 
             Application.targetFrameRate = configInit.TargetFrameRate;
-            Main.Storage.isEncrypt = configInit.IsEncryptStorage;
-            Logg.SetLogEnabled(configInit.IsEnableLogg);
-            Main.Configs.CheckVersion(() =>
+            if(configInit != null) Logg.SetLogEnabled(configInit.IsEnableLogg);
+            if(Main.Storage) Main.Storage.isEncrypt = configInit.IsEncryptStorage;
+            if(Main.Configs) Main.Configs.CheckVersion(() =>
             {
                 Debug.Log("New version");
             });

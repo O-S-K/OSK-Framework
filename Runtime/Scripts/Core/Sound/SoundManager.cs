@@ -38,18 +38,15 @@ namespace OSK
         {
             get
             {
-                if (Camera.main != null) return _cameraTransform ??= Camera.main.transform;
-                else
-                {
-                    OSK.Logg.LogError("Camera.main is null");
-                    return null;
-                }
+                if (Camera.main != null) 
+                    return _cameraTransform ??= Camera.main.transform;
+                OSK.Logg.LogError("Camera.main is null");
+                return null;
             }
             set => _cameraTransform = value;
         }
 
         private AudioSource _soundObject;
-
         private bool pauseWhenInBackground = false;
 
 
