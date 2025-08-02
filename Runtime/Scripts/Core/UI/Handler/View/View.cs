@@ -1,9 +1,9 @@
+using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 using Sirenix.OdinInspector;
-using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 namespace OSK
 {
@@ -30,53 +30,36 @@ namespace OSK
 
         /// Depth is used to determine the order of views in the stack
         public int depth;
+
         private int _depth;
 
         public int Priority => _priority;
-        [SerializeField] private int _priority; // used for sorting views, higher value means higher priority in the stack
 
-
+        [SerializeField]
+        private int _priority; // used for sorting views, higher value means higher priority in the stack
+ 
         [Space] [ToggleLeft] public bool isAddToViewManager = true;
         [ToggleLeft] public bool isPreloadSpawn = true;
-        [ToggleLeft] public bool isRemoveOnHide = false;
-
+        [ToggleLeft] public bool isRemoveOnHide = false; 
         [ReadOnly] [ToggleLeft] public bool isInitOnScene;
-        public bool IsShowing => _isShowing;
-
         [ShowInInspector, ReadOnly] [ToggleLeft]
         private bool _isShowing;
+        
+        [SerializeReference] public Action OnOpened;
+        [SerializeReference] public Action OnClosed;
 
+        public bool IsShowing => _isShowing;
+
+
+        [ReadOnly, SerializeField] 
         private UITransition _uiTransition;
-        public UITransition UITransition 
-        {
-            get
-            {
-                if (_uiTransition == null)
-                    _uiTransition = GetComponent<UITransition>();
-                return _uiTransition;
-            }
-        }
-        private RootUI _rootUI;
-
-        [Space] [ToggleLeft] public bool isShowEvent = false;
-        [ShowIf(nameof(isShowEvent))] public UnityEvent EventAfterInit;
-        [ShowIf(nameof(isShowEvent))] public UnityEvent EventBeforeOpened;
-        [ShowIf(nameof(isShowEvent))] public UnityEvent EventAfterOpened;
-        [ShowIf(nameof(isShowEvent))] public UnityEvent EventBeforeClosed;
-        [ShowIf(nameof(isShowEvent))] public UnityEvent EventAfterClosed;
-
-        [ReadOnly, SerializeField]
+        [ReadOnly, SerializeField] 
         protected IReferenceHolder referenceHolder;
-
-        public IReferenceHolder ReferenceHolder
-        {
-            get
-            {
-                if (referenceHolder == null)
-                    referenceHolder = GetComponent<IReferenceHolder>();
-                return referenceHolder;
-            }
-        }
+        
+        public UITransition UITransition => _uiTransition ??= GetComponent<UITransition>(); 
+        public IReferenceHolder ReferenceHolder => referenceHolder ??= GetComponent<IReferenceHolder>();
+        
+        private RootUI _rootUI;
 
         [Button]
         public void AddUITransition()
@@ -116,7 +99,6 @@ namespace OSK
 
             _depth = depth;
             SetDepth(depth);
-            EventAfterInit?.Invoke();
         }
 
         public void IterateRefs(System.Action<string, object> func) => ReferenceHolder.Foreach(func);
@@ -153,8 +135,7 @@ namespace OSK
                     return;
 
                 var insertIndex = _rootUI.FindInsertIndex(childPages, depth);
-                if (insertIndex == childPages.Count) transform.SetAsLastSibling();
-                else transform.SetSiblingIndex(insertIndex);
+                transform.SetSiblingIndex(insertIndex == childPages.Count ? transform.GetSiblingIndex() : insertIndex);
             }
         }
 
@@ -170,15 +151,29 @@ namespace OSK
 
             SetData(data);
             _isShowing = true;
-            EventBeforeOpened?.Invoke();
             gameObject.SetActive(true);
 
             if (_depth != depth)
                 SetDepth(depth);
 
-            if (_uiTransition != null)
-                _uiTransition.OpenTrans(() => EventAfterOpened?.Invoke());
-            else EventAfterOpened?.Invoke();
+            Opened();
+        }
+
+        protected void Opened()
+        {
+            if (_uiTransition)
+            {
+                _uiTransition.OpenTrans(() =>
+                {
+                    OnOpened?.Invoke();
+                    OnOpened = null;
+                });
+            }
+            else
+            {
+                OnOpened?.Invoke();
+                OnOpened = null;
+            }
         }
 
         // example: SetData(new object[]{1,2,3,4,5});
@@ -238,7 +233,6 @@ namespace OSK
             if (!_isShowing) return;
 
             _isShowing = false;
-            EventBeforeClosed?.Invoke();
             Logg.Log($"[View] Hide {gameObject.name} is showing {_isShowing}");
 
             if (_uiTransition != null)
@@ -268,19 +262,16 @@ namespace OSK
 
         protected bool IsAlreadyShowing()
         {
-            if (_isShowing)
-            {
-                Logg.LogWarning("[View] View is already showing");
-                return true;
-            }
-
-            return false;
+            if (!_isShowing) return false;
+            Logg.LogWarning("[View] View is already showing");
+            return true;
         }
 
         protected void FinalizeHide()
         {
+            OnClosed?.Invoke();
+            OnClosed = null;
             gameObject.SetActive(false);
-            EventAfterClosed?.Invoke();
 
             if (isRemoveOnHide)
                 _rootUI.Delete(this);

@@ -90,6 +90,10 @@ namespace OSK
         public void Initialize()
         {
             DOTween.Init();
+            if(contentUI == null)
+            {
+                Logg.Log("contentUI not set, using RectTransform instead => " + gameObject.name, Color.red);
+            }
             _canvasGroup = GetComponent<CanvasGroup>();
             _rectTransform = GetComponent<RectTransform>();
         }

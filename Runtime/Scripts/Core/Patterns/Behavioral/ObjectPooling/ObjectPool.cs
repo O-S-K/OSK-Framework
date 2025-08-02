@@ -74,7 +74,7 @@ namespace OSK
 
             if (container == null)
             {
-                Debug.LogWarning($"[Pool] No available item in pool of type {typeof(T).Name}. Refill new one.");
+                Logg.LogWarning($"[Pool] No available item found in pool of type {typeof(T).Name}. Creating a new one.");
                 container = CreateContainer();
             }
 
@@ -82,7 +82,7 @@ namespace OSK
 
             if (container.Item == null)
             {
-                Debug.LogError("Created container has null item.");
+                Logg.LogWarning($"[Pool] Created item is null in pool of type {typeof(T).Name}. Returning default value.");
                 return default;
             }
 

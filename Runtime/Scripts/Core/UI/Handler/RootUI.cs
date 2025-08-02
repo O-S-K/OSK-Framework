@@ -344,7 +344,7 @@ namespace OSK
 
             _queuedViews.Add(queued);
  
-            // ✅ Luôn start lại queue nếu chưa chạy
+            // Allways sort the queue by priority
             if (!_isProcessingQueue)
                 StartCoroutine(ProcessQueue());
         }
@@ -356,15 +356,15 @@ namespace OSK
 
             while (_queuedViews.Count > 0)
             {
-                // Chọn view chưa được mở và có độ ưu tiên cao nhất
+                // Get the next view in the queue that is not showing
                 var next = _queuedViews
                     .Where(q => q.view != null && !q.view.IsShowing)
-                    .OrderByDescending(q => q.view.Priority) // hoặc priority nếu bạn muốn
+                    .OrderByDescending(q => q.view.Priority) //  Sort by priority
                     .FirstOrDefault();
 
                 if (next == null)
                 {
-                    // Tất cả view hiện tại đang mở → đợi 1 frame rồi thử lại
+                    //  All views are already showing or null, wait for next frame
                     yield return null;
                     continue;
                 }
@@ -372,9 +372,9 @@ namespace OSK
                 var openedView = Open(next.view, next.data, next.hidePrevView);
                 next.onOpened?.Invoke(openedView);
 
-                // Wait cho tới khi view này được đóng lại
+                // Wait  until the view is closed
                 yield return new WaitUntil(() => next.view == null || !next.view.IsShowing);
-                // Gỡ view này khỏi queue sau khi hoàn tất
+                // Remove view from queue
                 _queuedViews.Remove(next);
             }
 
@@ -719,7 +719,6 @@ namespace OSK
         private T SpawnFromResource<T>(string path) where T : View
         {
             var view = Instantiate(Resources.Load<T>(path), _viewContainer);
-
             if (view != null)
                 return SpawnViewCache(view);
             Logg.LogError($"[View] Can't find popup with path: {path}");

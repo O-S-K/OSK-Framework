@@ -214,7 +214,8 @@ namespace OSK
         {
             if (k_GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
             {
-                foreach (var kvp in prefabPools.ToList()) // tạo bản sao để tránh modify khi foreach
+                // Create a copy of the dictionary to avoid modifying it while iterating
+                foreach (var kvp in prefabPools.ToList()) 
                 {
                     var pool = kvp.Value;
                     pool.DestroyAndClean();
@@ -225,8 +226,6 @@ namespace OSK
             }
         }
         
-        
-         
         public void DestroyAllGroups()
         {
             foreach (var prefabPools in k_GroupPrefabLookup.Values)
@@ -255,6 +254,5 @@ namespace OSK
         {
             return k_GroupPrefabLookup.ContainsKey(groupName);
         }
-
     }
 }
