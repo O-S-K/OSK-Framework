@@ -100,7 +100,6 @@ namespace OSK
         public MinMaxFloat height;
         public MinMaxFloat timeMove;
         public MinMaxFloat delayMove;
-         
         public System.Action OnCompleted;
 
         #endregion

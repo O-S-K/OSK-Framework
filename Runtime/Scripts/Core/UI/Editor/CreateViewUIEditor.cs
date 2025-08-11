@@ -172,7 +172,6 @@ public class {scriptName} : {viewType}
             {
                 CreateShield(createdView);
             }
-
             CreateContainer(createdView);
 
 

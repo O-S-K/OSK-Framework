@@ -1,191 +1,230 @@
 using UnityEngine;
-
 #if UNITY_EDITOR
-using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 
 namespace OSK
 {
     [CustomEditor(typeof(UIParticleSO))]
-    public class UIParticleSOEditor : OdinEditor
+    public class UIParticleSOEditor : Editor
     {
-        private SerializedProperty _effectSettingsProperty;
+        private SerializedProperty _effectSettings;
 
         private void OnEnable()
         {
-            _effectSettingsProperty = serializedObject.FindProperty("_effectSettings");
+            _effectSettings = serializedObject.FindProperty("_effectSettings");
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            base.OnInspectorGUI();
+            GUILayout.Space(6);
 
-            GUIStyle titleStyle0 = new GUIStyle(EditorStyles.boldLabel)
+            for (int i = 0; i < _effectSettings.arraySize; i++)
             {
-                normal = { textColor = Color.yellow }
-            };
+                var element = _effectSettings.GetArrayElementAtIndex(i);
+                string settingName = GetSettingName(element, i);
+                GetTile(element, i, settingName);
 
-            EditorGUILayout.LabelField("--- Effect Settings ---", titleStyle0);
-            GUILayout.Space(10);
+                if (!element.isExpanded) continue;
 
-            for (int i = 0; i < _effectSettingsProperty.arraySize; i++)
-            {
-                var element = _effectSettingsProperty.GetArrayElementAtIndex(i);
-                string settingName = element.FindPropertyRelative("name").stringValue;
-
-                if (string.IsNullOrEmpty(settingName))
+                EditorGUILayout.BeginVertical("box");
                 {
-                    settingName = $"Effect Setting {i + 1}";
-                }
+                    DrawSetupGroup(element);
 
-                element.isExpanded = EditorGUILayout.Foldout(element.isExpanded, settingName, true);
-
-                if (element.isExpanded)
-                {
-                    EditorGUILayout.BeginVertical("box"); 
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(element.FindPropertyRelative("name"));
-                  //  EditorGUILayout.PropertyField(element.FindPropertyRelative("icon"));
-                    EditorGUILayout.PropertyField(element.FindPropertyRelative("numberOfEffects"));
-                    EditorGUILayout.PropertyField(element.FindPropertyRelative("isDrop"));
-                    EditorGUI.indentLevel--;
-
-                    GUILayout.Space(5);
-
-                    // Drop Section
                     if (element.FindPropertyRelative("isDrop").boolValue)
                     {
-                        GUIStyle titleStyle1 = new GUIStyle(EditorStyles.boldLabel)
-                        {
-                            normal = { textColor = Color.green }
-                        };
-
-                        EditorGUILayout.LabelField("Drop Settings", titleStyle1);
-                        EditorGUILayout.BeginVertical("box"); 
-                        DrawColoredBox(() =>
-                        {
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("sphereRadius"));
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("delayDrop"));
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("timeDrop"));
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("typeAnimationDrop"));
-                            var typeAnimationDrop = (TypeAnimation)element.FindPropertyRelative("typeAnimationDrop").enumValueIndex;
-                            if (typeAnimationDrop == TypeAnimation.Ease)
-                            {
-                                EditorGUILayout.PropertyField(element.FindPropertyRelative("easeDrop"));
-                            }
-                            else if (typeAnimationDrop == TypeAnimation.Curve)
-                            {
-                                EditorGUILayout.PropertyField(element.FindPropertyRelative("curveDrop"));
-                            }
-                            
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("isScaleDrop"));
-                            if (element.FindPropertyRelative("isScaleDrop").boolValue)
-                            {
-                                EditorGUILayout.PropertyField(element.FindPropertyRelative("scaleDropStart"));
-                                EditorGUILayout.PropertyField(element.FindPropertyRelative("scaleDropEnd"));
-                            }  
-                            
-                        }, Color.green);
-                        EditorGUILayout.EndVertical(); 
+                        GUILayout.Space(4);
+                        DrawDropGroup(element);
                     }
 
-                    GUILayout.Space(10);
+                    GUILayout.Space(4);
+                    DrawMoveGroup(element);
 
-
-                    GUIStyle titleStyle2 = new GUIStyle(EditorStyles.boldLabel)
+                    GUILayout.Space(6);
+                    if (GUILayout.Button("❌ Remove Effect", GUILayout.Height(20)))
                     {
-                        normal = { textColor = Color.cyan }
-                    };
-
-                    // Move Section
-                    EditorGUILayout.LabelField("Move Settings", titleStyle2);
-                    EditorGUILayout.BeginVertical("box"); 
-                    DrawColoredBox(() =>
-                    {
-                        EditorGUILayout.PropertyField(element.FindPropertyRelative("typeMove"));
-                        var typeMove = (TypeMove)element.FindPropertyRelative("typeMove").enumValueIndex;
-                        if (typeMove is TypeMove.Path or TypeMove.Beziers or TypeMove.CatmullRom)
-                        {
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("paths"));
-                        }
-                        else if (typeMove == TypeMove.Straight)
-                        {
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("height"));
-                        }
-                        else if (typeMove == TypeMove.DoJump)
-                        {
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("jumpPower"));
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("jumpNumber"));
-                        }
-
-                        else if (typeMove == TypeMove.Around)
-                        {
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("midPointOffsetX"));
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("midPointOffsetZ"));
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("height"));
-                        }
-                        else if (typeMove == TypeMove.Sin)
-                        {
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("pointsCount"));
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("height"));
-                        }
-
-
-                        EditorGUILayout.PropertyField(element.FindPropertyRelative("typeAnimationMove"));
-                        var typeAnimationMove =
-                            (TypeAnimation)element.FindPropertyRelative("typeAnimationMove").enumValueIndex;
-                        if (typeAnimationMove == TypeAnimation.Ease)
-                        {
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("easeMove"));
-                        }
-                        else if (typeAnimationMove == TypeAnimation.Curve)
-                        {
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("curveMove"));
-                        }
-
-                        EditorGUILayout.PropertyField(element.FindPropertyRelative("timeMove"));
-                        EditorGUILayout.PropertyField(element.FindPropertyRelative("delayMove"));
-                        
-                        EditorGUILayout.PropertyField(element.FindPropertyRelative("isScaleMove"));
-                        if (element.FindPropertyRelative("isScaleMove").boolValue)
-                        {
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("scaleMoveStart"));
-                            EditorGUILayout.PropertyField(element.FindPropertyRelative("scaleMoveTarget"));
-                        } 
-                        
-                    }, Color.cyan);
-                    EditorGUILayout.EndVertical(); 
-
-                    GUILayout.Space(10);
-
-                    if (GUILayout.Button("Remove"))
-                    {
-                        _effectSettingsProperty.DeleteArrayElementAtIndex(i);
+                        _effectSettings.DeleteArrayElementAtIndex(i);
                         break;
                     }
-
-                    EditorGUILayout.EndVertical(); 
                 }
+                EditorGUILayout.EndVertical();
+
+                GUILayout.Space(8);
             }
 
-            GUILayout.Space(30);
-            if (GUILayout.Button("Add Effect Setting"))
-            {
-                _effectSettingsProperty.InsertArrayElementAtIndex(_effectSettingsProperty.arraySize);
-            }
+            GUILayout.Space(10);
+            if (GUILayout.Button("➕ Add New Effect Setting", GUILayout.Height(28)))
+                _effectSettings.InsertArrayElementAtIndex(_effectSettings.arraySize);
 
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawColoredBox(System.Action drawContent, Color color)
+        private static void GetTile(SerializedProperty element, int i, string settingName)
         {
-            var originalColor = GUI.backgroundColor;
-            GUI.backgroundColor = color;
+            Color yellow = new Color(1f, 0.85f, 0f); // vàng nhạt
+
+            GUIStyle bigYellowFoldout = new GUIStyle(EditorStyles.foldoutHeader)
+            {
+                fontSize = 14,
+                fontStyle = FontStyle.Bold
+            };
+            bigYellowFoldout.normal.textColor = yellow;
+            bigYellowFoldout.onNormal.textColor = yellow;
+            bigYellowFoldout.focused.textColor = yellow;
+            bigYellowFoldout.onFocused.textColor = yellow;
+
+            element.isExpanded = EditorGUILayout.Foldout(
+                element.isExpanded,
+                $"[{i + 1}]: {settingName}",
+                true,
+                bigYellowFoldout
+            );
+        }
+
+        private string GetSettingName(SerializedProperty element, int index)
+        {
+            string name = element.FindPropertyRelative("name").stringValue;
+            string displayName = string.IsNullOrEmpty(name) ? $"Effect Setting {index + 1}" : name;
+            return displayName;
+        }
+
+        private void DrawSetupGroup(SerializedProperty element)
+        {
+            DrawSection("⚙ Setup", Color.white, () =>
+            {
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("name"));
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("numberOfEffects"));
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("isDrop"));
+            });
+        }
+
+        private void DrawDropGroup(SerializedProperty element)
+        {
+            DrawSection("💧 Drop", new Color(0.4f, 1f, 0.4f), () =>
+            {
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("sphereRadius"));
+                
+                // Delay Drop (Min/Max)
+                DrawMinMaxField(element.FindPropertyRelative("delayDrop"), "Delay Drop");
+
+                // Time Drop (Min/Max)
+                DrawMinMaxField(element.FindPropertyRelative("timeDrop"), "Time Drop");
+
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("typeAnimationDrop"));
+                var typeAnimDrop = (TypeAnimation)element.FindPropertyRelative("typeAnimationDrop").enumValueIndex;
+                if (typeAnimDrop == TypeAnimation.Ease)
+                    EditorGUILayout.PropertyField(element.FindPropertyRelative("easeDrop"));
+                else if (typeAnimDrop == TypeAnimation.Curve)
+                    EditorGUILayout.PropertyField(element.FindPropertyRelative("curveDrop"));
+
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("isScaleDrop"));
+                if (element.FindPropertyRelative("isScaleDrop").boolValue)
+                {
+                    DrawTwoFields(
+                        element.FindPropertyRelative("scaleDropStart"),
+                        element.FindPropertyRelative("scaleDropEnd"),
+                        "Start", "End"
+                    );
+                }
+            });
+        }
+
+        private void DrawMoveGroup(SerializedProperty element)
+        {
+            DrawSection("➡ Move", new Color(0.4f, 1f, 1f), () =>
+            {
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("typeMove"));
+                var typeMove = (TypeMove)element.FindPropertyRelative("typeMove").enumValueIndex;
+
+                switch (typeMove)
+                {
+                    case TypeMove.Path:
+                    case TypeMove.Beziers:
+                    case TypeMove.CatmullRom:
+                        EditorGUILayout.PropertyField(element.FindPropertyRelative("paths"));
+                        break;
+                    case TypeMove.Straight:
+                        DrawMinMaxField(element.FindPropertyRelative("height"), "Height");
+                        break;
+                    case TypeMove.DoJump:
+                        DrawMinMaxField(element.FindPropertyRelative("jumpPower"), "Jump Power",0);
+                        EditorGUILayout.PropertyField(element.FindPropertyRelative("jumpNumber"));
+                        break;
+                    case TypeMove.Around:
+                        DrawMinMaxField(element.FindPropertyRelative("midPointOffsetX"), "midPointOffsetX");
+                        DrawMinMaxField(element.FindPropertyRelative("midPointOffsetZ"), "midPointOffsetZ");
+                        DrawMinMaxField(element.FindPropertyRelative("height"), "Height");
+                        break;
+                    case TypeMove.Sin:
+                        EditorGUILayout.PropertyField(element.FindPropertyRelative("pointsCount"));
+                        DrawMinMaxField(element.FindPropertyRelative("height"), "Height");
+                        break;
+                }
+
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("typeAnimationMove"));
+                var typeAnimMove = (TypeAnimation)element.FindPropertyRelative("typeAnimationMove").enumValueIndex;
+                if (typeAnimMove == TypeAnimation.Ease)
+                    EditorGUILayout.PropertyField(element.FindPropertyRelative("easeMove"));
+                else if (typeAnimMove == TypeAnimation.Curve)
+                    EditorGUILayout.PropertyField(element.FindPropertyRelative("curveMove"));
+
+                // Time Move (Min/Max)
+                DrawMinMaxField(element.FindPropertyRelative("timeMove"), "Time Move");
+
+                // Delay Move (Min/Max)
+                DrawMinMaxField(element.FindPropertyRelative("delayMove"), "Delay Move");
+
+                EditorGUILayout.PropertyField(element.FindPropertyRelative("isScaleMove"));
+                if (element.FindPropertyRelative("isScaleMove").boolValue)
+                {
+                    DrawTwoFields(
+                        element.FindPropertyRelative("scaleMoveStart"),
+                        element.FindPropertyRelative("scaleMoveTarget"),
+                        "Start", "Target"
+                    );
+                }
+            });
+        } 
+
+        private void DrawSection(string title, Color color, System.Action drawContent)
+        {
+            var defaultColor = GUI.backgroundColor;
+            GUI.backgroundColor = color * 0.6f;
             EditorGUILayout.BeginVertical("box");
-            drawContent();
+            GUI.backgroundColor = defaultColor;
+            drawContent?.Invoke();
             EditorGUILayout.EndVertical();
-            GUI.backgroundColor = originalColor;
+        }
+
+        private void DrawTwoFields(SerializedProperty propA, SerializedProperty propB, string labelA, string labelB)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(propA, new GUIContent(labelA));
+            GUILayout.Space(10);
+// End
+            EditorGUILayout.LabelField(labelB, GUILayout.Width(050));
+            propB.floatValue = EditorGUILayout.FloatField(propB.floatValue);
+            EditorGUILayout.EndHorizontal();
+            
+        }
+
+        private void DrawMinMaxField(SerializedProperty property, string label, float minLimit = -1000f, float maxLimit = 1000)
+        {
+            SerializedProperty minProp = property.FindPropertyRelative("min");
+            SerializedProperty maxProp = property.FindPropertyRelative("max");
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(label, GUILayout.Width(EditorGUIUtility.labelWidth - 3));
+
+            minProp.floatValue = Mathf.Clamp(
+                EditorGUILayout.FloatField(minProp.floatValue, GUILayout.MinWidth(30)),
+                minLimit, maxLimit);
+
+            maxProp.floatValue = Mathf.Clamp(
+                EditorGUILayout.FloatField(maxProp.floatValue, GUILayout.MinWidth(30)),
+                minLimit, maxLimit);
+
+            EditorGUILayout.EndHorizontal();
         }
     }
 }
