@@ -4,6 +4,6 @@ namespace OSK
     {
         public string sceneName;
         public ELoadMode loadMode;
-        public bool autoRemove = true; // nếu false -> giữ lại khi load scene khác
+        public bool autoRemove = true;
     }
 }

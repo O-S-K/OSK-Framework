@@ -38,10 +38,17 @@ namespace OSK
         {
             get
             {
-                if (Camera.main != null) 
-                    return _cameraTransform ??= Camera.main.transform;
-                OSK.Logg.LogError("Camera.main is null");
-                return null;
+                if (_cameraTransform)
+                    return _cameraTransform;
+
+                var cam = Camera.main;
+                if (cam == null)
+                {
+                    OSK.Logg.LogError("Camera.main is null");
+                    return null;
+                }
+
+                return _cameraTransform = cam.transform;
             }
             set => _cameraTransform = value;
         }

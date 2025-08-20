@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace OSK
 {
@@ -87,6 +90,37 @@ namespace OSK
                 LogError($"Null Reference: {name}");
             }
         } 
+        
+        public static void DebugCallChain(string tag = null, string filterNamespace = "OSK")
+        {
+                if (!_isLogEnabled)
+                            return;
+                
+            var trace = new StackTrace(true); // true để lấy cả số dòng
+            var frames = trace.GetFrames();
+            if (frames == null) return;
+
+            var sb = new StringBuilder();
+            if (!string.IsNullOrEmpty(tag))
+                sb.AppendLine($"[CallChain:{tag}]");
+
+            foreach (var frame in frames)
+            {
+                var method = frame.GetMethod();
+                var declaringType = method.DeclaringType;
+                if (declaringType == null) continue;
+
+                // Chỉ lấy code của mình (theo namespace filter)
+                if (!string.IsNullOrEmpty(filterNamespace) &&
+                    !(declaringType.Namespace?.StartsWith(filterNamespace) ?? false))
+                    continue;
+
+                sb.AppendLine($" └─ {declaringType.Name}.{method.Name} (line {frame.GetFileLineNumber()})");
+            }
+
+            if (sb.Length > 0)
+                Debug.Log(sb.ToString().Size(14).Color(Color.cyan));
+        }
     }
 
     public static class ExLog

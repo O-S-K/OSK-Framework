@@ -23,5 +23,13 @@ namespace OSK
         private string toolip = "All list of views in the project. You can add remove edit info views in here.";
         [TableList, SerializeField] private List<DataViewUI> _listView = new List<DataViewUI>();
         public List<DataViewUI> Views => _listView;
+
+        public void CheckNullView()
+        {
+            foreach (var view in _listView.Where(view => view == null))
+            {
+                Logg.Log($"_listView[i] "  + view + " is null");
+            }
+        }
     }
 }

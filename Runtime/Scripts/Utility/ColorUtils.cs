@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 
 namespace OSK
@@ -189,6 +190,72 @@ namespace OSK
             string htmlColor = ColorUtility.ToHtmlStringRGBA(color);
             string result = "<color=#" + htmlColor + ">" + str + "</color>";
             return result;
+        }
+        
+        /// <summary>
+        /// Parse hex string (#RRGGBB hoặc #RRGGBBAA) thành Color.
+        /// </summary>
+        /// <param name="hex">Mã hex, ví dụ: "#C6FF3D" hoặc "C6FF3DFF"</param>
+        /// <param name="color">Trả về Color nếu thành công</param>
+        /// <returns>true nếu parse thành công, false nếu lỗi</returns>
+        public static bool TryGetColorFromHex(string hex, out Color color)
+        {
+            // Nếu null hoặc rỗng → fail
+            if (string.IsNullOrWhiteSpace(hex))
+            {
+                color = Color.white;
+                Debug.LogWarning("Hex string rỗng!");
+                return false;
+            }
+
+            // Nếu thiếu "#" thì tự thêm vào
+            if (!hex.StartsWith("#"))
+                hex = "#" + hex;
+
+            // Dùng Unity built-in parse
+            if (ColorUtility.TryParseHtmlString(hex, out color))
+            {
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning($"Hex không hợp lệ: {hex}");
+                color = Color.white;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Gán màu cho UI Image từ hex string
+        /// </summary>
+        public static void SetImageColor(Image img, string hex)
+        {
+            if (img == null) return;
+
+            if (TryGetColorFromHex(hex, out Color c))
+                img.color = c;
+        }
+
+        /// <summary>
+        /// Gán màu cho SpriteRenderer từ hex string
+        /// </summary>
+        public static void SetSpriteColor(SpriteRenderer sr, string hex)
+        {
+            if (sr == null) return;
+
+            if (TryGetColorFromHex(hex, out Color c))
+                sr.color = c;
+        }
+
+        /// <summary>
+        /// Gán màu cho Material từ hex string
+        /// </summary>
+        public static void SetMaterialColor(Material mat, string hex, string propertyName = "_Color")
+        {
+            if (mat == null) return;
+
+            if (TryGetColorFromHex(hex, out Color c) && mat.HasProperty(propertyName))
+                mat.SetColor(propertyName, c);
         }
     }
 }

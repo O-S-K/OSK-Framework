@@ -103,6 +103,61 @@ namespace OSK
             return new List<T>();
         }
         
+        // save data of type T
+        // use Main.Storage.Save<T, U>(T data, string key) to save data
+        public void Save<T>(T data, string nameData, Action onSuccess = null) where T : class, IData
+        {
+            Type type = typeof(T);
+            if (k_DataStore.TryGetValue(type, out var value))
+            {
+                Logg.Log($"Saving data of type {type}.", Color.green);
+                int index = value.IndexOf(data);
+                if (index >= 0)
+                {
+                    value[index] = data;
+                    Main.Storage.Save<JsonSystem, T>(nameData, data);
+                    onSuccess?.Invoke();
+                }
+                else
+                {
+                    Logg.LogWarning($"Data of type {type} not found in store.");
+                }
+            }
+            else
+            {
+                Logg.LogWarning($"No data store found for type {type}.");
+            }
+        }
+        
+        // Get saved data of type T
+        // use Main.Storage.Get<T, U>(string key) to get data
+        public T GetSaved<T>(string nameData) where T : class, IData
+        {
+            Type type = typeof(T);
+            if (k_DataStore.TryGetValue(type, out var value))
+            {
+                Logg.Log($"Getting saved data of type {type}.", Color.green);
+                T data = Main.Storage.Load<JsonSystem, T>(nameData);
+                if (data != null)
+                {
+                    if (!value.Contains(data))
+                    {
+                        value.Add(data);
+                    }
+                    return data;
+                }
+                else
+                {
+                    Logg.LogWarning($"No saved data found for type {type} with name {nameData}.");
+                }
+            }
+            else
+            {
+                Logg.LogWarning($"No data store found for type {type}.");
+            }
+            return null;
+        }
+        
         public void Remove<T>(T data) where T : class, IData
         {
             Type type = typeof(T);

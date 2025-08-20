@@ -5,60 +5,82 @@ using UnityEngine;
 
 namespace OSK
 {
-    public class Entity : MonoBehaviour, IEntity 
+    public class Entity : MonoBehaviour, IEntity, IUpdate, IFixedUpdate, ILateUpdate
     {
         public int ID { get; set; }
         public bool IsActive { get; set; }
 
-        public List<EComponent> components = new List<EComponent>();
+        private readonly Dictionary<System.Type, EComponent> _components = new();
 
+        #region Components
         public T Add<T>() where T : EComponent
         {
-            if (components.Any(c => c.GetType() == typeof(T)))
+            var type = typeof(T);
+            if (_components.ContainsKey(type))
             {
-                OSK.Logg.LogError("Component " + typeof(T) + " already exists");
-                return default;
+                Logg.LogError($"Component {type} already exists");
+                return null;
             }
 
             var component = gameObject.AddComponent<T>();
-            components.Add(component);
-            return component as T;
+            _components[type] = component;
+            return component;
         }
 
         public T Get<T>() where T : EComponent
         {
-            return (T)components.FirstOrDefault(c => c.GetType() == typeof(T));
+            var type = typeof(T);
+            return _components.TryGetValue(type, out var comp) ? (T)comp : null;
         }
+
         public void Remove<T>() where T : EComponent
         {
-            var component = components.FirstOrDefault(c => c.GetType() == typeof(T));
-            if (component != null)
+            var type = typeof(T);
+            if (_components.TryGetValue(type, out var comp))
             {
-                components.Remove(component);
-                Object.Destroy(component);
+                _components.Remove(type);
+                Destroy(comp);
             }
         }
 
+        #endregion
+        
+        
         public virtual void Show()
         {
+            Main.Mono.Register(this);
             gameObject.SetActive(true);
             IsActive = true;
         }
 
         public virtual void Hide()
         {
+            Main.Mono.UnRegister(this);
             gameObject.SetActive(false);
             IsActive = false;
+        }
+        
+        public virtual void Delete()
+        {
+            Main.Mono.UnRegister(this);
+            Main.Entity.Destroy(this);
+            //_components.Values.ToList().ForEach(Destroy);
+            //_components.Clear();
+            Destroy(gameObject);
         }
 
         public void SetParent(Transform parent)
         {
-            gameObject.transform.SetParent(parent);
+            transform.SetParent(parent);
         }
 
         public void SetParentNull()
         {
-            gameObject.transform.SetParent(null);
+            transform.SetParent(null);
         }
+
+        public virtual void Tick(float deltaTime){}
+        public virtual void FixedTick(float fixedDeltaTime){}
+        public virtual void LateTick(float deltaTime) {}
     }
 }

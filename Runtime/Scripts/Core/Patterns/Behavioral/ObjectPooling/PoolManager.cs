@@ -12,27 +12,14 @@ namespace OSK
 
         [SerializeReference] public Dictionary<Object, ObjectPool<Object>> k_InstanceLookup = new();
 
-        public override void OnInit()
-        {
-        }
+        public override void OnInit() {}
 
-        public void Preload(string groupName, Object prefab, Transform parent, int size)
+        public void Preload(PoolData poolData)
         {
-            WarmPool(groupName, prefab, parent, size);
-        }
-
-        public T Query<T>(string groupName, T prefab) where T : Object
-        {
-            if (k_GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
-            {
-                if (prefabPools.TryGetValue(prefab, out var pool))
-                {
-                    return pool.GetItem() as T;
-                }
-            }
-
-            return null;
-        }
+            WarmPool(poolData.GroupName, poolData.Prefab, poolData.Parent, poolData.Size);
+        } 
+        
+        #region Spawn Methods
 
         public T Spawn<T>(string groupName, T prefab, Transform parent = null) where T : Object
         {
@@ -49,8 +36,7 @@ namespace OSK
             return Spawn(groupName, prefab, parent, position, Quaternion.identity);
         }
 
-        public T Spawn<T>(string groupName, T prefab, Transform parent, Vector3 position, Quaternion rotation)
-            where T : Object
+        public T Spawn<T>(string groupName, T prefab, Transform parent, Vector3 position, Quaternion rotation) where T : Object
         {
             var instance = Spawn(groupName, prefab, parent, 1);
             if (instance is Component component)
@@ -136,15 +122,12 @@ namespace OSK
         private Object InstantiatePrefab<T>(T prefab, Transform parent) where T : Object
         {
             return prefab is GameObject go
-                ? Object.Instantiate(go, parent)
-                : Object.Instantiate((Component)(object)prefab, parent);
+                ? Instantiate(go, parent)
+                : Instantiate((Component)(object)prefab, parent);
         }
-
-        private bool IsGroupAndPrefabExist(string groupName, Object prefab)
-        {
-            return k_GroupPrefabLookup.ContainsKey(groupName) &&
-                   k_GroupPrefabLookup[groupName].ContainsKey(prefab);
-        }
+        #endregion
+        
+        #region Despawn Methods
 
         public void Despawn(Object instance)
         {
@@ -215,7 +198,7 @@ namespace OSK
             if (k_GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
             {
                 // Create a copy of the dictionary to avoid modifying it while iterating
-                foreach (var kvp in prefabPools.ToList()) 
+                foreach (var kvp in prefabPools.ToList())
                 {
                     var pool = kvp.Value;
                     pool.DestroyAndClean();
@@ -225,7 +208,7 @@ namespace OSK
                 k_GroupPrefabLookup.Remove(groupName);
             }
         }
-        
+
         public void DestroyAllGroups()
         {
             foreach (var prefabPools in k_GroupPrefabLookup.Values)
@@ -236,9 +219,10 @@ namespace OSK
                     pool.Clear();
                 }
             }
+
             k_GroupPrefabLookup.Clear();
         }
-        
+
         public void CleanAllDestroyedInPools()
         {
             foreach (var prefabPools in k_GroupPrefabLookup.Values)
@@ -249,10 +233,48 @@ namespace OSK
                 }
             }
         }
-        
+
+        #endregion
+
+        #region Query Methods
+
         public bool HasGroup(string groupName)
         {
             return k_GroupPrefabLookup.ContainsKey(groupName);
         }
+        
+        public T Query<T>(string groupName, T prefab) where T : Object
+        {
+            if (k_GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
+            {
+                if (prefabPools.TryGetValue(prefab, out var pool))
+                {
+                    return pool.GetItem() as T;
+                }
+            }
+
+            return null;
+        }
+
+        public string GetGrouFormToPrefab<T>(T prefab) where T : Object
+        {
+            foreach (var group in k_GroupPrefabLookup)
+            {
+                if (group.Value.ContainsKey(prefab))
+                {
+                    return group.Key;
+                }
+            }
+
+            return null;
+        }
+        
+        private bool IsGroupAndPrefabExist(string groupName, Object prefab)
+        {
+            return k_GroupPrefabLookup.ContainsKey(groupName) &&
+                   k_GroupPrefabLookup[groupName].ContainsKey(prefab);
+        }
+
+        #endregion
     }
 }

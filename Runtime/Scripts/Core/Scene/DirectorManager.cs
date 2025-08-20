@@ -100,6 +100,7 @@ namespace OSK
             // Nếu load mode là Single => clear những scene cũ nhưng giữ lại additive có autoRemove = false
             bool isSingleLoad = Array.Exists(scenes, s => s.loadMode == ELoadMode.Single);
 
+            // Nếu scene hiện tại đang là Single và có scene mới load => unload scene hiện tại
             if (isSingleLoad)
             {
                 List<string> scenesToRemove = new List<string>();

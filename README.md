@@ -10,6 +10,9 @@ The **OSK Framework** is a modular Unity framework designed to streamline game d
 - Remove SO Config and Module create on Main
 - Fixbug sound, ui
 
+**version 2.4.0
+- Remove State, DI, Network, Native GameFrameworkComponent
+- Fixbug
 ---
 
 ## **🌟 Key Features**
@@ -20,24 +23,21 @@ The **OSK Framework** is a modular Unity framework designed to streamline game d
 2. [**ServiceLocatorManager**]: Provides a service locator pattern for dependency resolution.  
 3. [**ObserverManager**]: Implements the Observer Pattern for decoupled event-driven communication.  
 4. [**EventBusManager**]: Facilitates event broadcasting and subscription across systems.  
-5. [**FSMManager**]: Manages Finite State Machines for state-driven behaviors.  
-6. [**PoolManager**]: Efficiently handles object pooling to improve memory usage and performance.  
-7. [**CommandManager**]: Supports command pattern for undoable actions and player input recording.  
-8. [**DirectorManager**]: Manages smooth scene transitions and scene-specific logic.  
-9. [**ResourceManager**]: Handles resource loading, caching, and unloading.  
-10. [**StorageManager**]: Provides mechanisms for saving and loading persistent data.  
-11. [**DataManager**]: Manages runtime and persistent game data.  
-12. [**NetworkManager**]: Handles networking, multiplayer, and server communication.  
-13. [**WebRequestManager**](: Simplifies making HTTP requests and processing responses.  
-14. [**GameConfigsManager**]: Centralized management of game configuration settings.  
-15. [**UIManager**]: Manages UI screens, transitions, and dynamic content.  
-16. [**SoundManager**]: Controls background music, sound effects, and audio events.  
-17. [**LocalizationManager**]: Handles multi-language support and localization.  
-18. [**EntityManager**]: Manages game entities and their lifecycle.  
-19. [**TimeManager**]: Provides advanced time tracking, countdowns, and scheduling.  
-20. [**NativeManager**]: Supports platform-specific features like vibration, GPS, and notifications.  
-21. [**BlackboardManager**]: Facilitates shared data storage for AI and gameplay logic.  
-22. [**ProcedureManager**]: Manages game procedures and workflows for structured gameplay logic.  
+5. [**PoolManager**]: Efficiently handles object pooling to improve memory usage and performance.  
+6. [**CommandManager**]: Supports command pattern for undoable actions and player input recording.  
+7. [**DirectorManager**]: Manages smooth scene transitions and scene-specific logic.  
+8. [**ResourceManager**]: Handles resource loading, caching, and unloading.  
+9. [**StorageManager**]: Provides mechanisms for saving and loading persistent data.  
+10. [**DataManager**]: Manages runtime and persistent game data.    
+11. [**WebRequestManager**](: Simplifies making HTTP requests and processing responses.  
+12. [**GameConfigsManager**]: Centralized management of game configuration settings.  
+13. [**UIManager**]: Manages UI screens, transitions, and dynamic content.  
+14. [**SoundManager**]: Controls background music, sound effects, and audio events.  
+15. [**LocalizationManager**]: Handles multi-language support and localization.  
+16. [**EntityManager**]: Manages game entities and their lifecycle.  
+17. [**TimeManager**]: Provides advanced time tracking, countdowns, and scheduling.  
+18. [**BlackboardManager**]: Facilitates shared data storage for AI and gameplay logic.  
+19. [**ProcedureManager**]: Manages game procedures and workflows for structured gameplay logic.  
  
 
 

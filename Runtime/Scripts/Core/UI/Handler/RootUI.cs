@@ -103,6 +103,7 @@ namespace OSK
             var data = Main.Instance.configInit.data;
             if (data.listViewS0 != null)
             {
+                data.listViewS0.CheckNullView();
                 Preload();
             }
 
@@ -159,7 +160,7 @@ namespace OSK
                 Logg.LogError("[View] is null", isLog: enableLog);
                 return;
             }
-
+ 
             _listViewInit.Clear();
             _listViewInit = listUIPopupSo.Select(view => view.view).ToList();
 

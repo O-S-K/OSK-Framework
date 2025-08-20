@@ -11,7 +11,7 @@ namespace OSK
 
         protected virtual void OnDisable()
         {
-            Main.Mono.Unregister(this);
+            Main.Mono.UnRegister(this);
         }
     }
 

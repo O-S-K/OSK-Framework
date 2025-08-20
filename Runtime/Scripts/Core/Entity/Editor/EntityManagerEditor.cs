@@ -8,14 +8,6 @@ namespace OSK
     [CustomEditor(typeof(EntityManager))]
     public class EntityManagerEditor : Editor
     {
-        private bool[] entityVisibility;
-
-        private  void OnEnable()
-        {
-            var manager = (EntityManager)target;
-            entityVisibility = new bool[manager.GetAll().Count];
-        }
-
         public override void OnInspectorGUI()
         {
             var manager = (EntityManager)target;

@@ -1,6 +1,6 @@
 {
   "name": "com.osk.osk-framework",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "displayName": "OSK-Framework",
   "description": "This framework provides a structured, reusable foundation for managing various game systems efficiently. The flexibility and modularity of the framework ensure that it can be tailored to different game genres and requirements.",
   "author": "QuyLe", 

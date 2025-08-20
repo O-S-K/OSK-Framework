@@ -12,7 +12,6 @@ namespace OSK
         private readonly List<Action> _toMainThreads = new();
         private volatile bool _isToMainThreadQueueEmpty = true;
         private List<Action> _localToMainThreads = new();
-
         internal event Action<bool> OnGamePause= null;
         internal event Action OnGameQuit = null;
 
@@ -61,7 +60,8 @@ namespace OSK
         {
             foreach (var obj in FindObjectsOfType<MonoBehaviour>())
             {
-                if (obj?.GetType().GetCustomAttribute<AutoRegisterUpdateAttribute>() == null) return;
+                if (obj?.GetType().GetCustomAttribute<AutoRegisterUpdateAttribute>() == null) 
+                    continue; 
                 Register(obj);
             }
         }
@@ -77,7 +77,7 @@ namespace OSK
             }
         }
 
-        public void Unregister(object obj)
+        public void UnRegister(object obj)
         {
             if (obj is IUpdate tick) tickProcesses.Remove(tick);
             else if (obj is IFixedUpdate fixedTick) fixedTickProcesses.Remove(fixedTick);
@@ -90,9 +90,9 @@ namespace OSK
          
         public void RemoveAllTickProcess()
         {
-            tickProcesses.Clear();
-            fixedTickProcesses.Clear();
-            lateTickProcesses.Clear();
+            tickProcesses?.Clear();
+            fixedTickProcesses?.Clear();
+            lateTickProcesses?.Clear();
         }
 
         #endregion
