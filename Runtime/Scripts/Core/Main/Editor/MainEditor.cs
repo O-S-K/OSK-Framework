@@ -19,10 +19,10 @@ namespace OSK
                 CreateConfig();
             }
 
-			if (GUILayout.Button("Update Framewrok"))
+			if (GUILayout.Button("Open Link Github"))
             {
-				ReimportPackage();
-             }
+                Application.OpenURL("https://github.com/O-S-K/OSK-Framework");
+            }
         }
 
 
@@ -67,14 +67,6 @@ namespace OSK
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
-        
-        [MenuItem("Tools/Force Reimport Package")]
-            public static void ReimportPackage()
-            {
-                string path = "Packages/com.osk.osk-framework";
-                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-                Debug.Log("Package reimported: " + path);
-            }
     }
     
 }
