@@ -60,7 +60,8 @@ namespace OSK.Framework.Editor
             selectedPackages.Clear();
             installedVersions.Clear();
 
-            manifestPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Packages", "manifest.json");
+            manifestPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Packages",
+                "manifest.json");
             if (!File.Exists(manifestPath))
             {
                 Debug.LogError("OSK Package Installer: Cannot find manifest.json!");
@@ -81,7 +82,8 @@ namespace OSK.Framework.Editor
                     string pattern = $"\"{Regex.Escape(url)}(@([^\"]+))?\"";
                     var match = Regex.Match(manifestContent, pattern);
 
-                    installedVersions[pkgName] = match.Success && match.Groups.Count > 2 ? match.Groups[2].Value : "latest";
+                    installedVersions[pkgName] =
+                        match.Success && match.Groups.Count > 2 ? match.Groups[2].Value : "latest";
                 }
                 else
                 {
@@ -106,8 +108,11 @@ namespace OSK.Framework.Editor
             {
                 foreach (var pkg in RequiredPackages)
                 {
-                    string version = installedVersions.ContainsKey(pkg.Key) ? installedVersions[pkg.Key] : "<Not Installed>";
-                    GUILayout.Label($"• {pkg.Key}  →  <b>{version}</b>", new GUIStyle(EditorStyles.label) { richText = true });
+                    string version = installedVersions.ContainsKey(pkg.Key)
+                        ? installedVersions[pkg.Key]
+                        : "<Not Installed>";
+                    GUILayout.Label($"• {pkg.Key}  →  <b>{version}</b>",
+                        new GUIStyle(EditorStyles.label) { richText = true });
                 }
             }
 
@@ -128,8 +133,12 @@ namespace OSK.Framework.Editor
                 GUILayout.Space(5);
 
                 EditorGUILayout.BeginHorizontal();
-                if (GUILayout.Button("Select All")) foreach (var pkg in missingPackages) selectedPackages[pkg] = true;
-                if (GUILayout.Button("Deselect All")) foreach (var pkg in missingPackages) selectedPackages[pkg] = false;
+                if (GUILayout.Button("Select All"))
+                    foreach (var pkg in missingPackages)
+                        selectedPackages[pkg] = true;
+                if (GUILayout.Button("Deselect All"))
+                    foreach (var pkg in missingPackages)
+                        selectedPackages[pkg] = false;
                 EditorGUILayout.EndHorizontal();
 
                 GUILayout.Space(10);
@@ -158,13 +167,19 @@ namespace OSK.Framework.Editor
                 installQueue.Enqueue(("Custom", customGitUrl));
                 InstallNextPackage();
             }
+
             GUI.enabled = true;
 
             GUILayout.Space(15);
 
-            if (GUILayout.Button("🔄 Refresh Status", GUILayout.Height(25)))
+            if (GUILayout.Button("Refresh Status", GUILayout.Height(25)))
             {
                 RefreshPackageStatus();
+            }
+
+            if (GUILayout.Button("Open Manifest File", GUILayout.Height(25)))
+            {
+                EditorUtility.RevealInFinder(manifestPath);
             }
         }
 
@@ -183,7 +198,8 @@ namespace OSK.Framework.Editor
         {
             if (installQueue.Count == 0)
             {
-                Debug.Log("<color=green>OSK Package Installer: All selected packages have been installed or updated!</color>");
+                Debug.Log(
+                    "<color=green>OSK Package Installer: All selected packages have been installed or updated!</color>");
                 RefreshPackageStatus();
                 return;
             }
@@ -201,7 +217,8 @@ namespace OSK.Framework.Editor
 
             if (addRequest.Status == StatusCode.Success)
             {
-                Debug.Log($"<color=cyan>OSK Package Installer: Successfully installed/updated:</color> {addRequest.Result.packageId}");
+                Debug.Log(
+                    $"<color=cyan>OSK Package Installer: Successfully installed/updated:</color> {addRequest.Result.packageId}");
             }
             else if (addRequest.Status >= StatusCode.Failure)
             {
