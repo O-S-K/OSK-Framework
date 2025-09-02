@@ -6,9 +6,7 @@
     "author": "QuyLe",
     "unity": "2022.3",
     "hideInEditor": false,
-    "dependencies": {
-        "com.demigiant.dotween": "https://github.com/O-S-K/DOTween.git#1.2.765",
-        "com.unity.nuget.newtonsoft-json": "3.2.1"
+    "dependencies": { 
     }
      
 }
