@@ -6,12 +6,7 @@
     "author": "QuyLe",
     "unity": "2022.3",
     "hideInEditor": false,
-    "dependencies": {
-        "com.demigiant.dotween": "1.2.765",
-        "com.unity.nuget.newtonsoft-json": "3.2.1",
-        "com.osk.uifeel": "https://github.com/O-S-K/UIFeel.git",
-        "com.osk.uiparticle": "https://github.com/O-S-K/OSK-UIParticle.git",
-        "com.osk.observable": "https://github.com/O-S-K/OSK-Observable.git"
+    "dependencies": { 
     }
      
 }
