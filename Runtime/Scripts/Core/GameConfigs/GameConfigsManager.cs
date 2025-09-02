@@ -46,17 +46,5 @@ namespace OSK
             PlayerPrefs.SetString(key, currentVersion);
             PlayerPrefs.Save();
         }
-
-        public string GetUrlAppstore => "https://apps.apple.com/app/id" + init.appstoreID;
-        public string GetUrlGooglePlay => "https://play.google.com/store/apps/details?id=" + init.googlePlayID;
-
-        public void GetLinkURL()
-        {
-#if UNITY_ANDROID
-            Application.OpenURL(GetUrlGooglePlay);
-#elif UNITY_IOS
-            Application.OpenURL(GetUrlAppstore);
-#endif
-        }
     }
 }

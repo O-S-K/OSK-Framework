@@ -25,12 +25,12 @@ namespace OSK
 
         private void Awake()
         {
-            if (Main.Observer) Main.Observer.Add(KeyObserver.KEY_SOUND_EVENT, Play);
+            if (Main.Observer) Main.Observer.Add(KEY_OBSERVER.KEY_SOUND_EVENT, Play);
         }
 
         private void OnDestroy()
         {
-            if (Main.Observer) Main.Observer.Remove(KeyObserver.KEY_SOUND_EVENT, Play);
+            if (Main.Observer) Main.Observer.Remove(KEY_OBSERVER.KEY_SOUND_EVENT, Play);
         }
 
         public void Play(object data)

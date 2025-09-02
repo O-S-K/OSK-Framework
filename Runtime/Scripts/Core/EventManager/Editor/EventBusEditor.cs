@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
+using UnityEngine;
 
 namespace OSK
 {
@@ -11,45 +12,216 @@ namespace OSK
     {
         private EventBusManager _eventBusManager;
 
+        private FieldInfo _syncSubscribersField;
+        private FieldInfo _asyncSubscribersField;
+        private FieldInfo _lastEventsField;
+
+        private bool _showSync = true;
+        private bool _showAsync = true;
+        private bool _showLastEvents = true;
+
+        private string _testEventTypeName = "";
+
         private void OnEnable()
         {
             _eventBusManager = (EventBusManager)target;
+
+            var type = typeof(EventBusManager);
+            _syncSubscribersField = type.GetField("syncSubscribers", BindingFlags.NonPublic | BindingFlags.Instance);
+            _asyncSubscribersField = type.GetField("asyncSubscribers", BindingFlags.NonPublic | BindingFlags.Instance);
+            _lastEventsField = type.GetField("lastEvents", BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("=== Event Bus Debug Tool ===", EditorStyles.boldLabel);
+
+            DrawDebugButtons();
+
+            _showSync = EditorGUILayout.Foldout(_showSync, "Sync Subscribers");
+            if (_showSync)
+                DisplaySubscribers(_syncSubscribersField);
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Registered Event Listeners", EditorStyles.boldLabel);
-            DisplayEventListeners();
+            _showAsync = EditorGUILayout.Foldout(_showAsync, "Async Subscribers");
+            if (_showAsync)
+                DisplaySubscribers(_asyncSubscribersField);
+
+            EditorGUILayout.Space();
+            _showLastEvents = EditorGUILayout.Foldout(_showLastEvents, "Last Published Events");
+            if (_showLastEvents)
+                DisplayLastEvents();
+
+            EditorGUILayout.Space();
+            DrawTestEventPublisher();
         }
 
-        private void DisplayEventListeners()
-        {
-            var eventField = typeof(EventBusManager).GetField("k_Subscribers", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (eventField != null)
-            {
-                var subscribers = eventField.GetValue(_eventBusManager) as Dictionary<Type, List<Action<GameEvent>>>;
+        #region --- Subscribers Display ---
 
-                if (subscribers != null && subscribers.Count > 0)
+        private void DisplaySubscribers(FieldInfo field)
+        {
+            var subscribers = field.GetValue(_eventBusManager) as Dictionary<Type, List<Delegate>>;
+            if (subscribers == null || subscribers.Count == 0)
+            {
+                EditorGUILayout.LabelField("    No registered listeners", EditorStyles.miniLabel);
+                return;
+            }
+
+            foreach (var kvp in subscribers)
+            {
+                Type eventType = kvp.Key;
+                List<Delegate> handlers = kvp.Value;
+
+                EditorGUILayout.BeginVertical("box");
+                EditorGUILayout.LabelField($"{eventType.Name}  ({handlers.Count} listeners)", EditorStyles.boldLabel);
+
+                foreach (var handler in handlers)
                 {
-                    EditorGUILayout.LabelField($"Event List: {subscribers.Count}", EditorStyles.boldLabel);
-                    foreach (var subscriber in subscribers)
+                    if (handler == null) continue;
+
+                    string methodName = handler.Method.Name;
+                    string declaringType = handler.Method.DeclaringType != null
+                        ? handler.Method.DeclaringType.FullName
+                        : "Unknown";
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField($"- {declaringType}.{methodName}", EditorStyles.miniLabel);
+
+                    // Nút "Ping" để highlight object nếu callback thuộc một MonoBehaviour
+                    if (handler.Target is UnityEngine.Object unityObj)
                     {
-                        EditorGUILayout.LabelField($".     {subscriber.Key.Name}", EditorStyles.boldLabel);
-                        // foreach (var callback in subscriber.Value)
-                        // {
-                        //     EditorGUILayout.LabelField($"- Callback: {callback.Method.Name}", EditorStyles.label);
-                        // }
+                        if (GUILayout.Button("Ping", GUILayout.Width(45)))
+                            EditorGUIUtility.PingObject(unityObj);
                     }
+
+                    EditorGUILayout.EndHorizontal();
                 }
-                else
+
+                EditorGUILayout.EndVertical();
+            }
+        }
+
+        #endregion
+
+        #region --- Last Events ---
+
+        private void DisplayLastEvents()
+        {
+            var lastEvents = _lastEventsField.GetValue(_eventBusManager) as Dictionary<Type, GameEvent>;
+
+            if (lastEvents == null || lastEvents.Count == 0)
+            {
+                EditorGUILayout.LabelField("    No events published yet", EditorStyles.miniLabel);
+                return;
+            }
+
+            foreach (var kvp in lastEvents)
+            {
+                Type eventType = kvp.Key;
+                var gameEvent = kvp.Value;
+
+                EditorGUILayout.BeginVertical("box");
+                EditorGUILayout.LabelField($"{eventType.Name}", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"Last Event: {gameEvent}", EditorStyles.miniLabel);
+                EditorGUILayout.EndVertical();
+            }
+        }
+
+        #endregion
+
+        #region --- Debug Buttons ---
+
+        private void DrawDebugButtons()
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            if (GUILayout.Button("Clear Sync"))
+            {
+                ClearDictionary(_syncSubscribersField);
+            }
+
+            if (GUILayout.Button("Clear Async"))
+            {
+                ClearDictionary(_asyncSubscribersField);
+            }
+
+            if (GUILayout.Button("Clear All"))
+            {
+                ClearDictionary(_syncSubscribersField);
+                ClearDictionary(_asyncSubscribersField);
+            }
+
+            if (GUILayout.Button("Clear Last Events"))
+            {
+                ClearDictionary(_lastEventsField);
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void ClearDictionary(FieldInfo field)
+        {
+            var dict = field.GetValue(_eventBusManager) as System.Collections.IDictionary;
+            dict?.Clear();
+            EditorUtility.SetDirty(_eventBusManager);
+        }
+
+        #endregion
+
+        #region --- Test Publisher ---
+
+        private void DrawTestEventPublisher()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Test Event Publisher", EditorStyles.boldLabel);
+
+            _testEventTypeName = EditorGUILayout.TextField("Event Type Name", _testEventTypeName);
+
+            if (GUILayout.Button("Publish Test Event"))
+            {
+                if (string.IsNullOrEmpty(_testEventTypeName))
                 {
-                    EditorGUILayout.LabelField("No registered listeners", EditorStyles.label);
+                    Debug.LogWarning("[EventBusEditor] Event type name is empty!");
+                    return;
+                }
+
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                Type eventType = null;
+                foreach (var asm in assemblies)
+                {
+                    eventType = asm.GetType(_testEventTypeName);
+                    if (eventType != null) break;
+                }
+
+                if (eventType == null)
+                {
+                    Debug.LogError($"[EventBusEditor] Event type '{_testEventTypeName}' not found!");
+                    return;
+                }
+
+                if (!typeof(GameEvent).IsAssignableFrom(eventType))
+                {
+                    Debug.LogError($"[EventBusEditor] Type '{_testEventTypeName}' is not a GameEvent!");
+                    return;
+                }
+
+                try
+                {
+                    var instance = Activator.CreateInstance(eventType) as GameEvent;
+                    var method = typeof(EventBusManager).GetMethod("Publish")?.MakeGenericMethod(eventType);
+                    method?.Invoke(_eventBusManager, new object[] { instance });
+                    Debug.Log($"[EventBusEditor] Published test event: {eventType.Name}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[EventBusEditor] Failed to publish test event: {ex}");
                 }
             }
         }
+
+        #endregion
     }
 }
 #endif

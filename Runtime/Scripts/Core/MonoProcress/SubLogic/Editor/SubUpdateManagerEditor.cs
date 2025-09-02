@@ -21,7 +21,7 @@ namespace OSK
             }
             else
             {
-                Logg.Log($"[Editor] ❌ {target.GetType().Name} does NOT implement IHasSubUpdateContainer");
+                    Logg.Log($"[Editor] ❌ {target.GetType().Name} does NOT implement IHasSubUpdateContainer");
             }
             
             EditorApplication.delayCall += () =>

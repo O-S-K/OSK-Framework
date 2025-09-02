@@ -38,10 +38,10 @@ namespace OSK
             AddPackage("https://github.com/O-S-K/UIFeel.git");
         }
 
-        [MenuItem("OSK-Framework/Install Dependencies/DevConsole", false,4)]
+        [MenuItem("OSK-Framework/Install Dependencies/UIParticle", false,4)]
         public static void InstallDependenciesDevConsole()
         {
-            AddPackage("https://github.com/O-S-K/DevConsole.git");
+            AddPackage("https://github.com/O-S-K/OSK-UIParticle.git");
         }
 
         [MenuItem("OSK-Framework/Install Dependencies/Observable", false,4)]
@@ -60,44 +60,6 @@ namespace OSK
         public static void LoadListSound()
         {
             FindSoundSOAssets();
-        }
-
-        [MenuItem("OSK-Framework/SO Files/List UIParticle")]
-        public static void LoadListUIParticle()
-        {
-            FindDataImageEffectAssets();
-        }
-
-        private static void FindDataImageEffectAssets()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:UIParticleSO");
-            if (guids.Length == 0)
-            {
-                Logg.LogError("No UIParticleSO found in the project.");
-                return;
-            }
-
-            List<UIParticleSO> imageEffectDatas = new List<UIParticleSO>();
-            foreach (var guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                UIParticleSO v = AssetDatabase.LoadAssetAtPath<UIParticleSO>(path);
-                imageEffectDatas.Add(v);
-            }
-
-            if (imageEffectDatas.Count == 0)
-            {
-                Logg.LogError("No UIParticleSO found in the project.");
-            }
-            else
-            {
-                foreach (UIParticleSO v in imageEffectDatas)
-                {
-                    Logg.Log("UIParticleSO found: " + v.name);
-                    Selection.activeObject = v;
-                    EditorGUIUtility.PingObject(v);
-                }
-            }
         }
 
         private static void FindViewDataSOAssets()
@@ -170,6 +132,7 @@ namespace OSK
             UnityEditor.PackageManager.Client.Add(packageName);
             UnityEditor.EditorUtility.DisplayDialog("OSK-Framework", "Package added successfully", "OK");
             UnityEditor.AssetDatabase.Refresh();
+            UnityEditor.PackageManager.Client.Resolve();
         }
 
         private static void UpdatePackage(string packageName)

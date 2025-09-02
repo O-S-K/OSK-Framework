@@ -5,7 +5,7 @@ namespace OSK
     [System.Serializable]
     public class PoolData
     {
-        public string GroupName = KeyGroupPool.KEY_POOL_CONTAINER;
+        public string GroupName = KEY_POOL.KEY_POOL_DEFAULT_CONTAINER;
         public Object Prefab;
         public Transform Parent = null;
         public int Size = 10;

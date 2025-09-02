@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,7 +23,6 @@ namespace OSK
             using var cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write);
             cs.Write(data);
             cs.FlushFinalBlock();
-
             return ms.ToArray();
         }
 
@@ -43,6 +43,72 @@ namespace OSK
 
             return rs.ToArray();
         }
+        
+        
+
+        #region AES Encryption / Decryption
+
+        public static string Encryption(string plainText)
+        {
+            if (string.IsNullOrEmpty(plainText))
+                return "";
+            byte[] keyBytes = Encoding.UTF8.GetBytes(IOUtility.encryptKey.Substring(0, 16));
+            byte[] iv = keyBytes;
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = keyBytes;
+                aes.IV = iv;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+
+                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+                byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
+                byte[] encrypted = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
+                return Convert.ToBase64String(encrypted);
+            }
+        }
+
+        public static string Decryption(string cipherText)
+        {
+            if (string.IsNullOrEmpty(cipherText))
+                return "";
+            try
+            {
+                // if the string is not in base64 format, return it as is
+                if (!IsBase64String(cipherText))
+                    return cipherText;
+
+                byte[] keyBytes = Encoding.UTF8.GetBytes(IOUtility.encryptKey.Substring(0, 16));
+                byte[] iv = keyBytes;
+
+                using (Aes aes = Aes.Create())
+                {
+                    aes.Key = keyBytes;
+                    aes.IV = iv;
+                    aes.Mode = CipherMode.CBC;
+                    aes.Padding = PaddingMode.PKCS7;
+
+                    ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+                    byte[] cipherBytes = Convert.FromBase64String(cipherText);
+                    byte[] decrypted = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
+                    return Encoding.UTF8.GetString(decrypted);
+                }
+            }
+            catch (Exception)
+            {
+                // if decryption fails, return the original cipherText
+                return cipherText;
+            }
+        }
+ 
+        // check string have base64 format
+        private static bool IsBase64String(string s)
+        {
+            Span<byte> buffer = new Span<byte>(new byte[s.Length]);
+            return Convert.TryFromBase64String(s, buffer, out _);
+        }
+        #endregion
 
         public static async Task<byte[]> EncryptAsync(byte[] data, string key)
         {

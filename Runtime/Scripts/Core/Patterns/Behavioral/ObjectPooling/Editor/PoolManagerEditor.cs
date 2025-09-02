@@ -23,7 +23,7 @@ namespace OSK
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Object Pool Hierarchy", EditorStyles.boldLabel);
 
-            if (poolManager.k_GroupPrefabLookup.Count > 0)
+            if (poolManager.GroupPrefabLookup.Count > 0)
             {
                 DisplayGroupedPools();
             }
@@ -44,7 +44,7 @@ namespace OSK
             Dictionary<string, Dictionary<string, int>> groupPrefabCounts = new Dictionary<string, Dictionary<string, int>>();
 
             // Gather prefab counts by group and name
-            foreach (var groupEntry in poolManager.k_GroupPrefabLookup)
+            foreach (var groupEntry in poolManager.GroupPrefabLookup)
             {
                 string groupName = groupEntry.Key;
                 Dictionary<Object, ObjectPool<Object>> prefabPools = groupEntry.Value;

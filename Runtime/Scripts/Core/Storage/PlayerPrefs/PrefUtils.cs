@@ -1,290 +1,96 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+
 namespace OSK
 {
-    // https://github.com/herbou/UnityPlayerPrefsExtra
-    // Vectors, Colors, Quaternions, Lists, and Your Pre defined types (Object) [classes or structs].
-    public class PrefUtils
+    public static class PrefUtils
     {
-        #region Int -----------------------------------------------------------------------------------------
+        // ---------- Bool ----------
+        public static void SetBool(string key, bool value) => PlayerPrefs.SetInt(key, value ? 1 : 0);
+        public static bool GetBool(string key, bool defaultValue = false) => PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) == 1;
 
-        public static int GetInt(string key)
+        // ---------- Float ----------
+        public static void SetFloat(string key, float value) => PlayerPrefs.SetFloat(key, value);
+        public static float GetFloat(string key, float defaultValue = 0f) => PlayerPrefs.GetFloat(key, defaultValue);
+
+        // ---------- Int ----------
+        public static void SetInt(string key, int value) => PlayerPrefs.SetInt(key, value);
+        public static int GetInt(string key, int defaultValue = 0) => PlayerPrefs.GetInt(key, defaultValue);
+
+        // ---------- String ----------
+        public static void SetString(string key, string value) => PlayerPrefs.SetString(key, value);
+        public static string GetString(string key, string defaultValue = "") => PlayerPrefs.GetString(key, defaultValue);
+
+        // ---------- Vector2 ----------
+        public static void SetVector2(string key, Vector2 v) => SetString(key, JsonUtility.ToJson(v,false));
+        public static Vector2 GetVector2(string key, Vector2 defaultValue = default)
         {
-            return PlayerPrefs.GetInt(key, 0);
+            string json = GetString(key,null);
+            return string.IsNullOrEmpty(json) ? defaultValue : JsonUtility.FromJson<Vector2>(json);
         }
 
-        public static int GetInt(string key, int defaultValue)
+        // ---------- Vector3 ----------
+        public static void SetVector3(string key, Vector3 v) => SetString(key, JsonUtility.ToJson(v,false));
+        public static Vector3 GetVector3(string key, Vector3 defaultValue = default)
         {
-            return PlayerPrefs.GetInt(key, defaultValue);
+            string json = GetString(key,null);
+            return string.IsNullOrEmpty(json) ? defaultValue : JsonUtility.FromJson<Vector3>(json);
         }
 
-        public static void SetInt(string key, int value)
+        // ---------- Quaternion ----------
+        public static void SetQuaternion(string key, Quaternion q) => SetString(key, JsonUtility.ToJson(q,false));
+        public static Quaternion GetQuaternion(string key, Quaternion defaultValue = default)
         {
-            PlayerPrefs.SetInt(key, value);
+            string json = GetString(key,null);
+            return string.IsNullOrEmpty(json) ? defaultValue : JsonUtility.FromJson<Quaternion>(json);
         }
 
-        #endregion
-
-        #region Float -----------------------------------------------------------------------------------------
-
-        public static float GetFloat(string key)
+        // ---------- Color ----------
+        public static void SetColor(string key, Color c) => SetString(key, JsonUtility.ToJson(c,false));
+        public static Color GetColor(string key, Color defaultValue = default)
         {
-            return PlayerPrefs.GetFloat(key, 0f);
+            string json = GetString(key,null);
+            return string.IsNullOrEmpty(json) ? defaultValue : JsonUtility.FromJson<Color>(json);
         }
 
-        public static float GetFloat(string key, float defaultValue)
+        // ---------- List<T> ----------
+        [System.Serializable] private class ListWrapper<T> { public List<T> list; }
+        public static void SetList<T>(string key, List<T> list)
         {
-            return PlayerPrefs.GetFloat(key, defaultValue);
+            var wrapper = new ListWrapper<T> { list = list };
+            SetString(key, JsonUtility.ToJson(wrapper,false));
         }
-
-        public static void SetFloat(string key, float value)
-        {
-            PlayerPrefs.SetFloat(key, value);
-        }
-
-        #endregion
-
-        #region String -----------------------------------------------------------------------------------------
-
-        public static string GetString(string key)
-        {
-            return PlayerPrefs.GetString(key, "");
-        }
-
-        public static string GetString(string key, string defaultValue)
-        {
-            return PlayerPrefs.GetString(key, defaultValue);
-        }
-
-        public static void SetString(string key, string value)
-        {
-            PlayerPrefs.SetString(key, value);
-        }
-
-        #endregion
-
-        #region Bool -----------------------------------------------------------------------------------------
-
-        public static bool GetBool(string key)
-        {
-            return (PlayerPrefs.GetInt(key, 0) == 1);
-        }
-
-        public static bool GetBool(string key, bool defaultValue)
-        {
-            return (PlayerPrefs.GetInt(key, (defaultValue ? 1 : 0)) == 1);
-        }
-
-        public static void SetBool(string key, bool value)
-        {
-            PlayerPrefs.SetInt(key, (value ? 1 : 0));
-        }
-
-        #endregion
-
-        #region Vector 2 -----------------------------------------------------------------------------------------
-
-        public static Vector2 GetVector2(string key)
-        {
-            return Get<Vector2>(key, Vector2.zero);
-        }
-
-        public static Vector2 GetVector2(string key, Vector2 defaultValue)
-        {
-            return Get<Vector2>(key, defaultValue);
-        }
-
-        public static void SetVector2(string key, Vector2 value)
-        {
-            Set(key, value);
-        }
-
-        #endregion
-
-        #region Vector 3 -----------------------------------------------------------------------------------------
-
-        public static Vector3 GetVector3(string key)
-        {
-            return Get<Vector3>(key, Vector3.zero);
-        }
-
-        public static Vector3 GetVector3(string key, Vector3 defaultValue)
-        {
-            return Get<Vector3>(key, defaultValue);
-        }
-
-        public static void SetVector3(string key, Vector3 value)
-        {
-            Set(key, value);
-        }
-
-        #endregion
-
-        #region Vector 4 -----------------------------------------------------------------------------------------
-
-        public static Vector4 GetVector4(string key)
-        {
-            return Get<Vector4>(key, Vector4.zero);
-        }
-
-        public static Vector4 GetVector4(string key, Vector4 defaultValue)
-        {
-            return Get<Vector4>(key, defaultValue);
-        }
-
-        public static void SetVector4(string key, Vector4 value)
-        {
-            Set(key, value);
-        }
-
-        #endregion
-
-        #region Color -----------------------------------------------------------------------------------------
-
-        public static Color GetColor(string key)
-        {
-            return Get<Color>(key, new Color(0f, 0f, 0f, 0f));
-        }
-
-        public static Color GetColor(string key, Color defaultValue)
-        {
-            return Get<Color>(key, defaultValue);
-        }
-
-        public static void SetColor(string key, Color value)
-        {
-            Set(key, value);
-        }
-
-        #endregion
-
-        #region Quaternion -----------------------------------------------------------------------------------------
-
-        public static Quaternion GetQuaternion(string key)
-        {
-            return Get<Quaternion>(key, Quaternion.identity);
-        }
-
-        public static Quaternion GetQuaternion(string key, Quaternion defaultValue)
-        {
-            return Get<Quaternion>(key, defaultValue);
-        }
-
-        public static void SetQuaternion(string key, Quaternion value)
-        {
-            Set(key, value);
-        }
-
-        #endregion
-
-        #region List -----------------------------------------------------------------------------------------
-
-        public class ListWrapper<T>
-        {
-            public List<T> list = new List<T>();
-        }
-
         public static List<T> GetList<T>(string key)
         {
-            return Get<ListWrapper<T>>(key, new ListWrapper<T>()).list;
+            string json = GetString(key,null);
+            if(string.IsNullOrEmpty(json)) return new List<T>();
+            return JsonUtility.FromJson<ListWrapper<T>>(json).list;
         }
 
-        public static List<T> GetList<T>(string key, List<T> defaultValue)
+        // ---------- Dictionary<string,int> ----------
+        [System.Serializable] private class DictWrapper
         {
-            return Get<ListWrapper<T>>(key, new ListWrapper<T> { list = defaultValue }).list;
+            public List<string> keys;
+            public List<int> values;
         }
-
-        public static Dictionary<string, T> GetDictionary<T>(string key)
+        public static void SetDictionary(string key, Dictionary<string,int> dict)
         {
-            return Get<ListWrapper<T>>(key, new ListWrapper<T>()).list.ToDictionary(x => x.ToString());
+            var wrapper = new DictWrapper { keys = new List<string>(), values = new List<int>() };
+            foreach(var kv in dict) { wrapper.keys.Add(kv.Key); wrapper.values.Add(kv.Value); }
+            SetString(key, JsonUtility.ToJson(wrapper,false));
         }
-
-        public static void SetList<T>(string key, List<T> value)
+        public static Dictionary<string,int> GetDictionary(string key)
         {
-            Set(key, new ListWrapper<T> { list = value });
-        }
-
-        public static void SetDictionary<T>(string key, Dictionary<string, T> value)
-        {
-            Set(key, new ListWrapper<T> { list = value.Values.ToList() });
-        }
-
-        #endregion
-
-        #region Object -----------------------------------------------------------------------------------------
-
-        public static T GetObject<T>(string key)
-        {
-            return Get<T>(key, default(T));
-        }
-
-        public static T GetObject<T>(string key, T defaultValue)
-        {
-            return Get<T>(key, defaultValue);
-        }
-
-        public static void SetObject<T>(string key, T value)
-        {
-            Set(key, value);
-        }
-
-        #endregion
-
-        #region Enum -----------------------------------------------------------------------------------------
-
-        public static T GetEnum<T>(string key)
-        {
-            return Get<T>(key, default(T));
-        }
-
-        public static T GetEnum<T>(string key, T defaultValue)
-        {
-            return Get<T>(key, defaultValue);
-        }
-
-        public static void SetEnum<T>(string key, T value)
-        {
-            Set(key, value);
-        }
-
-        #endregion
-
-
-        //Generic template ---------------------------------------------------------------------------------------
-        private static T Get<T>(string key, T defaultValue)
-        {
-            return JsonUtility.FromJson<T>(PlayerPrefs.GetString(key, JsonUtility.ToJson(defaultValue)));
-        }
-
-        private static void Set<T>(string key, T value)
-        {
-            if (value == null)
-            {
-                Debug.LogError("Value is null!");
-                return;
-            }
-
-            string jsonString = JsonUtility.ToJson(value, true); // prettyPrint để dễ đọc
-            Debug.Log("Pretty JSON String: " + jsonString);
-
-            PlayerPrefs.SetString(key, jsonString);
-            PlayerPrefs.Save();
-        }
-
-        private static T Get<T>(string key)
-        {
-            string jsonString = PlayerPrefs.GetString(key);
-            Debug.Log("Pretty JSON String: " + jsonString);
-
-            return JsonUtility.FromJson<T>(jsonString);
-        }
-
-        public static void Delete(string key)
-        {
-            PlayerPrefs.DeleteKey(key);
+            string json = GetString(key,null);
+            if(string.IsNullOrEmpty(json)) return new Dictionary<string,int>();
+            var wrapper = JsonUtility.FromJson<DictWrapper>(json);
+            var dict = new Dictionary<string,int>();
+            for(int i=0;i<wrapper.keys.Count;i++) dict[wrapper.keys[i]] = wrapper.values[i];
+            return dict;
         }
     }
 }
+

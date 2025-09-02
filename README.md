@@ -13,6 +13,12 @@ The **OSK Framework** is a modular Unity framework designed to streamline game d
 **version 2.4.0
 - Remove State, DI, Network, Native GameFrameworkComponent
 - Fixbug
+
+**version 2.5.0
+- Remove UIParticle,Timer,ROP
+- Update EventBus, Resource,Singleton
+- Add Dependency
+
 ---
 
 ## **🌟 Key Features**

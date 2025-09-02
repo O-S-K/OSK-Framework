@@ -1,11 +1,12 @@
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using Sirenix.OdinInspector.Editor;
 
 namespace OSK
 {
     [CustomEditor(typeof(DirectorManager))]
-    public class DirectorManagerEditor : Editor
+    public class DirectorManagerEditor : OdinEditor
     {
         public override void OnInspectorGUI()
         {

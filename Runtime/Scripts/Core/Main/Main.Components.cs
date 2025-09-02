@@ -24,7 +24,6 @@ namespace OSK
         public static SoundManager Sound { get; private set; }
         public static LocalizationManager Localization { get; private set; }
         public static EntityManager Entity { get; private set; }
-        public static TimeManager Time { get; private set; }
         public static BlackboardManager Blackboard { get; private set; }
         public static ProcedureManager Procedure { get; private set; }
         public static GameInit GameInit { get; private set; }
@@ -48,7 +47,7 @@ namespace OSK
             InitConfigs();
         }
 
-        public void InitModules()
+        private void InitModules()
         {
             foreach (ModuleType moduleType in Enum.GetValues(typeof(ModuleType)))
             {
@@ -87,7 +86,6 @@ namespace OSK
             else if (module is SoundManager sound) Sound = sound;
             else if (module is LocalizationManager localization) Localization = localization;
             else if (module is EntityManager entity) Entity = entity;
-            else if (module is TimeManager time) Time = time;
             else if (module is BlackboardManager blackboard) Blackboard = blackboard;
             else if (module is ProcedureManager procedure) Procedure = procedure;
             else if (module is GameInit gameInit) GameInit = gameInit;

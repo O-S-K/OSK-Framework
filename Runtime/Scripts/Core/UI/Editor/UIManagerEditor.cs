@@ -24,12 +24,6 @@ namespace OSK
             {
                 FindViewDataSOAssets();
             }
-
-            if (GUILayout.Button("Select Data UIImage Effect SO"))
-            {
-                FindDataImageEffectAssets();
-            }
-
             if (GUILayout.Button("Setup Canvas"))
             {
                 uiManager.SetupCanvas();
@@ -69,38 +63,6 @@ namespace OSK
                 catch (System.Exception ex)
                 {
                     Logg.LogWarning($"Error displaying view: {ex.Message}");
-                }
-            }
-        }
-
-        private void FindDataImageEffectAssets()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:UIParticleSO");
-            if (guids.Length == 0)
-            {
-                Logg.LogError("No UIParticleSO found in the project.");
-                return;
-            }
-
-            List<UIParticleSO> imageEffectDatas = new List<UIParticleSO>();
-            foreach (var guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                UIParticleSO v = AssetDatabase.LoadAssetAtPath<UIParticleSO>(path);
-                imageEffectDatas.Add(v);
-            }
-
-            if (imageEffectDatas.Count == 0)
-            {
-                Logg.LogError("No UIParticleSO found in the project.");
-            }
-            else
-            {
-                foreach (UIParticleSO v in imageEffectDatas)
-                {
-                    Logg.Log("UIParticleSO found: " + v.name);
-                    Selection.activeObject = v;
-                    EditorGUIUtility.PingObject(v);
                 }
             }
         }

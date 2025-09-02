@@ -30,7 +30,6 @@ namespace OSK
         {
             ListViewSO listViewS0 = ScriptableObject.CreateInstance<ListViewSO>();
             ListSoundSO listSoundSo = ScriptableObject.CreateInstance<ListSoundSO>();
-            UIParticleSO uiParticleSO = ScriptableObject.CreateInstance<UIParticleSO>();
 
 
             string path = "Assets/OSK/Resources/Configs";
@@ -59,12 +58,6 @@ namespace OSK
             {
                 AssetDatabase.CreateAsset(listViewS0, $"{path}/ListViewSO.asset");
                 data.listViewS0 = listViewS0;
-            }
-
-            if (data.uiParticleSO == null)
-            { 
-                AssetDatabase.CreateAsset(uiParticleSO, $"{path}/UIParticleSO.asset");
-                data.uiParticleSO = uiParticleSO;
             }
             if (PrefabUtility.IsPartOfPrefabInstance(main))
             {

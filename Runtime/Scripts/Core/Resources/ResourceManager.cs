@@ -2,41 +2,48 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+#if USE_ADDRESSABLES
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+#endif
+
+#if CYSHARP_UNITASK
+using Cysharp.Threading.Tasks;
+#endif
+
 namespace OSK
 {
-    public class ResourceManager : GameFrameworkComponent
+    public partial class ResourceManager : GameFrameworkComponent
     {
-        private Dictionary<string, Object> k_ResourceCache = new Dictionary<string, Object>();
-        private Dictionary<string, int> k_ReferenceCount = new Dictionary<string, int>();
-        private Dictionary<string, AssetBundle> k_AssetBundleCache = new Dictionary<string, AssetBundle>();
-        //private Dictionary<string, AssetAddressable> k_AddressableCache = new Dictionary<string, AssetAddressable>();
+        // Cache cho Resources
+        private readonly Dictionary<string, Object> k_ResourceCache = new();
+        private readonly Dictionary<string, int> k_ReferenceCount = new();
 
         public override void OnInit()
         {
         }
 
-        #region Load from Resources folder
-
+      
         public T Load<T>(string path, bool usePool = false) where T : Object
         {
-            if (k_ResourceCache.TryGetValue(path, out var value))
+            if (k_ResourceCache.TryGetValue(path, out var cached))
             {
                 k_ReferenceCount[path]++;
-                return (T)value;
+                return (T)cached;
             }
 
-            T resource = usePool
-                ? Main.Pool.Spawn("ResourcesManager", Resources.Load<T>(path), transform)
-                : Resources.Load<T>(path);
-            if (resource != null)
+            T resource = Resources.Load<T>(path);
+            if (resource == null)
             {
-                k_ResourceCache[path] = resource;
-                k_ReferenceCount[path] = 1;
+                OSK.Logg.LogError($"[ResourceManager] Không tìm thấy resource tại: {path}");
+                return null;
             }
-            else
-            {
-                Logg.LogError("Resource not found at path: " + path);
-            }
+
+            if (usePool)
+                resource = Main.Pool.Spawn(KEY_POOL.KEY_POOL_RESOURCE, resource, transform);
+
+            k_ResourceCache[path] = resource;
+            k_ReferenceCount[path] = 1;
 
             return resource;
         }
@@ -44,100 +51,28 @@ namespace OSK
         public T Spawn<T>(string path, bool usePool = false) where T : Object
         {
             T resource = Load<T>(path);
-            if (resource != null)
+            if (resource == null)
             {
-                return usePool
-                    ? Main.Pool.Spawn("ResourcesManager", Instantiate(resource), transform)
-                    : Instantiate(resource);
-            }
-            else
-            {
-                OSK.Logg.LogError("Failed to spawn resource at path: " + path);
+                OSK.Logg.LogError($"[ResourceManager] Spawn thất bại: {path}");
                 return null;
             }
-        }
 
-        #endregion
-
-        #region Load from AssetBundle
-
-        public IEnumerator LoadAssetFromBundle<T>(string bundlePath, string assetName, System.Action<T> onLoaded)
-            where T : Object
-        {
-            if (!k_AssetBundleCache.TryGetValue(bundlePath, out var bundle))
-            {
-                var bundleRequest = AssetBundle.LoadFromFileAsync(bundlePath);
-                yield return bundleRequest;
-
-                bundle = bundleRequest.assetBundle;
-                if (bundle == null)
-                {
-                    OSK.Logg.LogError("Failed to load AssetBundle from path: " + bundlePath);
-                    onLoaded?.Invoke(null);
-                    yield break;
-                }
-
-                k_AssetBundleCache[bundlePath] = bundle;
-            }
-
-            var assetRequest = bundle.LoadAssetAsync<T>(assetName);
-            yield return assetRequest;
-
-            T asset = assetRequest.asset as T;
-            if (asset != null)
-            {
-                string cacheKey = $"{bundlePath}/{assetName}";
-                k_ResourceCache[cacheKey] = asset;
-                k_ReferenceCount[cacheKey] = 1;
-            }
-
-            onLoaded?.Invoke(asset);
+            return usePool
+                ? Main.Pool.Spawn(KEY_POOL.KEY_POOL_RESOURCE, Instantiate(resource), transform)
+                : Instantiate(resource);
         }
 
         public void Unload(string path)
         {
-            if (k_ResourceCache.TryGetValue(path, out var value))
-            {
-                k_ReferenceCount[path]--;
-                if (k_ReferenceCount[path] <= 0)
-                {
-                    Resources.UnloadAsset(value);
-                    k_ResourceCache.Remove(path);
-                    k_ReferenceCount.Remove(path);
-                }
-            }
-        }
+            if (!k_ResourceCache.TryGetValue(path, out var resource)) return;
 
-        public void UnloadAssetBundle(string bundlePath, bool unloadAllLoadedObjects = false)
-        {
-            if (k_AssetBundleCache.ContainsKey(bundlePath))
-            {
-                k_AssetBundleCache[bundlePath].Unload(unloadAllLoadedObjects);
-                k_AssetBundleCache.Remove(bundlePath);
-            }
-        }
-
-        public void ClearCache()
-        {
-            foreach (var resource in k_ResourceCache.Values)
+            k_ReferenceCount[path]--;
+            if (k_ReferenceCount[path] <= 0)
             {
                 Resources.UnloadAsset(resource);
+                k_ResourceCache.Remove(path);
+                k_ReferenceCount.Remove(path);
             }
-
-            foreach (var bundle in k_AssetBundleCache.Values)
-            {
-                bundle.Unload(true);
-            }
-
-            k_ResourceCache.Clear();
-            k_ReferenceCount.Clear();
-            k_AssetBundleCache.Clear();
         }
-
-        #endregion
-
-        #region Load from Addressables
-
-        #endregion
     }
 }

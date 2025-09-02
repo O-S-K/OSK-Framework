@@ -1,16 +1,14 @@
-using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace OSK
 {
     public class PoolManager : GameFrameworkComponent
     {
-        [SerializeReference]
-        public Dictionary<string, Dictionary<Object, ObjectPool<Object>>> k_GroupPrefabLookup = new();
-
-        [SerializeReference] public Dictionary<Object, ObjectPool<Object>> k_InstanceLookup = new();
+        public Dictionary<string, Dictionary<Object, ObjectPool<Object>>> GroupPrefabLookup { get; private set; } = new();
+        public Dictionary<Object, ObjectPool<Object>> InstanceLookup { get; private set; } = new();
 
         public override void OnInit() {}
 
@@ -66,7 +64,7 @@ namespace OSK
                 WarmPool(groupName, prefab, parent, size);
             }
 
-            var pool = k_GroupPrefabLookup[groupName][prefab];
+            var pool = GroupPrefabLookup[groupName][prefab];
             var instance = pool.GetItem() as T;
 
             if (instance == null)
@@ -87,7 +85,7 @@ namespace OSK
                     break;
             }
 
-            if (!k_InstanceLookup.TryAdd(instance, pool))
+            if (!InstanceLookup.TryAdd(instance, pool))
             {
                 Logg.LogWarning($"This object pool already contains the item provided: {instance}");
                 return instance;
@@ -111,12 +109,12 @@ namespace OSK
             }
 
             var pool = new ObjectPool<Object>(() => InstantiatePrefab(prefab, parent), size);
-            if (!k_GroupPrefabLookup.ContainsKey(group))
+            if (!GroupPrefabLookup.ContainsKey(group))
             {
-                k_GroupPrefabLookup[group] = new Dictionary<Object, ObjectPool<Object>>();
+                GroupPrefabLookup[group] = new Dictionary<Object, ObjectPool<Object>>();
             }
 
-            k_GroupPrefabLookup[group][prefab] = pool;
+            GroupPrefabLookup[group][prefab] = pool;
         }
 
         private Object InstantiatePrefab<T>(T prefab, Transform parent) where T : Object
@@ -132,10 +130,10 @@ namespace OSK
         public void Despawn(Object instance)
         {
             DeactivateInstance(instance);
-            if (k_InstanceLookup.TryGetValue(instance, out var pool))
+            if (InstanceLookup.TryGetValue(instance, out var pool))
             {
                 pool.ReleaseItem(instance);
-                k_InstanceLookup.Remove(instance);
+                InstanceLookup.Remove(instance);
             }
             else
             {
@@ -153,12 +151,12 @@ namespace OSK
 
         public void DespawnAllInGroup(string groupName)
         {
-            if (k_GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
+            if (GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
             {
                 foreach (var pool in prefabPools.Values)
                 {
                     List<Object> toRemove = new();
-                    foreach (var pair in k_InstanceLookup)
+                    foreach (var pair in InstanceLookup)
                     {
                         if (pair.Value == pool)
                         {
@@ -169,20 +167,20 @@ namespace OSK
                     }
 
                     foreach (var obj in toRemove)
-                        k_InstanceLookup.Remove(obj);
+                        InstanceLookup.Remove(obj);
                 }
             }
         }
 
         public void DespawnAllActive()
         {
-            foreach (var kv in k_InstanceLookup)
+            foreach (var kv in InstanceLookup)
             {
                 DeactivateInstance(kv.Key);
                 kv.Value.ReleaseItem(kv.Key);
             }
 
-            k_InstanceLookup.Clear();
+            InstanceLookup.Clear();
         }
 
         private void DeactivateInstance(Object instance)
@@ -195,7 +193,7 @@ namespace OSK
 
         public void DestroyAllInGroup(string groupName)
         {
-            if (k_GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
+            if (GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
             {
                 // Create a copy of the dictionary to avoid modifying it while iterating
                 foreach (var kvp in prefabPools.ToList())
@@ -205,13 +203,13 @@ namespace OSK
                     pool.Clear();
                 }
 
-                k_GroupPrefabLookup.Remove(groupName);
+                GroupPrefabLookup.Remove(groupName);
             }
         }
 
         public void DestroyAllGroups()
         {
-            foreach (var prefabPools in k_GroupPrefabLookup.Values)
+            foreach (var prefabPools in GroupPrefabLookup.Values)
             {
                 foreach (var pool in prefabPools.Values)
                 {
@@ -220,12 +218,12 @@ namespace OSK
                 }
             }
 
-            k_GroupPrefabLookup.Clear();
+            GroupPrefabLookup.Clear();
         }
 
         public void CleanAllDestroyedInPools()
         {
-            foreach (var prefabPools in k_GroupPrefabLookup.Values)
+            foreach (var prefabPools in GroupPrefabLookup.Values)
             {
                 foreach (var pool in prefabPools.Values)
                 {
@@ -240,12 +238,12 @@ namespace OSK
 
         public bool HasGroup(string groupName)
         {
-            return k_GroupPrefabLookup.ContainsKey(groupName);
+            return GroupPrefabLookup.ContainsKey(groupName);
         }
         
         public T Query<T>(string groupName, T prefab) where T : Object
         {
-            if (k_GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
+            if (GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
             {
                 if (prefabPools.TryGetValue(prefab, out var pool))
                 {
@@ -256,9 +254,9 @@ namespace OSK
             return null;
         }
 
-        public string GetGrouFormToPrefab<T>(T prefab) where T : Object
+        public string GetGroupFormToPrefab<T>(T prefab) where T : Object
         {
-            foreach (var group in k_GroupPrefabLookup)
+            foreach (var group in GroupPrefabLookup)
             {
                 if (group.Value.ContainsKey(prefab))
                 {
@@ -271,8 +269,8 @@ namespace OSK
         
         private bool IsGroupAndPrefabExist(string groupName, Object prefab)
         {
-            return k_GroupPrefabLookup.ContainsKey(groupName) &&
-                   k_GroupPrefabLookup[groupName].ContainsKey(prefab);
+            return GroupPrefabLookup.ContainsKey(groupName) &&
+                   GroupPrefabLookup[groupName].ContainsKey(prefab);
         }
 
         #endregion

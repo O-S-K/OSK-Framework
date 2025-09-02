@@ -212,7 +212,7 @@ namespace OSK
             VolumeFade volume, bool loop,
             int priority, MinMaxFloat pitch, Transform transform, int minDist, int maxDist)
         {
-            var source = Main.Pool.Spawn(KeyGroupPool.KEY_AUDIO_SOUND, _soundObject, _parentGroup);
+            var source = Main.Pool.Spawn(KEY_POOL.KEY_AUDIO_SOUND, _soundObject, _parentGroup);
             source.Stop();
             source.name = id;
             source.clip = clip;
@@ -320,7 +320,7 @@ namespace OSK
         {
             Logg.Log("SoundManager Status");
             Logg.Log($"1.Main.Configs.init.data.listSoundSo: {Main.Instance.configInit.data.listSoundSo}");
-            Logg.Log($"2.KeyGroupPool.AudioSound: {KeyGroupPool.KEY_AUDIO_SOUND}");
+            Logg.Log($"2.KeyGroupPool.AudioSound: {KEY_POOL.KEY_AUDIO_SOUND}");
             Logg.Log($"3.CameraTransform: {CameraTransform}");
             Logg.Log($"4.ParentGroup: {_parentGroup}");
 

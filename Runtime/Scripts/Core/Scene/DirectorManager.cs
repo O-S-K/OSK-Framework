@@ -30,8 +30,7 @@ namespace OSK
         [SerializeField, ReadOnly] private string _currentSceneName = "";
         [SerializeField, ReadOnly] private bool _isLoading = false;
         [SerializeField, ReadOnly] private float _loadingProgress = 0f;
-        [SerializeField, ReadOnly] private HashSet<string> _loadedScenes = new HashSet<string>();
-        public HashSet<string> LoadedScenes => _loadedScenes;
+        public HashSet<string> LoadedScenes { get; private set; } = new HashSet<string>();
         private float timer;
 
         public override void OnInit()
@@ -105,7 +104,7 @@ namespace OSK
             {
                 List<string> scenesToRemove = new List<string>();
 
-                foreach (var loaded in _loadedScenes)
+                foreach (var loaded in LoadedScenes)
                 {
                     // Nếu scene này không nằm trong danh sách load mới và autoRemove = true => xoá
                     bool shouldRemove = scenes.All(s => s.sceneName != loaded || s.autoRemove != false);
@@ -117,7 +116,7 @@ namespace OSK
                 foreach (var sceneName in scenesToRemove)
                 {
                     yield return SceneManager.UnloadSceneAsync(sceneName);
-                    _loadedScenes.Remove(sceneName);
+                    LoadedScenes.Remove(sceneName);
                 }
             }
 
@@ -137,12 +136,12 @@ namespace OSK
                     else
                     {
                         SceneManager.LoadScene(sceneData.sceneName, LoadSceneMode.Single);
-                        _loadedScenes.Add(sceneData.sceneName);
+                        LoadedScenes.Add(sceneData.sceneName);
                     }
                 }
                 else if (sceneData.loadMode == ELoadMode.Additive)
                 {
-                    if (_loadedScenes.Contains(sceneData.sceneName)) continue;
+                    if (LoadedScenes.Contains(sceneData.sceneName)) continue;
                     if (async)
                     {
                         var op = SceneManager.LoadSceneAsync(sceneData.sceneName, LoadSceneMode.Additive);
@@ -152,15 +151,15 @@ namespace OSK
                     else
                     {
                         SceneManager.LoadScene(sceneData.sceneName, LoadSceneMode.Additive);
-                        _loadedScenes.Add(sceneData.sceneName);
+                        LoadedScenes.Add(sceneData.sceneName);
                     }
                 }
                 else if (sceneData.loadMode == ELoadMode.Reload)
                 {
-                    if (_loadedScenes.Contains(sceneData.sceneName))
+                    if (LoadedScenes.Contains(sceneData.sceneName))
                     {
                         yield return SceneManager.UnloadSceneAsync(sceneData.sceneName);
-                        _loadedScenes.Remove(sceneData.sceneName);
+                        LoadedScenes.Remove(sceneData.sceneName);
                     }
 
                     if (async)
@@ -172,7 +171,7 @@ namespace OSK
                     else
                     {
                         SceneManager.LoadScene(sceneData.sceneName, LoadSceneMode.Additive);
-                        _loadedScenes.Add(sceneData.sceneName);
+                        LoadedScenes.Add(sceneData.sceneName);
                     }
                 }
             }
@@ -225,7 +224,7 @@ namespace OSK
                     yield return null;
 
             foreach (var s in sceneNames)
-                _loadedScenes.Add(s);
+                LoadedScenes.Add(s);
         }
 
         private IEnumerator UnloadSceneCoroutine(string sceneName, Action onComplete)
@@ -241,7 +240,7 @@ namespace OSK
             while (!asyncOp.isDone)
                 yield return null;
 
-            _loadedScenes.Remove(sceneName);
+            LoadedScenes.Remove(sceneName);
             Debug.Log($"[DirectorManager] Đã unload scene '{sceneName}' thành công.");
             onComplete?.Invoke();
         }

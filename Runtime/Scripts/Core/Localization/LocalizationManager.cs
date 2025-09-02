@@ -43,7 +43,7 @@ namespace OSK
         public void SwitchLanguage(SystemLanguage language)
         {
             SetLanguage(language);
-            Main.Observer.Notify(KeyObserver.KEY_UPDATE_LANGUAGE);
+            Main.Observer.Notify(KEY_OBSERVER.KEY_UPDATE_LANGUAGE);
         }
   
         public SystemLanguage GetCurrentLanguage => _currentLanguage;

@@ -9,16 +9,14 @@ namespace OSK
 {
     public class View : MonoBehaviour
     {
-        [Header("Datas")] [ShowInInspector, ReadOnly]
-        private object[] data;
-
+        private object[] _data;
         public object[] Data
         {
-            get => data;
+            get => _data;
             set
             {
-                data = value;
-                string details = string.Join(", ", data.Select(d =>
+                _data = value;
+                string details = string.Join(", ", _data.Select(d =>
                     d == null ? "null" : $"{d.GetType().Name}({d})"));
                 Logg.Log($"[DebugData] {GetType().Name} received data: [{details}]");
             }
@@ -185,9 +183,15 @@ namespace OSK
                 return;
             }
 
-            this.data = data;
-
+            this._data = data;
+            
 #if UNITY_EDITOR
+            PrintData(data);
+#endif
+        }
+
+        private void PrintData(object[] data)
+        {
             // log data in editor
             var sb = new System.Text.StringBuilder();
             string htmlColorHead = ColorUtils.LimeGreen.ToHex();
@@ -223,9 +227,7 @@ namespace OSK
                     sb.AppendLine($"<color={htmlColorChill}>  - [{i}] ({typeName}): {valueStr}</color>");
                 }
             }
-
             Debug.Log(sb.ToString());
-#endif
         }
 
         public virtual void Hide()

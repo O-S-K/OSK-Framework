@@ -117,7 +117,7 @@ namespace OSK
                 _isToMainThreadQueueEmpty = true;
             }
 
-            for (var i = 0; i < _localToMainThreads.Count; i++)
+            for (var i = _localToMainThreads.Count - 1; i >= 0; i--)
             {
                 _localToMainThreads[i].Invoke();
             }
@@ -166,32 +166,17 @@ namespace OSK
 
         public Coroutine StartCoroutineImpl(IEnumerator routine)
         {
-            if (routine != null)
-            {
-                return StartCoroutine(routine);
-            }
-
-            return null;
+            return routine != null ? StartCoroutine(routine) : null;
         }
 
         public Coroutine StartCoroutineImpl(string methodName, object value)
         {
-            if (!string.IsNullOrEmpty(methodName))
-            {
-                return StartCoroutine(methodName, value);
-            }
-
-            return null;
+            return !string.IsNullOrEmpty(methodName) ? StartCoroutine(methodName, value) : null;
         }
 
         public Coroutine StartCoroutineImpl(string methodName)
         {
-            if (!string.IsNullOrEmpty(methodName))
-            {
-                return StartCoroutine(methodName);
-            }
-
-            return null;
+            return !string.IsNullOrEmpty(methodName) ? StartCoroutine(methodName) : null;
         }
 
         public void StopCoroutineImpl(IEnumerator routine)
@@ -228,7 +213,7 @@ namespace OSK
                 _toMainThreads.Add(action);
                 _isToMainThreadQueueEmpty = false;
             }
-        }
+        } 
 
         /// <summary>
         /// Converts the specified action to one that runs on the main thread.

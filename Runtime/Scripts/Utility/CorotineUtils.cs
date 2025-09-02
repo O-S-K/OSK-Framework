@@ -48,33 +48,7 @@ namespace OSK
         {
             yield return new WaitForSeconds(delay);
             yield return enumerator;
-        }
-        
-        
-#if CYSHARP_UNITASK
-        // Run Coroutine as UniTask
-        public static UniTask RunAsUniTask(this IEnumerator enumerator)
-        {
-            return enumerator.ToUniTask();
-        }
-
-        // Run Delayed Coroutine as UniTask
-        public static async UniTask RunDelayAsUniTask(this IEnumerator enumerator, float delay)
-        {
-            await UniTask.Delay(TimeSpan.FromSeconds(delay));
-            await enumerator.ToUniTask();
-        }
-
-        // Run Until Coroutine as UniTask
-        public static async UniTask RunUntilAsUniTask(this IEnumerator enumerator, Func<bool> condition)
-        {
-            while (!condition())
-            {
-                await UniTask.Yield();
-            }
-            await enumerator.ToUniTask();
-        }
-#endif
+        } 
     }
 
     public class LazyCoroutine

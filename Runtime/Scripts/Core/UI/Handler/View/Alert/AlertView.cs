@@ -6,17 +6,7 @@ using UnityEngine.UI;
 
 namespace OSK
 {
-    [System.Serializable]
-    public class AlertSetup
-    {
-        public string title = "";
-        public string message = ""; 
-        public Action onOk = null;
-        public Action onCancel = null;
-        public float timeHide = 0;
-    }
-    
-    public class AlertView : OSK.View
+    public class AlertView : View
     {
         public GameObject title; /// Title of the alert (require text in component).
         public GameObject message;  /// Message of the alert (require text in component).

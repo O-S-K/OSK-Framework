@@ -409,7 +409,7 @@ namespace OSK
 
             _listSoundPlayings.Clear();
             _playingTweens.Clear();
-            Main.Pool.DestroyAllInGroup(KeyGroupPool.KEY_AUDIO_SOUND);
+            Main.Pool.DestroyAllInGroup(KEY_POOL.KEY_AUDIO_SOUND);
         }
         #endregion
     }

@@ -129,6 +129,11 @@ namespace OSK
                 if (viewData.view == null) continue;
 
                 viewData.depth = viewData.view.depth;
+
+#if UNITY_EDITOR
+                viewData.path = IOUtility.GetPathAfterResources(viewData.view);
+                UnityEditor.EditorUtility.SetDirty(target);
+#endif
             }
         }
 

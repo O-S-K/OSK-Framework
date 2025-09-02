@@ -34,27 +34,22 @@ namespace OSK
                 UpdateText();
             }
              
-            Main.Observer.Add(KeyObserver.KEY_UPDATE_LANGUAGE, UpdateText);
+            Main.Observer.Add(KEY_OBSERVER.KEY_UPDATE_LANGUAGE, UpdateText);
         }
 
         private void OnDestroy()
         {
-            Main.Observer.Remove(KeyObserver.KEY_UPDATE_LANGUAGE, UpdateText);
+            Main.Observer.Remove(KEY_OBSERVER.KEY_UPDATE_LANGUAGE, UpdateText);
         }
 
         private void OnEnable()
         {
-            if (Main.Localization == null)
-                return;
-
-            if (Main.Localization.IsSetDefaultLanguage)
-            {
-                if (currentLanguage != Main.Localization.GetCurrentLanguage)
-                {
-                    currentLanguage = Main.Localization.GetCurrentLanguage;
-                    UpdateText();
-                }
-            }
+            if (Main.Localization == null) return;
+            if (!Main.Localization.IsSetDefaultLanguage) return;
+            if (currentLanguage == Main.Localization.GetCurrentLanguage) return;
+            
+            currentLanguage = Main.Localization.GetCurrentLanguage;
+            UpdateText();
         }
  
 
