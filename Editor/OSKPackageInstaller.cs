@@ -15,9 +15,7 @@ namespace OSK.Framework.Editor
         {
             { "UIFeel", "https://github.com/O-S-K/UIFeel.git" },
             { "OSK-UIParticle", "https://github.com/O-S-K/OSK-UIParticle.git" },
-            { "OSK-Observable", "https://github.com/O-S-K/OSK-Observable.git" },
-            { "DOTween", "https://github.com/O-S-K/DOTween.git#1.2.765" },
-            { "Newtonsoft JSON", "com.unity.nuget.newtonsoft-json@3.2.1" }
+            { "OSK-Observable", "https://github.com/O-S-K/OSK-Observable.git" } 
         };
 
         private static List<string> missingPackages = new List<string>();
@@ -44,7 +42,7 @@ namespace OSK.Framework.Editor
             }
         }
 
-        [MenuItem("OSK/Package Installer")]
+        [MenuItem("OSK-Framework/Tools/Package Installer")]
         public static void ShowWindow()
         {
             OSKPackageInstaller window = GetWindow<OSKPackageInstaller>("OSK Package Installer");
