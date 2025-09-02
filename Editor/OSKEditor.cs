@@ -25,31 +25,7 @@ namespace OSK
                 PrefabUtility.InstantiatePrefab(Resources.LoadAll<RootUI>("").First());
             }
         }
-
-        [MenuItem("OSK-Framework/Install Dependencies/Dotween", false,4)]
-        public static void InstallDependenciesDotween()
-        {
-            AddPackage("https://github.com/O-S-K/DOTween.git");
-        }
-
-        [MenuItem("OSK-Framework/Install Dependencies/UIFeel", false,4)]
-        public static void InstallDependenciesUIFeel()
-        {
-            AddPackage("https://github.com/O-S-K/UIFeel.git");
-        }
-
-        [MenuItem("OSK-Framework/Install Dependencies/UIParticle", false,4)]
-        public static void InstallDependenciesDevConsole()
-        {
-            AddPackage("https://github.com/O-S-K/OSK-UIParticle.git");
-        }
-
-        [MenuItem("OSK-Framework/Install Dependencies/Observable", false,4)]
-        public static void InstallDependenciesObservable()
-        {
-            AddPackage("https://github.com/O-S-K/OSK-Observable");
-        }
-
+ 
         [MenuItem("OSK-Framework/SO Files/List View")]
         public static void LoadListView()
         {
@@ -124,31 +100,6 @@ namespace OSK
                     EditorGUIUtility.PingObject(v);
                 }
             }
-        }
-
-
-        private static void AddPackage(string packageName)
-        {
-            UnityEditor.PackageManager.Client.Add(packageName);
-            UnityEditor.EditorUtility.DisplayDialog("OSK-Framework", "Package added successfully", "OK");
-            UnityEditor.AssetDatabase.Refresh();
-            UnityEditor.PackageManager.Client.Resolve();
-        }
-
-        private static void UpdatePackage(string packageName)
-        {
-            string path = System.IO.Path.Combine(Application.dataPath, "Packages", packageName);
-            if (Directory.Exists(path))
-            {
-                Directory.Delete(path, true);
-                UnityEditor.PackageManager.Client.Add(packageName);
-                UnityEditor.EditorUtility.DisplayDialog("OSK-Framework", "Package updated successfully", "OK");
-                UnityEditor.AssetDatabase.Refresh();
-            }
-            else
-            {
-                UnityEditor.EditorUtility.DisplayDialog("OSK-Framework", "Package not found", "OK");
-            }
-        }
+        } 
     }
 }
