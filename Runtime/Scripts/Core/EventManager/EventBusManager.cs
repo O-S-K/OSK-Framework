@@ -36,7 +36,7 @@ namespace OSK
                 callback?.Invoke((T)lastEvent);
             }
         }
-
+#if CYSHARP_UNITASK
         public void SubscribeAsync<T>(Func<T, UniTask> callback, bool receiveLastIfExists = false) where T : GameEvent
         {
             Type eventType = typeof(T);
@@ -52,7 +52,7 @@ namespace OSK
                 _ = callback.Invoke((T)lastEvent);
             }
         }
-
+#endif
         #endregion
 
         #region Unsubscribe

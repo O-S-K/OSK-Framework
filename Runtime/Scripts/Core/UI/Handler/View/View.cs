@@ -1,28 +1,27 @@
 using System;
-using System.Collections;
 using System.Linq;
 using UnityEngine;
 using Sirenix.OdinInspector;
-using Object = UnityEngine.Object;
 
 namespace OSK
 {
     public class View : MonoBehaviour
     {
-        private object[] _data;
-        public object[] Data
-        {
-            get => _data;
-            set
-            {
-                _data = value;
-                string details = string.Join(", ", _data.Select(d =>
-                    d == null ? "null" : $"{d.GetType().Name}({d})"));
-                Logg.Log($"[DebugData] {GetType().Name} received data: [{details}]");
-            }
-        }
-
-
+         private object[] _data;
+         public object[] Data
+         {
+             get => _data;
+             set
+             {
+                 _data = value;
+#if UNITY_EDITOR
+                 string details = string.Join(", ", _data.Select(d =>
+                     d == null ? "null" : $"{d.GetType().Name}({d})"));
+                 Logg.Log($"[DebugData] {GetType().Name} received data: [{details}]");
+#endif
+             }
+         }
+        
         [Header("Settings")] [EnumToggleButtons]
         public EViewType viewType = EViewType.Popup;
 
@@ -40,6 +39,8 @@ namespace OSK
         [ToggleLeft] public bool isPreloadSpawn = true;
         [ToggleLeft] public bool isRemoveOnHide = false; 
         [ReadOnly] [ToggleLeft] public bool isInitOnScene;
+        
+        
         [ShowInInspector, ReadOnly] [ToggleLeft]
         private bool _isShowing;
         
@@ -52,10 +53,7 @@ namespace OSK
         [ReadOnly, SerializeField] 
         private UITransition _uiTransition;
         [ReadOnly, SerializeField] 
-        protected IReferenceHolder referenceHolder;
-        
         public UITransition UITransition => _uiTransition ??= GetComponent<UITransition>(); 
-        public IReferenceHolder ReferenceHolder => referenceHolder ??= GetComponent<IReferenceHolder>();
         
         private RootUI _rootUI;
 
@@ -64,20 +62,6 @@ namespace OSK
         {
             _uiTransition = gameObject.GetOrAdd<UITransition>();
         }
-
-        [Button]
-        public void AddBindRef()
-        {
-            if (GetComponent<IReferenceHolder>() != null)
-            {
-                Debug.LogWarning("ReferenceHolder already exists.");
-                return;
-            }
-
-            gameObject.AddComponent<MonoReferenceHolder>();
-            Debug.Log("ReferenceHolder added.");
-        }
-
 
         public virtual void Initialize(RootUI rootUI)
         {
@@ -97,13 +81,6 @@ namespace OSK
 
             _depth = depth;
             SetDepth(depth);
-        }
-
-        public void IterateRefs(System.Action<string, object> func) => ReferenceHolder.Foreach(func);
-
-        public T GetRef<T>(string name, bool isTry = false) where T : Object
-        {
-            return ReferenceHolder.GetRef<T>(name, isTry);
         }
 
         public void SetDepth(EViewType viewType, int depth)
@@ -184,51 +161,7 @@ namespace OSK
             }
 
             this._data = data;
-            
-#if UNITY_EDITOR
-            PrintData(data);
-#endif
-        }
-
-        private void PrintData(object[] data)
-        {
-            // log data in editor
-            var sb = new System.Text.StringBuilder();
-            string htmlColorHead = ColorUtils.LimeGreen.ToHex();
-            string htmlColorChill = ColorUtils.Chartreuse.ToHex();
-
-            sb.AppendLine(
-                $"<color={htmlColorHead}>[SetData] [{GetType().Name}] received {data.Length} parameters, click to expand:</color>");
-            for (int i = 0; i < data.Length; i++)
-            {
-                object param = data[i];
-                if (param == null)
-                {
-                    sb.AppendLine($"<color={htmlColorChill}>  - [{i}] (null): null</color>");
-                    continue;
-                }
-
-                System.Type type = param.GetType();
-                string typeName = type.Name;
-
-                if (param is IEnumerable enumerable && type != typeof(string))
-                {
-                    sb.AppendLine($"<color={htmlColorChill}>  - ({typeName}):</color>");
-                    int index = 0;
-                    foreach (var item in enumerable)
-                    {
-                        string itemStr = item?.ToString() ?? "null";
-                        sb.AppendLine($"<color={htmlColorChill}>       • [{index++}] {itemStr}</color>");
-                    }
-                }
-                else
-                {
-                    string valueStr = param.ToString();
-                    sb.AppendLine($"<color={htmlColorChill}>  - [{i}] ({typeName}): {valueStr}</color>");
-                }
-            }
-            Debug.Log(sb.ToString());
-        }
+        } 
 
         public virtual void Hide()
         {

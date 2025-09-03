@@ -15,7 +15,7 @@ namespace OSK.Framework.Editor
         // === CONFIGURABLE PACKAGES ===
         private static readonly Dictionary<string, string> RequiredPackages = new Dictionary<string, string>
         {
-            { "UIFeel", "https://github.com/O-S-K/UIFeel.git" },
+            { "OSK-UIFeel", "https://github.com/O-S-K/UIFeel.git" },
             { "OSK-UIParticle", "https://github.com/O-S-K/OSK-UIParticle.git" },
             { "OSK-Observable", "https://github.com/O-S-K/OSK-Observable.git" }
         };
@@ -41,11 +41,11 @@ namespace OSK.Framework.Editor
 
             RefreshPackageStatus();
 
-            if (missingPackages.Count > 0)
-                ShowWindow();
+            // if (missingPackages.Count > 0)
+            //     ShowWindow();
         }
 
-        [MenuItem("OSK Framework/Tools/Package Installer")]
+        [MenuItem("OSK-Framework/Tools/Package Installer")]
         public static void ShowWindow()
         {
             OSKPackageInstaller window = GetWindow<OSKPackageInstaller>("OSK Package Installer");

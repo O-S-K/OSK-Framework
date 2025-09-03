@@ -1,17 +1,17 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
+using System.Collections;
+using Sirenix.OdinInspector;
+using System.Collections.Generic;
 
 namespace OSK
 {
     [DefaultExecutionOrder(-101)]
     public class RootUI : MonoBehaviour
     {
+        #region Queued View
         private class QueuedView
         {
             public View view;
@@ -19,24 +19,22 @@ namespace OSK
             public bool hidePrevView;
             public Action<View> onOpened;
         }
+        #endregion
 
-        #region Lists
+        #region Lists & Cache
 
-        [BoxGroup("🔍 Views", ShowLabel = true)]
+        [BoxGroup("🔍 Views")] [ShowInInspector, ReadOnly]
+        public List<View> ListViewInit { get; private set; } = new();
+
+        [BoxGroup("🔍 Views")] [ShowInInspector, ReadOnly]
+        public List<View> ListCacheView { get; private set; } = new();
+
+        [HideInInspector]
+        public Stack<View> ListViewHistory { get; private set; } = new();
+
         [ShowInInspector, ReadOnly]
-        public List<View> ListViewInit { get; private set; } = new List<View>();
+        private List<QueuedView> _queuedViews = new();
 
-        [BoxGroup("🔍 Views")]
-        [ShowInInspector, ReadOnly] 
-        public List<View> ListCacheView { get; private set; } = new List<View>();
-
-        [HideInInspector] // Ẩn Stack nếu không cần xem
-        public Stack<View> ListViewHistory { get; private set; }  = new Stack<View>();
-  
-        [ShowInInspector, ReadOnly]
-        private List<QueuedView> _queuedViews = new List<QueuedView>();
-        
-        [ShowInInspector, ReadOnly]
         private bool _isProcessingQueue = false;
 
         #endregion
@@ -44,44 +42,33 @@ namespace OSK
         #region References
 
         [Title("📌 References")]
-        [Required, BoxGroup("📌 References")] [SerializeField]
-        private Camera _uiCamera;
-
-        [Required, BoxGroup("📌 References")] [SerializeField]
-        private Canvas _canvas;
-
-        [Required, BoxGroup("📌 References")] [SerializeField]
-        private CanvasScaler _canvasScaler;
-
-        [BoxGroup("📌 References")] [SerializeField]
-        private Transform _viewContainer;
+        [Required, SerializeField] private Camera _uiCamera;
+        [Required, SerializeField] private Canvas _canvas;
+        [Required, SerializeField] private CanvasScaler _canvasScaler;
+        [SerializeField] private Transform _viewContainer;
 
         #endregion
 
         #region Settings
 
         [Title("⚙️ Settings")]
-        [BoxGroup("⚙️ Settings")] [SerializeField]
-        private bool isPortrait = true;
-
-        [BoxGroup("⚙️ Settings")] [SerializeField]
-        private bool dontDestroyOnLoad = true;
-
-        [BoxGroup("⚙️ Settings")] [SerializeField]
-        private bool isUpdateRatioScaler = true;
-
-        [BoxGroup("⚙️ Settings")] [SerializeField]
-        private bool enableLog = true;
+        [SerializeField] private bool isPortrait = true;
+        [SerializeField] private bool dontDestroyOnLoad = true;
+        [SerializeField] private bool isUpdateRatioScaler = true;
+        [SerializeField] private bool enableLog = true;
 
         #endregion
+
+        #region Properties
 
         public Canvas Canvas => _canvas;
         public CanvasScaler CanvasScaler => _canvasScaler;
         public Camera UICamera => _uiCamera;
         public Transform ViewContainer => _viewContainer;
-
         public bool IsPortrait => isPortrait;
         public bool EnableLog => enableLog;
+
+        #endregion
 
         public void Initialize()
         {
