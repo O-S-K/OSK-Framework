@@ -11,10 +11,8 @@ namespace OSK
     }
 
     [DefaultExecutionOrder(-1000)]
-    [SingletonGlobal]
     public partial class Main : MonoBehaviour
     { 
-        public static Main Instance => SingletonManager.Instance.Get<Main>();
         public static readonly GameFrameworkLinkedList<GameFrameworkComponent> SGameFrameworkComponents = new();
 
         public static T GetModule<T>() where T : GameFrameworkComponent

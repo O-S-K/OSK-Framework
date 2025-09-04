@@ -32,31 +32,8 @@ public class SingletonManagerEditor : Editor
         var scenes = SingletonManager.Instance.GetSceneSingletons();
         EditorGUILayout.LabelField($"Scene Singletons: {scenes.Count}", EditorStyles.boldLabel);
         DrawSingletonList(scenes);
-
-        EditorGUILayout.Space();
-        if (GUILayout.Button("Log All Singletons to Console"))
-        {
-            LogConsole(globals, scenes);
-        }
-        
         EditorGUILayout.EndScrollView();
     }
-
-    private static void LogConsole(Dictionary<Type, SingletonInfo> globals, Dictionary<Type, SingletonInfo> scenes)
-    {
-        Debug.Log("=== Global Singletons ===");
-        foreach (var kvp in globals)
-        {
-            Debug.Log($"{kvp.Key.Name} - InstanceID: {(kvp.Value.instance != null ? kvp.Value.instance.GetInstanceID().ToString() : "NULL")}");
-        }
-
-        Debug.Log("=== Scene Singletons ===");
-        foreach (var kvp in scenes)
-        {
-            Debug.Log($"{kvp.Key.Name} - InstanceID: {(kvp.Value.instance != null ? kvp.Value.instance.GetInstanceID().ToString() : "NULL")}");
-        }
-    }
-
 
 #if UNITY_EDITOR
     [InitializeOnLoadMethod]
@@ -91,13 +68,9 @@ public class SingletonManagerEditor : Editor
             var info = kvp.Value;
             bool isNull = info.instance == null;
 
-            // Kiểm tra singleton có đang hợp lệ không
-            bool isAllowedScene = info.IsGlobal || (info.allowedScenes?.Contains(activeScene) ?? false);
-
             // Màu nền: Xanh = hợp lệ, Vàng = null, Đỏ = không hợp lệ
             Color bgColor;
             if (isNull) bgColor = new Color(1f, 0.5f, 0.5f);
-            else if (!isAllowedScene) bgColor = new Color(1f, 0.8f, 0.4f);
             else bgColor = new Color(0.6f, 1f, 0.6f);
 
             GUI.backgroundColor = bgColor;
@@ -105,29 +78,12 @@ public class SingletonManagerEditor : Editor
             EditorGUILayout.BeginHorizontal("box");
             GUI.backgroundColor = Color.white;
 
-            // Danh sách scene
-            string sceneList = info.IsGlobal ? "Global" :
-                (info.allowedScenes != null && info.allowedScenes.Count > 0
-                    ? string.Join(", ", info.allowedScenes)
-                    : "<No Scene Restriction>");
-
-            string label = kvp.Key.Name +
-                           (info.IsGlobal ? " (Global)" : $" (Scenes: {sceneList})") +
-                           $" [Created: {info.createdTime:HH:mm:ss}]";
-
-            if (isNull)
-                label += " [NULL]";
-            else if (!isAllowedScene)
-                label += " [INVALID SCENE]";
-
             // Tooltip
-            string tooltip = $"Type: {kvp.Key.Name}\n" +
-                             $"Created: {info.createdTime}\n" +
-                             $"Scenes: {sceneList}\n" +
-                             $"InstanceID: {(info.instance != null ? info.instance.GetInstanceID().ToString() : "NULL")}\n" +
-                             $"Current Scene: {activeScene}";
+            string tooltip = $"- Type: {kvp.Key.Name}" 
+                             + " -InstanceID: " + (info.instance != null ? info.instance.GetInstanceID() : "NULL") 
+                             + " -Time Created: " + info.createdTime.ToString("HH:mm:ss.fff");
 
-            EditorGUILayout.LabelField(new GUIContent(label, tooltip), GUILayout.Width(320));
+            EditorGUILayout.LabelField(new GUIContent(tooltip), GUILayout.Width(500));
 
             if (!isNull)
             {

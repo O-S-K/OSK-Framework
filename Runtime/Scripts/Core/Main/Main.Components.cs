@@ -37,8 +37,11 @@ namespace OSK
         public bool isDestroyingOnLoad = false;
         public bool isLogInit = false;
 
+        public static Main Instance => SingletonManager.Instance.Get<Main>();
+        
         protected void Awake()
         {
+            SingletonManager.Instance.RegisterGlobal(this);
             if (isDestroyingOnLoad)
                 DontDestroyOnLoad(gameObject);
 
