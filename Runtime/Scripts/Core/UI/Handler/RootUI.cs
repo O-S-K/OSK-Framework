@@ -280,7 +280,7 @@ namespace OSK
             });
 
             // Sort the queue by priority
-            _queuedViews = _queuedViews.OrderByDescending(q => q.view.depth).ToList();
+            _queuedViews = _queuedViews.OrderByDescending(q => q.view.Depth).ToList();
 
             if (!_isProcessingQueue)
             {
@@ -668,7 +668,7 @@ namespace OSK
             while (left <= right)
             {
                 int mid = (left + right) / 2;
-                if (depth < childPages[mid].depth)
+                if (depth < childPages[mid].Depth)
                 {
                     insertIndex = mid;
                     right = mid - 1;

@@ -244,7 +244,7 @@ public class {scriptName} : {viewType}
             {
                 createdView.AddComponent(type);
                 createdView.GetComponent<View>().viewType = viewType;
-                createdView.GetComponent<View>().depth = depth;
+                createdView.GetComponent<View>().depthEdit = depth;
                 Logg.Log("Script attached to view.");
             }
             else

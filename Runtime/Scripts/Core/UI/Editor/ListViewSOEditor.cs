@@ -109,7 +109,7 @@ namespace OSK
                     view = popup,
                     path = IOUtility.GetPathAfterResources(popup)
                 };
-                data.depth = popup.depth;
+                data.depth = popup.depthEdit;
                 listViewSO.Views.Add(data);
             }
 
@@ -128,7 +128,7 @@ namespace OSK
             {
                 if (viewData.view == null) continue;
 
-                viewData.depth = viewData.view.depth;
+                viewData.depth = viewData.view.depthEdit;
 
 #if UNITY_EDITOR
                 viewData.path = IOUtility.GetPathAfterResources(viewData.view);
@@ -144,7 +144,7 @@ namespace OSK
                 if (viewData.view == null) continue;
 
                 // Cập nhật depth trong view
-                viewData.view.depth = viewData.depth;
+                viewData.view.depthEdit = viewData.depth;
 
                 // Đánh dấu prefab là dirty (nếu là prefab)
                 EditorUtility.SetDirty(viewData.view);
