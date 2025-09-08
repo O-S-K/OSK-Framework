@@ -152,35 +152,7 @@ namespace OSK
                 return;
             }
 
-            this.Data = data;  
-            /*object[] data = new object[]
-            {
-                123,                                    // int
-                "John",                                 // string
-                new Player("Alex", 200),                // custom class
-                "[1,2,3,4,5]",                          // JSON string → List<int>
-                new List<string> { "A", "B", "C" },     // List<string>
-                "{\"key1\":10,\"key2\":20}",            // JSON string → Dictionary<string,int>
-                new Dictionary<string,string>           // Dictionary<string,string>
-                {
-                    {"A","Hello"},
-                    {"B","World"}
-                },
-                "(1.2,3.4,5.6)",                        // string → Vector3
-                "#00FF00"                               // string → Color
-            };
-
-            // Lấy giá trị an toàn
-            int id                = data.Get<int>(0);
-            string name           = data.Get<string>(1);
-            Player player         = data.Get<Player>(2);
-            List<int> numbers     = data.Get<List<int>>(3);
-            List<string> words    = data.Get<List<string>>(4);
-            Dictionary<string,int> dict1 = data.Get<Dictionary<string,int>>(5);
-            Dictionary<string,string> dict2 = data.Get<Dictionary<string,string>>(6);
-            Vector3 pos           = data.Get<Vector3>(7);
-            Color color           = data.Get<Color>(8);*/
-            
+            this.Data = data;    
         }
         
         
@@ -212,7 +184,18 @@ namespace OSK
                     return;
 
                 var insertIndex = _rootUI.FindInsertIndex(childPages, _depth);
-                transform.SetSiblingIndex(insertIndex == childPages.Count ? transform.GetSiblingIndex() : insertIndex);
+                if (insertIndex <= 0)
+                {
+                    transform.SetAsFirstSibling();
+                }
+                else if (insertIndex >= childPages.Count)
+                {
+                    transform.SetAsLastSibling();      
+                }
+                else
+                {
+                    transform.SetSiblingIndex(insertIndex);
+                }
             }
         }
 

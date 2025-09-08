@@ -662,6 +662,10 @@ namespace OSK
 
         public int FindInsertIndex(List<View> childPages, int depth)
         {
+            if (childPages == null || childPages.Count == 0)
+                return 0;
+            
+            childPages = childPages.OrderBy(v => v.Depth).ToList();
             int left = 0, right = childPages.Count - 1;
             int insertIndex = childPages.Count;
 
