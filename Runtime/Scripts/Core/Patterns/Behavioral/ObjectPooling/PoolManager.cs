@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace OSK
 {
-    public class PoolManager : GameFrameworkComponent
+    public class PoolManager : GameFrameworkComponent 
     {
         public Dictionary<string, Dictionary<Object, ObjectPool<Object>>> GroupPrefabLookup { get; private set; } = new();
         public Dictionary<Object, ObjectPool<Object>> InstanceLookup { get; private set; } = new();

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace OSK
 {
-    public class ProcedureManager : GameFrameworkComponent
+    public class ProcedureManager : GameFrameworkComponent 
     {
         private ProcedureProcessor procedureProcessor;
         private Type procedureNodeType = typeof(ProcedureNode);

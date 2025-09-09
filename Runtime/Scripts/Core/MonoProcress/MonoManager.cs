@@ -7,7 +7,7 @@ using Sirenix.Utilities;
 
 namespace OSK
 {
-    public class MonoManager : GameFrameworkComponent
+    public class MonoManager : GameFrameworkComponent 
     {
         private readonly List<Action> _toMainThreads = new();
         private volatile bool _isToMainThreadQueueEmpty = true;

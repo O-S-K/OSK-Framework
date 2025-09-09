@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace OSK
 {
-    public  class GameInit : GameFrameworkComponent
+    public  class GameInit : GameFrameworkComponent 
     {
         public override void OnInit()
         { 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace OSK
 {
-    public class BlackboardManager : GameFrameworkComponent
+    public class BlackboardManager : GameFrameworkComponent 
     {
         public Dictionary<string, Blackboard> blackboards = new Dictionary<string, Blackboard>();
         public Dictionary<string, BlackboardData> blackboardData = new Dictionary<string, BlackboardData>();
