@@ -5,14 +5,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 
 namespace OSK
 {
     [CustomEditor(typeof(ListSoundSO))]
-    public class SoundDataEditor : Editor
+    public class SoundDataEditor : OdinEditor
     {
         private Dictionary<string, Dictionary<SoundType, bool>> soundTypeFoldoutsPerGroup =
             new Dictionary<string, Dictionary<SoundType, bool>>();
@@ -21,8 +20,8 @@ namespace OSK
 
         [ListDrawerSettings(Expanded = true, DraggableItems = false, ShowIndexLabels = true)]
         private static List<string> groupNames = new List<string>() { "Music", "UI" };
-
         private ListSoundSO listSoundSo;
+        private SoundData newSoundDraft = null;
 
         private bool showTable = true;
         private bool showGroupNames = true;
@@ -32,376 +31,202 @@ namespace OSK
             listSoundSo = (ListSoundSO)target;
             DrawDefaultInspector();
 
-            if (GUILayout.Button("Sort To Type"))
+            if (listSoundSo.showSoundSettings)
             {
-                SortToType(listSoundSo);
-            }
+                if (GUILayout.Button("Sort To Type"))
+                    SortToType(listSoundSo);
 
-            if (GUILayout.Button("Set ID For Name Clip"))
-            {
-                SetIDForNameClip();
+                if (GUILayout.Button("Set ID For Name Clip"))
+                    SetIDForNameClip();
             }
 
             EditorGUILayout.Space(20);
-            EditorGUILayout.LabelField(
-                "----------------------------------------------------------------------------------------------");
+            GUI.color = Color.yellow;
+            EditorGUILayout.LabelField("⚠️ Please enable sound in scene game to test play sound.", EditorStyles.boldLabel);
+            GUI.color = Color.white;
+            EditorGUILayout.Space(10);
 
-            showTable = EditorGUILayout.Foldout(showTable, "Show Sound Info Table");
+            showTable = EditorGUILayout.Foldout(showTable, "Show Sound Info Table",true, EditorStyles.boldLabel);
             if (!showTable) return;
 
             GUILayout.Space(10);
             showGroupNames = EditorGUILayout.Foldout(showGroupNames, "Show Group Names");
             if (showGroupNames)
-            {
                 DrawGroupNames();
-            }
 
             if (groupNames == null || groupNames.Count == 0)
-            {
                 groupNames?.Add("Default");
-            }
 
+            // Gom group
             var groups = listSoundSo.ListSoundInfos
                 .Select(x => string.IsNullOrEmpty(x.group) ? "Default" : x.group)
                 .Distinct()
                 .OrderBy(x => x);
 
-
-            EditorGUILayout.Space(20);
-            EditorGUILayout.TextArea("Sound Groups", EditorStyles.boldLabel);
-            EditorGUILayout.TextArea("⚠️ Please enable sound in scene game to test play sound.", EditorStyles.wordWrappedLabel);
-
-
-            EditorGUI.indentLevel++;
+            EditorGUILayout.Space(10);
             foreach (var group in groups)
             {
                 if (!groupFoldouts.ContainsKey(group))
                     groupFoldouts[group] = true;
-
                 if (!soundTypeFoldoutsPerGroup.ContainsKey(group))
                     soundTypeFoldoutsPerGroup[group] = new Dictionary<SoundType, bool>();
 
-                EditorGUI.indentLevel += 1;
-                groupFoldouts[group] = EditorGUILayout.Foldout(groupFoldouts[group], $"Group: {group}");
-                EditorGUI.indentLevel -= 1;
-
-
+                GUI.color = Color.white;
+                groupFoldouts[group] = EditorGUILayout.Foldout(groupFoldouts[group], $"Group: {group}", true, new GUIStyle()
+                {
+                    fontStyle = FontStyle.Bold,
+                    fontSize = 14,
+                    normal = new GUIStyleState() { textColor = ColorUtils.LawnGreen }
+                });
+                GUI.color = Color.white;
+                
                 if (!groupFoldouts[group]) continue;
 
-                DrawTableHeaders();
-
+                EditorGUI.indentLevel++;
                 foreach (SoundType type in System.Enum.GetValues(typeof(SoundType)))
                 {
-                    // Kiểm tra có SoundType này trong group không
                     if (!listSoundSo.ListSoundInfos.Any(x => x.type == type && x.group == group))
                         continue;
 
                     if (!soundTypeFoldoutsPerGroup[group].ContainsKey(type))
                         soundTypeFoldoutsPerGroup[group][type] = true;
 
-                    EditorGUI.indentLevel += 2;
                     soundTypeFoldoutsPerGroup[group][type] =
-                        EditorGUILayout.Foldout(soundTypeFoldoutsPerGroup[group][type], type.ToString());
-                    EditorGUI.indentLevel -= 2;
+                        EditorGUILayout.Foldout(soundTypeFoldoutsPerGroup[group][type], type.ToString(), true);
 
                     if (!soundTypeFoldoutsPerGroup[group][type]) continue;
-
+                    DrawTableHeaders();
                     for (int i = 0; i < listSoundSo.ListSoundInfos.Count; i++)
                     {
                         SoundData soundData = listSoundSo.ListSoundInfos[i];
+                        if (soundData.type != type || soundData.group != group) continue;
 
-                        if (soundData.type != type || soundData.group != group)
-                            continue;
-
-                        EditorGUI.indentLevel += 2;
-                        DrawRowBorder();
-                        EditorGUILayout.BeginHorizontal();
-
-                        // AudioClip
-                        AudioClip newAudioClip = (AudioClip)EditorGUILayout.ObjectField(soundData.audioClip,
-                            typeof(AudioClip), false, GUILayout.Width(150));
-                        if (newAudioClip != soundData.audioClip)
-                        {
-                            if (IsDuplicateAudioClip(listSoundSo, newAudioClip))
-                            {
-                                Logg.LogError(
-                                    $"AudioClip {newAudioClip.name} already exists in the list. Cannot add duplicate.");
-                            }
-                            else
-                            {
-                                soundData.audioClip = newAudioClip;
-                            }
-                        }
-
-                        soundData.UpdateId();
-                        int currentGroupIndex = groupNames.IndexOf(soundData.group);
-                        if (currentGroupIndex == -1)
-                        {
-                            currentGroupIndex = 0;
-                            soundData.group = groupNames[0];
-                        }
-
-                        // Group Dropdown
-                        int newGroupIndex = EditorGUILayout.Popup(currentGroupIndex, groupNames.ToArray(),
-                            GUILayout.Width(100));
-                        if (newGroupIndex != currentGroupIndex)
-                        {
-                            soundData.group = groupNames[newGroupIndex];
-                        }
-
-                        // Type Dropdown
-                        GUILayout.Space(-30);
-                        soundData.type = (SoundType)EditorGUILayout.EnumPopup(soundData.type, GUILayout.Width(110));
-
-                        // Volume Slider
-                        GUILayout.Label(EditorGUIUtility.IconContent("d_AudioSource Icon"), GUILayout.Width(20),
-                            GUILayout.Height(20));
-                        float newVolume = GUILayout.HorizontalSlider(soundData.volume, 0f, 1f, GUILayout.Width(50));
-
-                        if (Mathf.Abs(newVolume - soundData.volume) > 0.01f)
-                        {
-                            soundData.volume = newVolume;
-                            soundData.SetVolume(newVolume);
-                        }
-
-                        GUILayout.Label(soundData.volume.ToString("F1"), GUILayout.Width(25));
-
-                   
-                        float oldMin = soundData.pitch.min;
-                        float oldMax = soundData.pitch.max;
-
-                        GUILayout.Space(-40);
-                        // Pitch Slider
-                        Rect sliderRect = GUILayoutUtility.GetRect(100, 20, GUILayout.ExpandWidth(false));
-                        float newMin = oldMin;
-                        float newMax = oldMax;
-                        
-                        EditorGUI.MinMaxSlider(sliderRect, ref newMin, ref newMax, 0.1f, 2.0f);
-
-                        string minStr = newMin.ToString("F1");
-                        string maxStr = newMax.ToString("F1");
-
-                        GUILayout.Space(-40);
-                        minStr = EditorGUILayout.DelayedTextField(minStr, GUILayout.Width(70));
-                        GUILayout.Space(-40);
-                        maxStr = EditorGUILayout.DelayedTextField(maxStr, GUILayout.Width(70));
-
-                        if (float.TryParse(minStr, out float parsedMin))
-                        {
-                            newMin = Mathf.Clamp(Mathf.Round(parsedMin * 10f) / 10f, 0.1f, newMax);
-                        }
-
-                        if (float.TryParse(maxStr, out float parsedMax))
-                        {
-                            newMax = Mathf.Clamp(Mathf.Round(parsedMax * 10f) / 10f, newMin, 2.0f);
-                        }
-
-                        if (Mathf.Abs(newMin - oldMin) > 0.01f || Mathf.Abs(newMax - oldMax) > 0.01f)
-                        {
-                            var newPitch = new MinMaxFloat(newMin, newMax); 
-                            soundData.pitch = newPitch;                     
-                            soundData.SetPitch(newPitch); 
-                        }
-
-                        // Play Button
-                        GUILayout.Space(30);
-                        GUI.enabled = soundData.audioClip != null && !soundData.IsPlaying();
-                        GUI.color = soundData.IsPlaying() ? Color.green : Color.white;
-
-                        if (GUILayout.Button("Play", GUILayout.Width(50)))
-                            soundData.Play(soundData.pitch);
-
-                        GUI.color = Color.white;
-
-                        // Stop Button
-                        GUI.enabled = soundData.audioClip != null && soundData.IsPlaying();
-                        if (GUILayout.Button("Stop", GUILayout.Width(50)))
-                            soundData.Stop();
-
-                        // Remove
-                        GUI.enabled = true;
-                        if (GUILayout.Button("Remove", GUILayout.Width(60)))
-                        {
-                            listSoundSo.ListSoundInfos.RemoveAt(i);
-                            i--;
-                            continue;
-                        }
-
-                        EditorGUILayout.EndHorizontal();
-                        EditorGUI.indentLevel -= 2;
+                        DrawRow(soundData, i);
                     }
 
                     DrawRowBorder();
                 }
-            }
 
-            EditorGUI.indentLevel--;
-
-            EditorGUILayout.Space();
-            EditorGUILayout.BeginHorizontal();
-
-            EditorGUILayout.Space(50);
-            if (GUILayout.Button("Add New Sound Info", GUILayout.Width(200)))
-            {
-                listSoundSo.ListSoundInfos.Add(new SoundData());
-            }
-
-            EditorGUILayout.Space();
-            EditorGUILayout.EndHorizontal();
-            
-            EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField("Load All sounds In Path", EditorStyles.boldLabel);
-            EditorGUILayout.TextArea("This will load type .wav, .mp3, .ogg in the selected folder and add them to the list.", EditorStyles.wordWrappedLabel);
-            
-            if (GUILayout.Button("Load Folder Sounds", GUILayout.Width(150)))
-            {
-                string path = EditorUtility.OpenFolderPanel("Select Folder", "Assets", "");
-                if (!string.IsNullOrEmpty(path))
-                {
-                    path = "Assets" + path.Replace(Application.dataPath, "");
-                    var supportedExtensions = new[] { ".wav", ".mp3", ".ogg" };
-
-                    var audioClips = Directory.GetFiles(path, "*", SearchOption.AllDirectories)
-                        .Where(file => supportedExtensions.Contains(Path.GetExtension(file).ToLower()))
-                        .Select(file => AssetDatabase.LoadAssetAtPath<AudioClip>(file.Replace("\\", "/")))
-                        .Where(clip => clip != null)
-                        .ToList();
-
-                    foreach (var clip in audioClips)
-                    {
-                        if (!IsSoundExist(listSoundSo, clip.name))
-                        {
-                            listSoundSo.ListSoundInfos.Add(new SoundData
-                            {
-                                audioClip = clip,
-                                id = clip.name,
-                                group = "Default",
-                                type = SoundType.SFX,
-                                volume = 1f,
-                                pitch = new MinMaxFloat(1f, 1f)
-                            });
-                        }
-                    }
-
-                    EditorUtility.SetDirty(listSoundSo);
-                    AssetDatabase.SaveAssets();
-                    AssetDatabase.Refresh();
-                }
+                EditorGUI.indentLevel--;
             }
 
             EditorGUILayout.Space(20);
-            EditorGUILayout.LabelField("Gen enum SoundID", EditorStyles.boldLabel);
-            EditorGUILayout.TextArea("This will generate an enum with all sound IDs in the selected folder.", EditorStyles.wordWrappedLabel);
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.TextField("Folder Enum Path", listSoundSo.filePathSoundID);
-
-            if (GUILayout.Button("Select Folder Gen", GUILayout.Width(100)))
+             
+            GUI.color = Color.green;
+            if (GUILayout.Button("Add New Sound Info", GUILayout.Width(200)))
             {
-                string path = EditorUtility.OpenFolderPanel("Select Folder", listSoundSo.filePathSoundID, "");
-                if (!string.IsNullOrEmpty(path))
+                newSoundDraft = new SoundData
                 {
-                    path = "Assets" + path.Replace(Application.dataPath, "");
-                    listSoundSo.filePathSoundID = path + "/SoundID.cs";
-                    EditorUtility.SetDirty(listSoundSo);
-                }
+                    audioClip = null,
+                    id = "",
+                    group = groupNames[0],
+                    type = SoundType.SFX,
+                    volume = 1f,
+                    pitch = new MinMaxFloat(1f, 1f)
+                };
             }
+            GUI.color = Color.white;
 
-            if (GUILayout.Button("Open Folder", GUILayout.Width(100)))
-            {
-                string path = listSoundSo.filePathSoundID;
-                path = path.Replace("/SoundID.cs", "");
-                EditorUtility.RevealInFinder(path);
-            }
+            if (newSoundDraft != null)
+                DrawNewSoundDraft();
 
-            EditorGUILayout.EndHorizontal();
-
-
-            EditorGUILayout.Space();
-            if (GUILayout.Button("Generate Enum ID"))
-            {
-                var listSound = listSoundSo.ListSoundInfos
-                    .Where(x => x.audioClip != null && !string.IsNullOrEmpty(x.audioClip.name))
-                    .Select(x => x.id)
-                    .ToList();
-                GenerateEnum("SoundID", listSound);
-
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-            }
+            DrawLoadFolderSection();
+            DrawEnumGenSection();
 
             if (GUI.changed)
-            {
                 EditorUtility.SetDirty(target);
-            }
         }
 
+        #region Draw Helpers
 
-        private void GenerateEnum(string enumName, List<string> names)
+        private void DrawRow(SoundData soundData, int index)
         {
-            if (names.Count == 0)
+            EditorGUI.indentLevel++;
+            EditorGUILayout.BeginHorizontal();
+
+            // AudioClip
+            soundData.audioClip = (AudioClip)EditorGUILayout.ObjectField(soundData.audioClip,
+                typeof(AudioClip), false, GUILayout.Width(200));
+            soundData.UpdateId();
+
+            // Group Dropdown
+            int currentGroupIndex = Mathf.Max(0, groupNames.IndexOf(soundData.group));
+            currentGroupIndex = EditorGUILayout.Popup(currentGroupIndex, groupNames.ToArray(), GUILayout.Width(120));
+            soundData.group = groupNames[currentGroupIndex];
+
+            // Type Dropdown
+            soundData.type = (SoundType)EditorGUILayout.EnumPopup(soundData.type, GUILayout.Width(100));
+
+            // Volume Slider
+            GUILayout.Label(EditorGUIUtility.IconContent("d_AudioSource Icon"), GUILayout.Width(20),
+                GUILayout.Height(20));
+            soundData.volume = GUILayout.HorizontalSlider(soundData.volume, 0f, 1f, GUILayout.Width(70));
+            GUILayout.Label(soundData.volume.ToString("F1"), GUILayout.Width(25));
+
+            // Pitch 
+            GUILayout.Space(-10);
+            float oldMin = soundData.pitch.min;
+            float oldMax = soundData.pitch.max;
+            // Pitch Slider
+            Rect sliderRect = GUILayoutUtility.GetRect(100, 20, GUILayout.ExpandWidth(false));
+            float newMin = oldMin;
+            float newMax = oldMax;
+            EditorGUI.MinMaxSlider(sliderRect, ref newMin, ref newMax, 0.1f, 2.0f);
+            string minStr = newMin.ToString("F1");
+            string maxStr = newMax.ToString("F1");
+            
+            GUILayout.Space(-25);
+            minStr = EditorGUILayout.DelayedTextField(minStr, GUILayout.Width(70));
+            GUILayout.Space(-25);
+            maxStr = EditorGUILayout.DelayedTextField(maxStr, GUILayout.Width(70));
+            if (float.TryParse(minStr, out float parsedMin))
             {
-                Logg.LogWarning("No sound names provided!");
+                newMin = Mathf.Clamp(Mathf.Round(parsedMin * 10f) / 10f, 0.1f, newMax);
+            }
+
+            if (float.TryParse(maxStr, out float parsedMax))
+            {
+                newMax = Mathf.Clamp(Mathf.Round(parsedMax * 10f) / 10f, newMin, 2.0f);
+            }
+
+            if (Mathf.Abs(newMin - oldMin) > 0.01f || Mathf.Abs(newMax - oldMax) > 0.01f)
+            {
+                var newPitch = new MinMaxFloat(newMin, newMax);
+                soundData.pitch = newPitch;
+                soundData.SetPitch(newPitch);
+            }
+
+            // Play / Stop
+            GUILayout.Space(20);
+            GUI.enabled = soundData.audioClip != null && !soundData.IsPlaying();
+            GUI.color = soundData.IsPlaying() ? Color.green : Color.white;
+            if (GUILayout.Button("▶", GUILayout.Width(40)))
+                soundData.Play(soundData.pitch);
+            GUI.color = Color.white;
+
+            GUI.enabled = soundData.audioClip != null && soundData.IsPlaying();
+            if (GUILayout.Button("■", GUILayout.Width(40)))
+                soundData.Stop();
+
+            GUI.enabled = true;
+
+            // Remove (red nếu duplicate)
+            bool isDuplicate = listSoundSo.ListSoundInfos
+                .Count(x => x.audioClip == soundData.audioClip && x.audioClip != null) > 1;
+            if (isDuplicate) GUI.color = Color.red;
+            if (GUILayout.Button("X", GUILayout.Width(50)))
+            {
+                listSoundSo.ListSoundInfos.RemoveAt(index);
+                GUI.color = Color.white;
+                EditorGUILayout.EndHorizontal();
+                EditorGUI.indentLevel--;
                 return;
             }
 
-            string filePath = listSoundSo.filePathSoundID;
-            StringBuilder sbExtensions = new StringBuilder();
-            sbExtensions.AppendLine();
+            GUI.color = Color.white;
 
-            StringBuilder sbEnum = new StringBuilder();
-            sbEnum.AppendLine($"public enum {enumName}");
-            sbEnum.AppendLine("{");
-
-            HashSet<string> uniqueNames = new HashSet<string>(names.Select(n => n.Replace(" ", "_")));
-
-            foreach (string name in uniqueNames)
-            {
-                sbEnum.AppendLine($"    {name},");
-            }
-
-            sbEnum.AppendLine("}");
-
-            if (File.Exists(filePath))
-            {
-                File.WriteAllText(filePath, sbExtensions.ToString() + sbEnum.ToString());
-                Logg.Log($"Updated Enum '{enumName}' at {filePath}");
-            }
-            else
-            {
-                File.WriteAllText(filePath, sbExtensions.ToString() + sbEnum.ToString());
-                Logg.Log($"Created Enum '{enumName}' at {filePath}");
-            }
-
-            AssetDatabase.Refresh();
-        }
-
-        private void DrawGroupNames()
-        {
-            for (int i = 0; i < groupNames.Count; i++)
-            {
-                EditorGUILayout.BeginHorizontal();
-
-                string newName = EditorGUILayout.TextField($"Group {i + 1}", groupNames[i]);
-                if (groupNames != null && newName != groupNames[i])
-                {
-                    groupNames[i] = newName;
-                }
-
-                if (GUILayout.Button("-", GUILayout.Width(25)))
-                {
-                    groupNames.RemoveAt(i);
-                    i--;
-                    continue;
-                }
-
-                EditorGUILayout.EndHorizontal();
-            }
-
-            if (GUILayout.Button("Add Group"))
-            {
-                groupNames.Add("NewGroup");
-            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUI.indentLevel--;
         }
 
         private void DrawRowBorder()
@@ -412,107 +237,157 @@ namespace OSK
 
         private void DrawTableHeaders()
         {
-            EditorGUI.indentLevel += 1;
             EditorGUILayout.BeginHorizontal();
-            DrawTableCell("    Audio Clip", 165, true);
-            EditorGUILayout.LabelField("Group", GUILayout.Width(100));
-
-            GUILayout.Space(-30);
+            EditorGUILayout.LabelField("Audio Clip", GUILayout.Width(220));
+            EditorGUILayout.LabelField("Group", GUILayout.Width(120));
             EditorGUILayout.LabelField("Type", GUILayout.Width(70));
-            EditorGUILayout.LabelField("Volume", GUILayout.Width(95));
-
-            GUILayout.Space(5);
+            EditorGUILayout.LabelField("Volume", GUILayout.Width(140));
             EditorGUILayout.LabelField("Pitch", GUILayout.Width(75));
-
-            GUILayout.Space(-10);
-            EditorGUILayout.LabelField("Min", GUILayout.Width(75));
-            GUILayout.Space(-50);
+            EditorGUILayout.LabelField("Min", GUILayout.Width(45));
             EditorGUILayout.LabelField("Max", GUILayout.Width(75));
-
-
-            GUILayout.Space(-20);
-            EditorGUILayout.LabelField("Play", GUILayout.Width(75));
-            GUILayout.Space(-30);
-            EditorGUILayout.LabelField("Stop", GUILayout.Width(75));
-            GUILayout.Space(-20);
-            EditorGUILayout.LabelField("Remove", GUILayout.Width(100));
-
+            
+            GUILayout.Label("Play", GUILayout.Width(40));
+            GUILayout.Label("Stop", GUILayout.Width(40));
+            GUILayout.Label("Remove", GUILayout.Width(50));
             EditorGUILayout.EndHorizontal();
-            EditorGUI.indentLevel -= 1;
             DrawRowBorder();
         }
 
-        private void DrawTableCell(string text, float width, bool isHeader = false)
+        private void DrawGroupNames()
         {
-            if (isHeader)
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("🎵 Group Names", EditorStyles.boldLabel);
+            for (int i = 0; i < groupNames.Count; i++)
             {
-                EditorGUILayout.LabelField(text, EditorStyles.boldLabel, GUILayout.Width(width));
+                EditorGUILayout.BeginHorizontal();
+                groupNames[i] = EditorGUILayout.TextField(groupNames[i]);
+                if (GUILayout.Button("X", GUILayout.Width(20)))
+                {
+                    groupNames.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
+                EditorGUILayout.EndHorizontal();
             }
-            else
-            {
-                EditorGUILayout.LabelField(text, GUILayout.Width(width));
-            }
+
+            if (GUILayout.Button("Add Group"))
+                groupNames.Add("NewGroup");
+            EditorGUILayout.EndVertical();
         }
 
-        private bool IsDuplicateAudioClip(ListSoundSO listSoundSo, AudioClip clipToCheck)
+        private void DrawNewSoundDraft()
         {
-            if (clipToCheck == null) return false;
+            EditorGUILayout.Space(10);
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("➕ New Sound Draft", EditorStyles.boldLabel);
 
-            foreach (var soundInfo in listSoundSo.ListSoundInfos)
+            newSoundDraft.audioClip =
+                (AudioClip)EditorGUILayout.ObjectField("Audio Clip", newSoundDraft.audioClip, typeof(AudioClip), false);
+            int groupIndex = Mathf.Max(0, groupNames.IndexOf(newSoundDraft.group ?? groupNames[0]));
+            groupIndex = EditorGUILayout.Popup("Group", groupIndex, groupNames.ToArray());
+            newSoundDraft.group = groupNames[groupIndex];
+            newSoundDraft.type = (SoundType)EditorGUILayout.EnumPopup("Type", newSoundDraft.type);
+            newSoundDraft.volume = EditorGUILayout.Slider("Volume", newSoundDraft.volume, 0f, 1f);
+            float min = newSoundDraft.pitch.min, max = newSoundDraft.pitch.max;
+            EditorGUILayout.MinMaxSlider("Pitch", ref min, ref max, 0.1f, 2f);
+            newSoundDraft.pitch = new MinMaxFloat(min, max);
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Confirm Add", GUILayout.Width(120)))
             {
-                if (soundInfo.audioClip == clipToCheck)
+                if (newSoundDraft.audioClip != null)
                 {
-                    return true;
+                    newSoundDraft.id = newSoundDraft.audioClip.name;
+                    listSoundSo.ListSoundInfos.Add(newSoundDraft);
+                    newSoundDraft = null;
+                    EditorUtility.SetDirty(listSoundSo);
                 }
             }
 
-            return false;
+            if (GUILayout.Button("Cancel", GUILayout.Width(80)))
+                newSoundDraft = null;
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.EndVertical();
         }
 
-        private void SortToType(ListSoundSO listSoundSo)
-        {
-            if (listSoundSo == null || listSoundSo.ListSoundInfos.Count == 0)
-            {
-                OSK.Logg.LogWarning("List Sound Infos is empty.");
-                return;
-            }
+        #endregion
 
-            listSoundSo.ListSoundInfos.Sort((a, b) => a.type.CompareTo(b.type));
-            UnityEditor.EditorUtility.SetDirty(this);
-        }
+        #region Utility
+
+        private void SortToType(ListSoundSO so) =>
+            so.ListSoundInfos.Sort((a, b) => a.type.CompareTo(b.type));
 
         private void SetIDForNameClip()
         {
-            if (listSoundSo == null || listSoundSo.ListSoundInfos.Count == 0)
-            {
-                OSK.Logg.LogWarning("List Sound Infos is empty.");
-                return;
-            }
-
-            for (int i = 0; i < listSoundSo.ListSoundInfos.Count; i++)
-            {
-                var name = listSoundSo.ListSoundInfos[i].audioClip.name;
-                listSoundSo.ListSoundInfos[i].id = name;
-            }
-
-            UnityEditor.EditorUtility.SetDirty(this);
+            foreach (var sound in listSoundSo.ListSoundInfos)
+                if (sound.audioClip != null)
+                    sound.id = sound.audioClip.name;
         }
 
-        public bool IsSoundExist(ListSoundSO listSoundSo, string soundName)
+        private void DrawLoadFolderSection()
         {
-            if (listSoundSo.ListSoundInfos == null || listSoundSo.ListSoundInfos.Count == 0)
-                return false;
-
-            foreach (var soundInfo in listSoundSo.ListSoundInfos)
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField("Load All sounds In Path", EditorStyles.boldLabel);
+            if (GUILayout.Button("Load Folder Sounds", GUILayout.Width(150)))
             {
-                if (soundInfo.audioClip.name == soundName)
-                {
-                    return true;
-                }
-            }
+                string path = EditorUtility.OpenFolderPanel("Select Folder", "Assets", "");
+                if (string.IsNullOrEmpty(path)) return;
 
-            return false;
+                path = "Assets" + path.Replace(Application.dataPath, "");
+                var exts = new[] { ".wav", ".mp3", ".ogg" };
+                var clips = Directory.GetFiles(path, "*", SearchOption.AllDirectories)
+                    .Where(f => exts.Contains(Path.GetExtension(f).ToLower()))
+                    .Select(f => AssetDatabase.LoadAssetAtPath<AudioClip>(f.Replace("\\", "/")))
+                    .Where(c => c != null).ToList();
+
+                foreach (var clip in clips)
+                {
+                    if (!listSoundSo.ListSoundInfos.Any(s => s.audioClip != null && s.audioClip.name == clip.name))
+                    {
+                        listSoundSo.ListSoundInfos.Add(new SoundData
+                        {
+                            audioClip = clip,
+                            id = clip.name,
+                            group = "Default",
+                            type = SoundType.SFX,
+                            volume = 1f,
+                            pitch = new MinMaxFloat(1f, 1f)
+                        });
+                    }
+                }
+
+                EditorUtility.SetDirty(listSoundSo);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+            }
         }
+
+        private void DrawEnumGenSection()
+        {
+            EditorGUILayout.Space(20);
+            EditorGUILayout.LabelField("Gen enum SoundID", EditorStyles.boldLabel);
+            if (GUILayout.Button("Generate Enum ID"))
+            {
+                var names = listSoundSo.ListSoundInfos
+                    .Where(x => x.audioClip != null)
+                    .Select(x => x.id)
+                    .Distinct()
+                    .ToList();
+
+                string filePath = listSoundSo.filePathSoundID;
+                var sb = new StringBuilder();
+                sb.AppendLine("public enum SoundID {");
+                foreach (var n in names)
+                    sb.AppendLine($"    {n},");
+                sb.AppendLine("}");
+                File.WriteAllText(filePath, sb.ToString());
+                AssetDatabase.Refresh();
+            }
+        }
+
+        #endregion
     }
 }
 #endif

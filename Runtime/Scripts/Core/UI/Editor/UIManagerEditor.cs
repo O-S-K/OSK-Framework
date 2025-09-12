@@ -24,7 +24,7 @@ namespace OSK
             {
                 FindViewDataSOAssets();
             }
-            if (GUILayout.Button("Setup Canvas"))
+            if (GUILayout.Button("Setup Canvas For Setting"))
             {
                 uiManager.SetupCanvas();
             }

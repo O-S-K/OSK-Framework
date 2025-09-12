@@ -10,17 +10,23 @@ namespace OSK
         [HideInInspector]
         public string filePathSoundID = "Assets";
         
+        public bool showSoundSettings = true;
+        
+        [Title("Sound Settings")]
+        [ShowIf("showSoundSettings")]
         [Space]
         [Title("Max Capacity")]
         [Tooltip("Max capacity music when play, If you want to add more sound, please increase this value.")]
         public int maxCapacityMusic = 5;
-        
+
+        [ShowIf("showSoundSettings")]
         [Tooltip("Max capacity SFX when play, If you want to add more sound, please increase this value.")]
         public int maxCapacitySFX = 25;
-        
+
+        [ShowIf("showSoundSettings")]
         [Space]
         [Title("List Sound Infos")]
-        [TableList,SerializeField] 
+        [TableList, SerializeField] 
         private List<SoundData> _listSoundInfos = new List<SoundData>();
         public List<SoundData> ListSoundInfos => _listSoundInfos;
 

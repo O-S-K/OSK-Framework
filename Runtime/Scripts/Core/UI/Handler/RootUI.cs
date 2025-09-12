@@ -78,7 +78,6 @@ namespace OSK
             var data = Main.Instance.configInit.data;
             if (data.listViewS0 != null)
             {
-                data.listViewS0.CheckNullView();
                 Preload();
             }
             if (isUpdateRatioScaler)
@@ -132,6 +131,16 @@ namespace OSK
  
             ListViewInit.Clear();
             ListViewInit = listUIPopupSo.Select(view => view.view).ToList();
+            
+            // print error if any view is null
+            for (int i = 0; i < ListViewInit.Count; i++)
+            {
+                var view = ListViewInit[i];
+                if (view == null)
+                {
+                    Logg.LogError($"[View] ListViewInit[{i}] is null", isLog: enableLog);
+                } 
+            }
 
             foreach (var view in ListViewInit)
             {

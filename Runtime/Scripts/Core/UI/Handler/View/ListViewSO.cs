@@ -11,6 +11,10 @@ namespace OSK
 #if UNITY_EDITOR
         public string path;
 #endif
+        public EViewType viewType;
+        public bool isPreloadSpawn = true;
+        public bool isRemoveOnHide = false;
+
         public int depth;
         public View view;
     }
@@ -27,7 +31,7 @@ namespace OSK
         {
             foreach (var view in _listView.Where(view => view == null))
             {
-                Logg.Log($"_listView[i] "  + view + " is null");
+                Debug.LogError($"_listView[i] "  + view + " is null");
             }
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using Sirenix.OdinInspector;
 using DG.Tweening;
+using UnityEditor;
 using UnityEngine;
 
 namespace OSK
@@ -16,30 +17,32 @@ namespace OSK
         SlideDown,
         Animation
     }
-
     [System.Serializable]
     public class TweenSettings
     {
+        [TableColumnWidth(120, Resizable = false)]
         public TransitionType transition;
 
-        [HideIf(nameof(transition), TransitionType.None),
-         HideIf(nameof(transition), TransitionType.Animation)]
+        [TableColumnWidth(60)]
+        [HideIf(nameof(transition), TransitionType.None)]
+        [HideIf(nameof(transition), TransitionType.Animation)]
         public float time = 0.25f;
-         
-        [HideIf(nameof(transition), TransitionType.None),
-         HideIf(nameof(useCustomCurve), true),
-         HideIf(nameof(transition), TransitionType.Animation)]
+
+        [TableColumnWidth(70)]
+        [HideIf(nameof(transition), TransitionType.None)]
+        [HideIf(nameof(useCustomCurve), true)]
+        [HideIf(nameof(transition), TransitionType.Animation)]
         public bool useEase = false;
 
-        [ShowIf(nameof(useEase)),
-         HideIf(nameof(transition), TransitionType.Animation)]
+        [ShowIf(nameof(useEase))]
+        [HideIf(nameof(transition), TransitionType.Animation)]
         public Ease ease = Ease.OutQuad;
 
         [ShowIf(nameof(transition), TransitionType.Scale)]
         public Vector3 initScale;
-        
-        [HideIf(nameof(transition), TransitionType.None),
-         HideIf(nameof(useEase), true)]
+
+        [HideIf(nameof(transition), TransitionType.None)]
+        [HideIf(nameof(useEase), true)]
         public bool useCustomCurve = false;
 
         [ShowIf(nameof(useCustomCurve))]
@@ -53,13 +56,26 @@ namespace OSK
     [RequireComponent(typeof(CanvasGroup), typeof(RectTransform))]
     public class UITransition : MonoBehaviour
     {
-        [Header("Content UI")] [SerializeField]
-        private RectTransform contentUI;
-
+        [LabelText("If not set, will use RectTransform of this GameObject")] 
+        [Header("Content UI")]
+        [SerializeField] private RectTransform contentUI;
+        
+        [Title("Transition Settings")]
         public bool runIgnoreTimeScale = true;
-        [SerializeField] private TweenSettings _openingTweenSettings;
-        [SerializeField] private TweenSettings _closingTweenSettings;
-        [Space(10)] private CanvasGroup _canvasGroup;
+        
+        [HorizontalGroup("Tweens", Width = 0.5f)]
+        [VerticalGroup("Tweens/Opening")]
+        [Title("Opening")]
+        [TableList(ShowPaging = false, AlwaysExpanded = true)]
+        public TweenSettings _openingTweenSettings;
+        
+        
+        [VerticalGroup("Tweens/Closing")]
+        [Title("Closing")]
+        [TableList(ShowPaging = false, AlwaysExpanded = true)]
+        public TweenSettings _closingTweenSettings;
+
+        private CanvasGroup _canvasGroup;
         private RectTransform _rectTransform;
 
         [Button]
@@ -67,10 +83,18 @@ namespace OSK
         {
             if (transform.childCount > 0)
             {
-                if(transform.Find("Container") != null)
+                if (transform.Find("Container") != null)
+                {
                     contentUI = transform.Find("Container").GetComponent<RectTransform>();
+                }
                 else
+                {
+                    Debug.LogWarning("No child named 'Container' found, using the first child instead.");
                     contentUI = transform.GetChild(0).GetComponent<RectTransform>();
+                }
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(contentUI);
+#endif
             }
         }
 
@@ -90,10 +114,11 @@ namespace OSK
         public void Initialize()
         {
             DOTween.Init();
-            if(contentUI == null)
+            if (contentUI == null)
             {
                 Logg.Log("contentUI not set, using RectTransform instead => " + gameObject.name, Color.red);
             }
+
             _canvasGroup = GetComponent<CanvasGroup>();
             _rectTransform = GetComponent<RectTransform>();
         }
@@ -117,7 +142,8 @@ namespace OSK
                         Logg.Log("_canvasGroup not add to component => " + gameObject.name);
                         _canvasGroup = gameObject.AddComponent<CanvasGroup>();
                         break;
-                    } 
+                    }
+
                     _canvasGroup.alpha = 0;
                     tween = _canvasGroup.DOFade(1, _openingTweenSettings.time);
                     break;
@@ -172,7 +198,8 @@ namespace OSK
                         Logg.Log("_canvasGroup not add to component => " + gameObject.name);
                         _canvasGroup = gameObject.AddComponent<CanvasGroup>();
                         break;
-                    } 
+                    }
+
                     tween = _canvasGroup.DOFade(0, _closingTweenSettings.time);
                     break;
 
@@ -203,6 +230,7 @@ namespace OSK
                     _closingTweenSettings.animationClip?.Play();
                     break;
             }
+
             OnCompletedTween(_closingTweenSettings, tween, onComplete, false);
         }
 
@@ -222,7 +250,7 @@ namespace OSK
                 if (tween != null)
                 {
                     ApplyTween(tween, isOpen);
-                    tween.SetUpdate(runIgnoreTimeScale); 
+                    tween.SetUpdate(runIgnoreTimeScale);
                     tween.OnComplete(() =>
                     {
                         ResetTransitionState();

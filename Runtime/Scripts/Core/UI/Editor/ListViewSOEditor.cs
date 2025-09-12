@@ -14,11 +14,12 @@ namespace OSK
         private Dictionary<EViewType, bool> viewTypeFoldouts = new Dictionary<EViewType, bool>();
         private ListViewSO listViewSO = null;
         private List<View> listViews = null;
-   
+        private DataViewUI newViewDraft = null;
+
         private void OnEnable() => listViewSO = (ListViewSO)target;
 
         public override void OnInspectorGUI()
-        { 
+        {
             DrawDefaultInspector();
             EditorGUILayout.Space(10);
 
@@ -35,6 +36,33 @@ namespace OSK
             EditorGUILayout.LabelField("----------------------------------------------------------------------------");
             EditorGUILayout.Space();
 
+            // nút Add New View
+            if (newViewDraft == null)
+            {
+                GUI.color = Color.green;
+                if (GUILayout.Button("➕ Add New View", GUILayout.Width(200), GUILayout.Height(40)))
+                {
+                    newViewDraft = new DataViewUI
+                    {
+                        depth = 0,
+                        view = null,
+                        path = "",
+                        viewType =  EViewType.Popup,
+                        isPreloadSpawn = true,
+                        isRemoveOnHide = false
+                    };
+                }
+
+                GUI.color = Color.white;
+            }
+            else
+            {
+                DrawNewViewDraft();
+            }
+
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField("----------------------------------------------------------------------------");
+
             if (GUILayout.Button("Add All View From Resources"))
             {
                 AddAllViewFormResources();
@@ -48,12 +76,13 @@ namespace OSK
             }
 
             EditorGUILayout.Space(10);
-            if (GUILayout.Button("Add"))
-            {
-                listViewSO.Views.Add(new DataViewUI { depth = 0, view = null });
-                EditorUtility.SetDirty(target);
-            }
-            
+            // if (GUILayout.Button("Add"))
+            // {
+            //     listViewSO.Views.Add(new DataViewUI { depth = 0, view = null });
+            //     EditorUtility.SetDirty(target);
+            // }
+
+
             if (GUILayout.Button("Set Depth To Prefab"))
             {
                 SetDepthSOToRrefab();
@@ -90,6 +119,57 @@ namespace OSK
             }
         }
 
+        private void DrawNewViewDraft()
+        {
+            EditorGUILayout.Space(10);
+            EditorGUILayout.BeginVertical("box");
+
+            GUI.color = Color.yellow;
+            EditorGUILayout.LabelField("➕ New View Draft", EditorStyles.boldLabel, GUILayout.Height(20));
+            GUI.color = Color.white;
+            newViewDraft.depth = EditorGUILayout.IntField("Depth", newViewDraft.depth);
+            newViewDraft.viewType = (EViewType)EditorGUILayout.EnumPopup("View Type", newViewDraft.viewType);
+            newViewDraft.isPreloadSpawn = EditorGUILayout.Toggle("Is Preload Spawn", newViewDraft.isPreloadSpawn);
+            newViewDraft.isRemoveOnHide = EditorGUILayout.Toggle("Is Remove On Hide", newViewDraft.isRemoveOnHide);
+            newViewDraft.view =
+                (View)EditorGUILayout.ObjectField("View", newViewDraft.view, typeof(View), false);
+
+            if (newViewDraft.view != null)
+            {
+                newViewDraft.view.depthEdit = newViewDraft.depth;
+                newViewDraft.path = IOUtility.GetPathAfterResources(newViewDraft.view);
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            
+            GUI.color = newViewDraft.view != null ? Color.green : Color.gray;
+            GUI.enabled = newViewDraft.view != null;
+            if (GUILayout.Button("Confirm Add", GUILayout.Width(120)))
+            {
+                if (newViewDraft.view != null)
+                {
+                    listViewSO.Views.Add(newViewDraft);
+                    newViewDraft = null;
+                    EditorUtility.SetDirty(listViewSO);
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Error", "Please select a View before confirming.", "OK");
+                }
+            }
+            GUI.enabled = true;
+            GUI.color = Color.white;
+
+            if (GUILayout.Button("Cancel", GUILayout.Width(80)))
+            {
+                newViewDraft = null;
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.EndVertical();
+        }
+
         public void AddAllViewFormResources()
         {
             listViews = Resources.LoadAll<View>("").ToList().FindAll(x => x.isAddToViewManager);
@@ -121,7 +201,7 @@ namespace OSK
             SetDepthFromRes();
             SortViews(listViewSO);
         }
-        
+
         private void SetDepthFromRes()
         {
             foreach (var viewData in listViewSO.Views)
