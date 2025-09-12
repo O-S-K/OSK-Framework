@@ -19,6 +19,10 @@ The **OSK Framework** is a modular Unity framework designed to streamline game d
 - Update EventBus, Resource,Singleton
 - Add Dependency
 
+**version 3.0
+Update Editor UI, Sound SO
+Fixbug
+
 ---
 
 ## **🌟 Key Features**
