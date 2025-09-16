@@ -45,9 +45,8 @@ Fixbug
 14. [**SoundManager**]: Controls background music, sound effects, and audio events.  
 15. [**LocalizationManager**]: Handles multi-language support and localization.  
 16. [**EntityManager**]: Manages game entities and their lifecycle.  
-17. [**TimeManager**]: Provides advanced time tracking, countdowns, and scheduling.  
-18. [**BlackboardManager**]: Facilitates shared data storage for AI and gameplay logic.  
-19. [**ProcedureManager**]: Manages game procedures and workflows for structured gameplay logic.  
+17. [**BlackboardManager**]: Facilitates shared data storage for AI and gameplay logic.  
+18. [**ProcedureManager**]: Manages game procedures and workflows for structured gameplay logic.  
  
 
 
@@ -81,7 +80,8 @@ Use the `Main` object to interact with the systems:
 - **Events**: `Main.Event.Add("EventName", callback)`  
 - **Sound**: `Main.Sound.Play()`  
 - **Storage**: `Main.Storage.Save<T, U>()`  
-
+.....
+  
 ---
 
 ## **🎯 Benefits**
