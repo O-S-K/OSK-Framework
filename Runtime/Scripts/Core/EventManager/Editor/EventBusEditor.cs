@@ -75,7 +75,7 @@ namespace OSK
                 List<Delegate> handlers = kvp.Value;
 
                 EditorGUILayout.BeginVertical("box");
-                EditorGUILayout.LabelField($"{eventType.Name}  ({handlers.Count} listeners)", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Event",$"{eventType.Name}  ({handlers.Count} listeners)", EditorStyles.boldLabel);
 
                 foreach (var handler in handlers)
                 {
@@ -87,7 +87,7 @@ namespace OSK
                         : "Unknown";
 
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField($"- {declaringType}.{methodName}", EditorStyles.miniLabel);
+                    EditorGUILayout.LabelField("Event",$"- {declaringType}.{methodName}", EditorStyles.miniLabel);
 
                     // Nút "Ping" để highlight object nếu callback thuộc một MonoBehaviour
                     if (handler.Target is UnityEngine.Object unityObj)
@@ -123,8 +123,8 @@ namespace OSK
                 var gameEvent = kvp.Value;
 
                 EditorGUILayout.BeginVertical("box");
-                EditorGUILayout.LabelField($"{eventType.Name}", EditorStyles.boldLabel);
-                EditorGUILayout.LabelField($"Last Event: {gameEvent}", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("Event",$"{eventType.Name}", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Event",$"Last Event: {gameEvent}", EditorStyles.miniLabel);
                 EditorGUILayout.EndVertical();
             }
         }
@@ -197,13 +197,13 @@ namespace OSK
 
                 if (eventType == null)
                 {
-                    Debug.LogError($"[EventBusEditor] Event type '{_testEventTypeName}' not found!");
+                    Logg.LogError("Event",$"[EventBusEditor] Event type '{_testEventTypeName}' not found!");
                     return;
                 }
 
                 if (!typeof(GameEvent).IsAssignableFrom(eventType))
                 {
-                    Debug.LogError($"[EventBusEditor] Type '{_testEventTypeName}' is not a GameEvent!");
+                    Logg.LogError("Event",$"[EventBusEditor] Type '{_testEventTypeName}' is not a GameEvent!");
                     return;
                 }
 
@@ -212,11 +212,11 @@ namespace OSK
                     var instance = Activator.CreateInstance(eventType) as GameEvent;
                     var method = typeof(EventBusManager).GetMethod("Publish")?.MakeGenericMethod(eventType);
                     method?.Invoke(_eventBusManager, new object[] { instance });
-                    Debug.Log($"[EventBusEditor] Published test event: {eventType.Name}");
+                    Logg.Log("Event",$"[EventBusEditor] Published test event: {eventType.Name}");
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"[EventBusEditor] Failed to publish test event: {ex}");
+                    Logg.LogError("Event",$"[EventBusEditor] Failed to publish test event: {ex}");
                 }
             }
         }

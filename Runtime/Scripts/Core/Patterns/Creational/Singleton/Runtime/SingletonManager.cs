@@ -46,7 +46,7 @@ namespace OSK
         }
         
         // Example usage: Awake ()
-        // {
+        // { 
         //      SingletonManager.Instance.RegisterScene(this); or SingletonManager.Instance.RegisterGlobal(this);
         // }
 

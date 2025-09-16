@@ -31,7 +31,7 @@ namespace OSK
         {
             foreach (var view in _listView.Where(view => view == null))
             {
-                Debug.LogError($"_listView[i] "  + view + " is null");
+                Logg.LogError("UI",$"_listView[i] "  + view + " is null");
             }
         }
     }

@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
-using System.Collections.Generic; 
-using UnityEngine;
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
 
 namespace OSK
 {
@@ -19,8 +19,8 @@ namespace OSK
             DrawDefaultInspector();
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("- Status Music : " + soundManager.IsEnableMusic.ToString());
-            EditorGUILayout.LabelField("- Status SFX : " + soundManager.IsEnableSoundSFX.ToString());
+            EditorGUILayout.LabelField("- Status Music : " + soundManager.IsEnableMusic);
+            EditorGUILayout.LabelField("- Status SFX : " + soundManager.IsEnableSoundSFX);
 
             // Play button
             if (GUILayout.Button("Select Data SO"))
@@ -34,8 +34,8 @@ namespace OSK
             if (soundManager.GetListSoundData != null &&
                 (soundManager.GetListSoundPlayings != null && soundManager.GetListSoundPlayings.Count > 0))
             {
-                EditorGUILayout.LabelField("Total Sounds Playing: " + soundManager.GetListSoundPlayings.Count.ToString());
-                EditorGUILayout.LabelField("Total Sound Delay: " + soundManager.GetPlayingTweens.Count.ToString());
+                EditorGUILayout.LabelField("Total Sounds Playing: " + soundManager.GetListSoundPlayings.Count);
+                EditorGUILayout.LabelField("Total Sound Delay: " + soundManager.GetPlayingTweens.Count);
                 EditorGUILayout.Space();
 
                 // dropdown menu to select sound type

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using DG.Tweening;
 using Sirenix.OdinInspector;
@@ -6,24 +7,24 @@ using UnityEngine.Audio;
 
 namespace OSK
 {
-    [System.Serializable]
+    [Serializable]
     [InlineProperty]
     public class SoundSetup
     {
         [LabelWidth(100)]
         public string id;
 
-        [LabelWidth(100)] public AudioClip audioClip = null;
+        [LabelWidth(100)] public AudioClip audioClip;
 
         [EnumToggleButtons] [LabelWidth(100)] public SoundType type = SoundType.SFX;
 
-        [LabelWidth(100)] public float startTime = 0;
-        [LabelWidth(100)] public bool loop = false;
+        [LabelWidth(100)] public float startTime;
+        [LabelWidth(100)] public bool loop;
 
         [FoldoutGroup("Advanced", expanded: false)]
         [LabelText("VolumeFade")]
         [LabelWidth(100)]
-        public VolumeFade volumeFade = null;
+        public VolumeFade volumeFade;
 
         [FoldoutGroup("Advanced")]
         [PropertyTooltip("Higher = more important")]
@@ -32,13 +33,13 @@ namespace OSK
         public int priority = 128;
 
         [FoldoutGroup("Advanced")] [Range(0.1f, 2f)] [LabelWidth(100)]
-        public MinMaxFloat pitch = null;
+        public MinMaxFloat pitch;
 
         [FoldoutGroup("Advanced")] [PropertyRange(0, 10)] [LabelWidth(100)]
-        public float playDelay = 0;
+        public float playDelay;
 
         [FoldoutGroup("3D Settings")] [LabelWidth(100)]
-        public Transform transform = null;
+        public Transform transform;
 
         [FoldoutGroup("3D Settings")] [LabelWidth(100)] [MinValue(0)]
         public int minDistance = 1;
@@ -55,7 +56,7 @@ namespace OSK
             this.type = type;
             this.startTime = startTime;
             this.loop = loop;
-            this.volumeFade = volume ?? new VolumeFade();
+            volumeFade = volume ?? new VolumeFade();
             this.playDelay = playDelay;
             this.priority = priority;
             this.pitch = pitch;
@@ -81,16 +82,16 @@ namespace OSK
         }
     }
 
-    [System.Serializable]
+    [Serializable]
     public class VolumeFade
     {
         [LabelText("Init Volume")]
         [HorizontalGroup("Volume")]
-        [LabelWidth(100)] [Min(0)] public float init = 0;
+        [LabelWidth(100)] [Min(0)] public float init;
         [HorizontalGroup("Volume")]
         [LabelWidth(100)] [Min(0)] public float target = 1;
         [HorizontalGroup("Volume")]
-        [LabelWidth(100)] [Min(0)] public float duration = 0;
+        [LabelWidth(100)] [Min(0)] public float duration;
         
         public VolumeFade(float init = 0, float target = 1, float duration = 0)
         {

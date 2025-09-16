@@ -49,7 +49,7 @@ namespace OSK
             }
             else
             {
-                Logg.LogError($"[AlertView] {errorContext}: No Text or TMP_Text component found.");
+                Logg.LogError("UI",$"[AlertView] {errorContext}: No Text or TMP_Text component found.");
             }
         }
 
@@ -105,7 +105,7 @@ namespace OSK
 
         public virtual void OnClose()
         {
-            Logg.Log("AlertView: OnClose called. Time hide left " + timeHide);
+            Logg.Log("UI","AlertView: OnClose called. Time hide left " + timeHide);
             Destroy(gameObject);
         }
     }

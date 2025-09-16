@@ -19,7 +19,7 @@ namespace OSK
                 bundle = bundleRequest.assetBundle;
                 if (bundle == null)
                 {
-                    OSK.Logg.LogError($"[ResourceManager] Không load được AssetBundle: {bundlePath}");
+                    OSK.Logg.LogError("Resource",$"[ResourceManager] Không load được AssetBundle: {bundlePath}");
                     onLoaded?.Invoke(null);
                     yield break;
                 }

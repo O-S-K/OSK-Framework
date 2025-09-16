@@ -69,7 +69,7 @@ namespace OSK
 
             if (instance == null)
             {
-                Logg.LogError($"Object from pool is null or destroyed. Group: {groupName}, Prefab: {prefab.name}");
+                Logg.LogError("Pool",$"Object from pool is null or destroyed. Group: {groupName}, Prefab: {prefab.name}");
                 return null;
             }
 
@@ -87,7 +87,7 @@ namespace OSK
 
             if (!InstanceLookup.TryAdd(instance, pool))
             {
-                Logg.LogWarning($"This object pool already contains the item provided: {instance}");
+                Logg.LogWarning("Pool",$"This object pool already contains the item provided: {instance}");
                 return instance;
             }
 
@@ -98,7 +98,7 @@ namespace OSK
         {
             if (IsGroupAndPrefabExist(group, prefab))
             {
-                Logg.LogError($"Pool for prefab '{prefab.name}' in group '{group}' has already been created.");
+                Logg.LogError("Pool",$"Pool for prefab '{prefab.name}' in group '{group}' has already been created.");
                 return;
             }
 
@@ -137,7 +137,7 @@ namespace OSK
             }
             else
             {
-                Logg.LogWarning($"{instance} not found in any pool.");
+                Logg.LogWarning("Pool",$"{instance} not found in any pool.");
             }
         }
 

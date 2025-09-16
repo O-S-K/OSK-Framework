@@ -35,7 +35,6 @@ namespace OSK
         public MainModules mainModules;
 
         public bool isDestroyingOnLoad = false;
-        public bool isLogInit = false;
 
         public static Main Instance => SingletonManager.Instance.Get<Main>();
         
@@ -63,11 +62,11 @@ namespace OSK
                 {
                     var module = newObject.AddComponent(componentType) as GameFrameworkComponent;
                     AssignModuleInstance(module);
-                    Logg.Log($"[Main] Module {moduleType} initialized.", Color.green, isLogInit);
+                    Logg.Log("Main",$"[Main] Module {moduleType} initialized.");
                 }
                 else
                 {
-                    Logg.LogError($"[Main] Module {moduleType} not found in MainModules.");
+                    Logg.LogError("Main",$"[Main] Module {moduleType} not found in MainModules.");
                 }
             }
         }
@@ -92,7 +91,7 @@ namespace OSK
             else if (module is BlackboardManager blackboard) Blackboard = blackboard;
             else if (module is ProcedureManager procedure) Procedure = procedure;
             else if (module is GameInit gameInit) GameInit = gameInit;
-            else Logg.LogError($"[AssignModuleToField] Unknown module type: {module}");
+            else Logg.LogError("Main",$"[AssignModuleToField] Unknown module type: {module}");
         }
 
         private void InitDataComponents()
@@ -105,23 +104,23 @@ namespace OSK
                 {
                     if (current.Value == null)
                     {
-                        Logg.LogError($"[InitData] Component '{componentName}' is NULL.");
+                        Logg.LogError("Main",$"[InitData] Component '{componentName}' is NULL.");
                     }
                     else
                     {
-                        Logg.Log($"[InitData] Initializing '{componentName}'...", Color.cyan, isLogInit);
+                        Logg.Log("Main",$"[InitData] Initializing '{componentName}'...");
                         current.Value.OnInit();
                     }
                 }
                 catch (Exception e)
                 {
-                    Logg.LogError($"[InitData] Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
+                    Logg.LogError("Main",$"[InitData] Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
                 }
 
                 current = current.Next;
             }
 
-            Logg.Log("[InitData] Init Data Components Done!", Color.green, isLogInit);
+            Logg.Log("[InitData] Init Data Components Done!");
         }
 
         private void InitConfigs()
@@ -139,7 +138,7 @@ namespace OSK
             {
                 Debug.Log("New version");
             });
-            Logg.Log("[InitConfigs] Configs initialized successfully.", Color.green, isLogInit);
+            Logg.Log("[InitConfigs] Configs initialized successfully.");
         }
 
         private void OnDestroy()

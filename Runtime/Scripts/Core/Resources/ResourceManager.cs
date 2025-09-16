@@ -35,7 +35,7 @@ namespace OSK
             T resource = Resources.Load<T>(path);
             if (resource == null)
             {
-                OSK.Logg.LogError($"[ResourceManager] Không tìm thấy resource tại: {path}");
+                OSK.Logg.LogError("Resource",$"[ResourceManager] Không tìm thấy resource tại: {path}");
                 return null;
             }
 
@@ -53,7 +53,7 @@ namespace OSK
             T resource = Load<T>(path);
             if (resource == null)
             {
-                OSK.Logg.LogError($"[ResourceManager] Spawn thất bại: {path}");
+                OSK.Logg.LogError("Resource",$"[ResourceManager] Spawn thất bại: {path}");
                 return null;
             }
 

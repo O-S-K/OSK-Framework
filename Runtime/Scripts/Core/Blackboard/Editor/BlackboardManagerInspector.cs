@@ -71,7 +71,7 @@ namespace OSK
                                 }
                                 else
                                 {
-                                    Debug.LogWarning($"No ping object assigned for Blackboard '{name}'");
+                                    Logg.LogWarning("Blackboard",$"No ping object assigned for Blackboard '{name}'");
                                 }
                             }
                             EditorGUILayout.EndVertical();

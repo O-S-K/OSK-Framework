@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using DG.Tweening;
 using UnityEditor;
 using UnityEngine;
 
@@ -50,7 +49,7 @@ namespace OSK
                     }
                 }
             }
-            Debug.Log($"Playing clip: {clip.name} + pitch: {_editorAudioSource.pitch} + volume: {_editorAudioSource.volume}");
+            Logg.Log("Sound",$"Playing clip: {clip.name} + pitch: {_editorAudioSource.pitch} + volume: {_editorAudioSource.volume}");
         }
 
         public static void StopClip(AudioClip clip)

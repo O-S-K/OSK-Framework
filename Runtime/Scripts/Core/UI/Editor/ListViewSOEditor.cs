@@ -113,7 +113,7 @@ namespace OSK
             foreach (var view in listViewSO.Views)
             {
                 if (views.Contains(view))
-                    OSK.Logg.LogError($"Popup Type {view} exists in the list. Please remove it.");
+                    OSK.Logg.LogError("UI",$"Popup Type {view} exists in the list. Please remove it.");
                 else
                     views.Add(view);
             }

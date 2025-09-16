@@ -36,7 +36,7 @@ namespace OSK
             _isSetDefaultLanguage = true;
             LoadLocalizationData(languageCode);
             _currentLanguage = languageCode;
-            Logg.Log($"Set language to: {languageCode}".Size(15), Color.green);
+            Logg.Log("Localization",$"Set language to: {languageCode}");
         }
 
 
@@ -54,7 +54,7 @@ namespace OSK
         {
             if (_isSetDefaultLanguage == false)
             {
-                Logg.LogError("Please set default language first." + key);
+                Logg.LogError("Localization","Please set default language first." + key);
                 return "";
             }
 
@@ -63,7 +63,7 @@ namespace OSK
                 return value;
             }
 
-            Logg.LogError($"Key '{key}' not found in localization data.");
+            Logg.LogError("Localization",$"Key '{key}' not found in localization data.");
             return "";
         }
 
@@ -81,7 +81,7 @@ namespace OSK
             TextAsset textFile = Resources.Load<TextAsset>(path);
             if (textFile == null)
             {
-                Logg.LogError("Not found localization file: " + path);
+                Logg.LogError("Localization","Not found localization file: " + path);
                 return;
             }
 
@@ -97,7 +97,7 @@ namespace OSK
 
             if (languageColumnIndex == -1)
             {
-                Logg.LogError($"Language '{languageCode}' not found in localization file.");
+                Logg.LogError("Localization",$"Language '{languageCode}' not found in localization file.");
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace OSK
                 }
             }
 
-            Logg.Log($"Load localization data for language: {languageCode}".Size(15), Color.green);
+            Logg.Log("Localization",$"Load localization data for language: {languageCode}");
         }
 
         private void GetValueFormLanguage(string[] columns, int languageColumnIndex, int i)
@@ -133,7 +133,7 @@ namespace OSK
             }
             else
             {
-                Logg.LogWarning($"Invalid or missing data at line {i + 1} in localization file.");
+                Logg.LogWarning("Localization",$"Invalid or missing data at line {i + 1} in localization file.");
             }
         }
 

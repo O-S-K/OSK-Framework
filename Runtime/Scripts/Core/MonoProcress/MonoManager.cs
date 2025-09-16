@@ -73,7 +73,7 @@ namespace OSK
             else if (obj is ILateUpdate lateTick) lateTickProcesses.Add(lateTick);
             else
             {
-                Logg.LogError($"MonoManager.Register: {obj.GetType()} not implement IUpdate, IFixedUpdate, ILateUpdate");
+                Logg.LogError("MonoTick",$"MonoManager.Register: {obj.GetType()} not implement IUpdate, IFixedUpdate, ILateUpdate");
             }
         }
 
@@ -84,7 +84,7 @@ namespace OSK
             else if (obj is ILateUpdate lateTick) lateTickProcesses.Remove(lateTick);
             else
             {
-                Logg.LogError($"MonoManager.Unregister: {obj.GetType()} not implement IUpdate, IFixedUpdate, ILateUpdate");
+                Logg.LogError("MonoTick",$"MonoManager.Unregister: {obj.GetType()} not implement IUpdate, IFixedUpdate, ILateUpdate");
             }
         }
          

@@ -62,7 +62,7 @@ namespace OSK
                 }
                 catch (System.Exception ex)
                 {
-                    Logg.LogWarning($"Error displaying view: {ex.Message}");
+                    Logg.LogWarning("UI",$"Error displaying view: {ex.Message}");
                 }
             }
         }
@@ -92,7 +92,7 @@ namespace OSK
             {
                 foreach (var v in viewData)
                 {
-                    Logg.Log("ListViewSO found: " + v.name);
+                    Logg.Log("UI","ListViewSO found: " + v.name);
                     Selection.activeObject = v;
                     EditorGUIUtility.PingObject(v);
                 }
@@ -148,7 +148,7 @@ namespace OSK
                 }
                 catch (System.Exception ex)
                 {
-                    Logg.LogWarning($"Error displaying view: {ex.Message}");
+                    Logg.LogWarning("UI",$"Error displaying view: {ex.Message}");
                 }
             }
         }

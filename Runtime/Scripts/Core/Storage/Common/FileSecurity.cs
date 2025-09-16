@@ -55,7 +55,7 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                OSK.Logg.LogError($"[Decryption Error]: {ex.Message}");
+                OSK.Logg.LogError("Storage",$"[Decryption Error]: {ex.Message}");
                 return null;
             }
         }

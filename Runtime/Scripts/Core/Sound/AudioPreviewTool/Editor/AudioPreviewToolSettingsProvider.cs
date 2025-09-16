@@ -13,7 +13,7 @@ namespace WarpedImagination.AudioPreviewTool
     /// </summary>
     public class AudioPreviewToolSettingsProvider : SettingsProvider
     {
-        GUIContent _content = null;
+        GUIContent _content;
 
         public AudioPreviewToolSettingsProvider(string path, SettingsScope scope)
             : base(path, scope)

@@ -15,7 +15,7 @@ namespace WarpedImagination.AudioPreviewTool
         // Note: change this if you want to save the preference under a different name
         const string ENABLED_EDITOR_PREF = "AudioPreviewToolEnabled";
 
-        static bool? _enabled = null;
+        static bool? _enabled;
 
         /// <summary>
         /// Whether or not the Audio Preview Tool is enabled

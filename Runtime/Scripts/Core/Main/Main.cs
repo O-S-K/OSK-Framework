@@ -66,7 +66,7 @@ namespace OSK
             {
                 if (current.Value.GetType() == type)
                 {
-                    OSK.Logg.Log($"Game Framework component type {type.FullName} is already exist.");
+                    OSK.Logg.Log("Main",$"Game Framework component type {type.FullName} is already exist.");
                     return;
                 }
 
@@ -101,7 +101,7 @@ namespace OSK
         
         public static void Shutdown(ShutdownType shutdownType)
         {
-            OSK.Logg.Log($"Shutdown Game Framework ({shutdownType})...");
+            OSK.Logg.Log("Main",$"Shutdown Game Framework ({shutdownType})...");
             SGameFrameworkComponents.Clear();
 
             if (shutdownType == ShutdownType.None)

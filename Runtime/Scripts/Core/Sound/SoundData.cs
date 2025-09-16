@@ -1,12 +1,13 @@
+using System;
 using UnityEngine;
 
 namespace OSK
 {
-    [System.Serializable]
+    [Serializable]
     public class SoundData
     {
         public string id = "";
-        public AudioClip audioClip = null;
+        public AudioClip audioClip;
         public SoundType type = SoundType.SFX;
         
         [Range(0, 1)] public float volume = 1;

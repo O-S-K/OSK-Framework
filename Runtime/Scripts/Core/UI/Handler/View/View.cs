@@ -9,8 +9,7 @@ namespace OSK
     {
         public event Action<object[]> OnDataChanged;
 
-        [SerializeField] private object[] _data;
-
+        [SerializeField] private object[] _data; 
         public object[] Data
         {
             get => _data;
@@ -27,11 +26,11 @@ namespace OSK
                 {
                     string details = string.Join(", ", _data.Select(d =>
                         d == null ? "null" : $"{d.GetType().Name}({d})"));
-                    Logg.Log($"[DebugData] {GetType().Name} received data: [{details}]");
+                    Logg.Log("UI",$"[DebugData] {GetType().Name} received data: [{details}]");
                 }
                 else
                 {
-                    Logg.Log($"[DebugData] {GetType().Name} received empty data");
+                    Logg.Log("UI",$"[DebugData] {GetType().Name} received empty data");
                 }
 #endif
             }
@@ -103,7 +102,7 @@ namespace OSK
 
             if (_rootUI == null)
             {
-                Logg.LogError("[View] RootUI is still null after initialization.");
+                Logg.LogError("UI","[View] RootUI is still null after initialization.");
             }
 
             SetDepth();
@@ -148,7 +147,7 @@ namespace OSK
         {
             if (data == null || data.Length == 0)
             {
-                Logg.Log($"[SetData] No data passed to {GetType().Name}");
+                Logg.Log("UI",$"[SetData] No data passed to {GetType().Name}");
                 return;
             }
 
@@ -207,7 +206,7 @@ namespace OSK
             if (!_isShowing) return;
 
             _isShowing = false;
-            Logg.Log($"[View] Hide {gameObject.name} is showing {_isShowing}");
+            Logg.Log("UI",$"[View] Hide {gameObject.name} is showing {_isShowing}");
 
             if (_uiTransition != null)
                 _uiTransition.CloseTrans(FinalizeHide);
@@ -227,7 +226,7 @@ namespace OSK
             if (_rootUI == null)
             {
                 Logg.LogError(
-                    "[View] View Manager is null. Ensure that the View has been initialized before calling Open.");
+                    "UI","[View] View Manager is null. Ensure that the View has been initialized before calling Open.");
                 return false;
             }
 
@@ -236,8 +235,9 @@ namespace OSK
 
         protected bool IsAlreadyShowing()
         {
+            
             if (!_isShowing) return false;
-            Logg.LogWarning("[View] View is already showing");
+            Logg.LogWarning("UI","[View] View is already showing");
             return true;
         }
 

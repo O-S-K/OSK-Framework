@@ -5,25 +5,21 @@ namespace OSK
     public class SoundBuilder
     {
         private string _id = "";
-        private AudioClip _audioClip = null;
+        private AudioClip _audioClip;
         private SoundType _audioType = SoundType.SFX;
 
-        private float _startTime = 0;
-        private bool _loop = false;
-        private float _playDelay = 0;
+        private float _startTime;
+        private bool _loop;
+        private float _playDelay;
 
-        private Transform _transform = null;
-        private VolumeFade _volume = new VolumeFade(1, 1, 0);
+        private Transform _transform;
+        private VolumeFade _volume = new VolumeFade(1);
 
         private int _priority = 128;
         private MinMaxFloat _pitch = new MinMaxFloat(1, 1);
         private int _minDistance = 1;
         private int _maxDistance = 500;
 
-
-        public SoundBuilder()
-        {
-        }
 
         public SoundBuilder SetId(string id)
         {
@@ -119,11 +115,11 @@ namespace OSK
             {
                 if (!string.IsNullOrEmpty(_id))
                 {
-                    Logg.LogError($"Audio {_id} Transform must be set for 3D sound.");
+                    Logg.LogError("Sound",$"Audio {_id} Transform must be set for 3D sound.");
                 }
                 else if (_audioClip != null)
                 {
-                    Logg.LogError($"Audio {_audioClip.name} Transform must be set for 3D sound.");
+                    Logg.LogError("Sound",$"Audio {_audioClip.name} Transform must be set for 3D sound.");
                 }
                 else
                 {

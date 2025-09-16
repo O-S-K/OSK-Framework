@@ -20,11 +20,11 @@ namespace OSK
             if (File.Exists(path))
             {
                 File.Delete(path);
-                Logg.Log($"[Delete File Success]: {fileName}");
+                Logg.Log("Storage",$"[Delete File Success]: {fileName}");
             }
             else
             {
-                Logg.LogError($"[Delete File Error]: {fileName} NOT found");
+                Logg.LogError("Storage",$"[Delete File Error]: {fileName} NOT found");
             }
         }
 

@@ -161,7 +161,7 @@ public class {scriptName} : {viewType}
             AssetDatabase.ImportAsset(scriptPath);
             AssetDatabase.Refresh();
 
-            Logg.Log($"Created script at: {scriptPath}");
+            Logg.Log("UI",$"Created script at: {scriptPath}");
         }
 
         private void CreateViewPrefabOnly()
@@ -177,7 +177,7 @@ public class {scriptName} : {viewType}
 
             Selection.activeGameObject = createdView;
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-            Logg.Log("Created view GameObject in scene.");
+            Logg.Log("UI","Created view GameObject in scene.");
         }
 
         private void TryAttachScript()
@@ -245,11 +245,11 @@ public class {scriptName} : {viewType}
                 createdView.AddComponent(type);
                 createdView.GetComponent<View>().viewType = viewType;
                 createdView.GetComponent<View>().depthEdit = depth;
-                Logg.Log("Script attached to view.");
+                Logg.Log("UI","Script attached to view.");
             }
             else
             {
-                Logg.Log("Script already attached.");
+                Logg.Log("UI","Script already attached.");
             }
         }
 

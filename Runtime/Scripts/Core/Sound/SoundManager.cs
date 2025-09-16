@@ -1,9 +1,9 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
-using UnityEngine;
-using System.Collections;
 using Sirenix.OdinInspector;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace OSK
 {
@@ -44,7 +44,7 @@ namespace OSK
                 var cam = Camera.main;
                 if (cam == null)
                 {
-                    OSK.Logg.LogError("Camera.main is null");
+                    Logg.LogError("Camera.main is null");
                     return null;
                 }
 
@@ -54,7 +54,7 @@ namespace OSK
         }
 
         private AudioSource _soundObject;
-        private bool pauseWhenInBackground = false;
+        private bool pauseWhenInBackground;
 
 
         public override void OnInit()
@@ -65,7 +65,7 @@ namespace OSK
             _listSoundData = Main.Instance.configInit.data.listSoundSo.ListSoundInfos;
             if (_listSoundData == null || _listSoundData.Count == 0)
             {
-                OSK.Logg.LogError("SoundInfos is empty");
+                Logg.LogError("SoundInfos is empty");
                 return;
             }
 
@@ -297,7 +297,7 @@ namespace OSK
         {
             if (_parentGroup == null)
             {
-                OSK.Logg.LogError("ParentGroup Sound is null. Please set it before calling this method.");
+                Logg.LogError("ParentGroup Sound is null. Please set it before calling this method.");
                 return;
             }
 
@@ -312,31 +312,31 @@ namespace OSK
             else
             {
                 if (existing != null)
-                    UnityEngine.Object.Destroy(existing);
+                    Destroy(existing);
             }
         }
 
         public void LogStatus()
         {
             Logg.Log("SoundManager Status");
-            Logg.Log($"1.Main.Configs.init.data.listSoundSo: {Main.Instance.configInit.data.listSoundSo}");
-            Logg.Log($"2.KeyGroupPool.AudioSound: {KEY_POOL.KEY_AUDIO_SOUND}");
-            Logg.Log($"3.CameraTransform: {CameraTransform}");
-            Logg.Log($"4.ParentGroup: {_parentGroup}");
+            Logg.Log("Sound",$"1.Main.Configs.init.data.listSoundSo: {Main.Instance.configInit.data.listSoundSo}");
+            Logg.Log("Sound",$"2.KeyGroupPool.AudioSound: {KEY_POOL.KEY_AUDIO_SOUND}");
+            Logg.Log("Sound",$"3.CameraTransform: {CameraTransform}");
+            Logg.Log("Sound",$"4.ParentGroup: {_parentGroup}");
 
-            Logg.Log($"AudioListener: {AudioListener.pause}");
-            Logg.Log($"5.IsEnableMusic: {IsEnableMusic}");
-            Logg.Log($"6.IsEnableSoundSFX: {IsEnableSoundSFX}");
+            Logg.Log("Sound",$"AudioListener: {AudioListener.pause}");
+            Logg.Log("Sound",$"5.IsEnableMusic: {IsEnableMusic}");
+            Logg.Log("Sound",$"6.IsEnableSoundSFX: {IsEnableSoundSFX}");
 
-            Logg.Log($"7.MaxCapacityMusic: {maxCapacityMusic}");
-            Logg.Log($"8.MaxCapacitySoundEffects: {maxCapacitySoundEffects}");
+            Logg.Log("Sound",$"7.MaxCapacityMusic: {maxCapacityMusic}");
+            Logg.Log("Sound",$"8.MaxCapacitySoundEffects: {maxCapacitySoundEffects}");
 
-            Logg.Log($"9.ListSoundInfos: {_listSoundData.Count}");
-            Logg.Log($"10.ListMusicInfos: {_listSoundPlayings.Count}");
+            Logg.Log("Sound",$"9.ListSoundInfos: {_listSoundData.Count}");
+            Logg.Log("Sound",$"10.ListMusicInfos: {_listSoundPlayings.Count}");
 
             for (int i = 0; i < _listSoundPlayings.Count; i++)
             {
-                Logg.Log($"_listMusicInfos[{i}]: {_listSoundPlayings[i].SoundData.id}");
+                Logg.Log("Sound",$"_listMusicInfos[{i}]: {_listSoundPlayings[i].SoundData.id}");
             }
 
             Logg.Log("End SoundManager Status");

@@ -8,6 +8,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace WarpedImagination.AudioPreviewTool
 {
@@ -18,7 +19,7 @@ namespace WarpedImagination.AudioPreviewTool
     public static class AudioPreviewTool
     {
 
-        static int? _lastPlayedAudioClipId = null;
+        static int? _lastPlayedAudioClipId;
 
         /// The code is split between Unity versions the reason is
         /// Unity changed the names under the AudioUtil class 
@@ -120,7 +121,7 @@ namespace WarpedImagination.AudioPreviewTool
             if (!AudioPreviewToolSettings.Enabled)
                 return false;
 
-            UnityEngine.Object obj = EditorUtility.InstanceIDToObject(instanceId);
+            Object obj = EditorUtility.InstanceIDToObject(instanceId);
 
             if (obj is AudioClip audioClip)
             {
@@ -155,7 +156,7 @@ namespace WarpedImagination.AudioPreviewTool
                 "PlayPreviewClip",
                 BindingFlags.Static | BindingFlags.Public,
                 null,
-                new System.Type[] { typeof(AudioClip), typeof(Int32), typeof(Boolean) },
+                new[] { typeof(AudioClip), typeof(Int32), typeof(Boolean) },
                 null);
 
             methodInfo.Invoke(null, new object[] { audioClip, 0, false });

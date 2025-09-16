@@ -40,7 +40,7 @@ namespace OSK
             }
             else
             {
-                Debug.LogError($"Không load được: {assetRef.AssetGUID}");
+                Debug.LogError("Resource",$"Không load được: {assetRef.AssetGUID}");
                 return null;
             }
         }
@@ -57,7 +57,7 @@ namespace OSK
             }
             else
             {
-                Debug.LogError($"Không instantiate được: {assetRef.AssetGUID}");
+                Debug.LogError("Resource",$"Không instantiate được: {assetRef.AssetGUID}");
                 return null;
             }
         }
@@ -79,7 +79,7 @@ namespace OSK
                 return instance;
             }
 
-            Debug.LogError($"Không instantiate được: {address}");
+            Debug.LogError("Resource",$"Không instantiate được: {address}");
             return null;
         }
 
@@ -89,7 +89,7 @@ namespace OSK
 
             if (!k_InstanceHandles.TryGetValue(instance, out var handle))
             {
-                Debug.LogWarning($"Instance {instance.name} không được quản lý bởi AddressableManager!");
+                Debug.LogWarning("Resource",$"Instance {instance.name} không được quản lý bởi AddressableManager!");
                 Destroy(instance); // fallback
                 return;
             }

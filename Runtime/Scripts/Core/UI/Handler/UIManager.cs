@@ -18,7 +18,7 @@ namespace OSK
             {
                 if (_rootUI == null)
                 {
-                    Logg.LogError("RootUI is null. Please check the initialization of the UIManager.");
+                    Logg.LogError("UI","RootUI is null. Please check the initialization of the UIManager.");
                     return null;
                 }
                 return _rootUI;

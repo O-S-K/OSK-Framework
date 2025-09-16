@@ -42,7 +42,7 @@ namespace OSK
                     continue;
                 if (audioClipNames.Contains(soundInfo.audioClip.name))
                 {
-                    OSK.Logg.LogError(
+                    Logg.LogError(
                         $"Audio Clip Name {soundInfo.audioClip.name} exists in the list. Please remove it or rename it.");
                 }
                 else

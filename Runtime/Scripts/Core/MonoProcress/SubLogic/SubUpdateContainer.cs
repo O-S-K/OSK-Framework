@@ -42,13 +42,13 @@ namespace OSK
         
         public void DebugDisplay(string nameContainer)
         {
-            Logg.Log($"\n<color=cyan>📦 {nameContainer} - Debug Display</color>");
+            Logg.Log("MonoTick",$"\n<color=cyan>📦 {nameContainer} - Debug Display</color>");
 
             int updateCount = subUpdates.GetUpdates().Count;
             int fixedUpdateCount = subFixedUpdates.GetUpdates().Count;
             int lateUpdateCount = subLateUpdates.GetUpdates().Count;
 
-            Logg.Log($"🔄 Total Updates: <color=yellow>{updateCount}</color> | ⚙️ FixedUpdates: <color=yellow>{fixedUpdateCount}</color> | ⏳ LateUpdates: <color=yellow>{lateUpdateCount}</color>");
+            Logg.Log("MonoTick",$"🔄 Total Updates: <color=yellow>{updateCount}</color> | ⚙️ FixedUpdates: <color=yellow>{fixedUpdateCount}</color> | ⏳ LateUpdates: <color=yellow>{lateUpdateCount}</color>");
 
             DisplayUpdateList("🔄 SubUpdates", subUpdates.GetUpdates());
             DisplayUpdateList("⚙️ SubFixedUpdates", subFixedUpdates.GetUpdates());
@@ -59,14 +59,14 @@ namespace OSK
         {
             if (updates.Count == 0)
             {
-                Logg.Log($"<color=gray>{title}: Empty</color>");
+                Logg.Log("MonoTick",$"<color=gray>{title}: Empty</color>");
                 return;
             }
 
-            Logg.Log($"<color=magenta>{title} ({updates.Count}):</color>");
+            Logg.Log("MonoTick",$"<color=magenta>{title} ({updates.Count}):</color>");
             for (int i = 0; i < updates.Count; i++)
             {
-                Logg.Log($"  - <color=green>{updates[i].GetType().Name}</color>");
+                Logg.Log("MonoTick",$"  - <color=green>{updates[i].GetType().Name}</color>");
             }
         } 
     }

@@ -31,11 +31,11 @@ namespace OSK
                 }
 
                 RefreshEditor();
-                OSK.Logg.Log($"[Save File Success]: {fileName + ".dat"} {DateTime.Now}\n{path}", Color.green);
+                OSK.Logg.Log("Storage",$"[Save File Success]: {fileName + ".dat"} {DateTime.Now}\n{path}");
             }
             catch (Exception ex)
             {
-                OSK.Logg.LogError($"[Save File Exception]: {fileName + ".dat"} {ex.Message}");
+                OSK.Logg.LogError("Storage",$"[Save File Exception]: {fileName + ".dat"} {ex.Message}");
             }
         }
 
@@ -46,7 +46,7 @@ namespace OSK
                 var path = IOUtility.GetPath(fileName + ".dat");
                 if (!File.Exists(path))
                 {
-                    OSK.Logg.LogError($"[Load File Error]: {fileName + ".dat"} NOT found at {path}");
+                    OSK.Logg.LogError("Storage",$"[Load File Error]: {fileName + ".dat"} NOT found at {path}");
                     return default;
                 }
 
@@ -63,13 +63,13 @@ namespace OSK
                     byte[] jsonBytes = reader.ReadBytes(dataLength);
                     string json = Encoding.UTF8.GetString(jsonBytes);
                     
-                    OSK.Logg.Log($"[Load File Success]: {fileName + ".dat"} \n{path}", Color.green);
+                    OSK.Logg.Log("Storage",$"[Load File Success]: {fileName + ".dat"} \n{path}");
                     return JsonConvert.DeserializeObject<T>(json);
                 }
             }
             catch (Exception ex)
             {
-                OSK.Logg.LogError($"[Load File Exception]: {fileName + ".dat"} {ex.Message}");
+                OSK.Logg.LogError("Storage",$"[Load File Exception]: {fileName + ".dat"} {ex.Message}");
                 return default;
             }
         }

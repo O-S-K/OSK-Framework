@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using OSK;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -24,7 +25,7 @@ public class CSVDownloader : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"⚠️ Error downloading CSV: {webRequest.error}");
+                Logg.LogError("Web",$"⚠️ Error downloading CSV: {webRequest.error}");
             }
         }
         Destroy(gameObject); 
