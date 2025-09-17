@@ -29,11 +29,11 @@ namespace OSK
                 }
 
                 RefreshEditor();
-                Logg.Log("Storage",$"[Save File Success]: {fileName}.xml \n {path} ");
+                OSKLogger.Log("Storage",$"[Save File Success]: {fileName}.xml \n {path} ");
             }
             catch (Exception ex)
             {
-                Logg.LogError("Storage",$"[Save File Exception]: {fileName}.xml {ex.Message}");
+                OSKLogger.LogError("Storage",$"[Save File Exception]: {fileName}.xml {ex.Message}");
             }
         }
 
@@ -42,7 +42,7 @@ namespace OSK
             string path = IOUtility.GetPath(fileName + ".xml");
             if (!File.Exists(path))
             {
-                Logg.LogError("Storage",$"[Load File Error]: {fileName}.xml NOT found at {path}");
+                OSKLogger.LogError("Storage",$"[Load File Error]: {fileName}.xml NOT found at {path}");
                 return default;
             }
 
@@ -57,13 +57,13 @@ namespace OSK
                 using (MemoryStream memoryStream = new MemoryStream(fileBytes))
                 {
                     XmlSerializer serializer = new XmlSerializer(typeof(T));
-                    Logg.Log("Storage",$"[Load File Success]: {fileName}.xml \n {path}");
+                    OSKLogger.Log("Storage",$"[Load File Success]: {fileName}.xml \n {path}");
                     return (T)serializer.Deserialize(memoryStream);
                 }
             }
             catch (Exception ex)
             {
-                Logg.LogError("Storage",$"[Load File Exception]: {fileName}.xml {ex.Message}");
+                OSKLogger.LogError("Storage",$"[Load File Exception]: {fileName}.xml {ex.Message}");
                 return default;
             }
         }

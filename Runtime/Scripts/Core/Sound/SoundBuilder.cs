@@ -108,22 +108,22 @@ namespace OSK
         {
             if (string.IsNullOrEmpty(_id) && _audioClip == null)
             {
-                Logg.LogError("Either ID or AudioClip must be set.");
+                OSKLogger.LogError("Either ID or AudioClip must be set.");
             }
 
             if (_transform == null && (_minDistance != 1 || _maxDistance != 500))
             {
                 if (!string.IsNullOrEmpty(_id))
                 {
-                    Logg.LogError("Sound",$"Audio {_id} Transform must be set for 3D sound.");
+                    OSKLogger.LogError("Sound",$"Audio {_id} Transform must be set for 3D sound.");
                 }
                 else if (_audioClip != null)
                 {
-                    Logg.LogError("Sound",$"Audio {_audioClip.name} Transform must be set for 3D sound.");
+                    OSKLogger.LogError("Sound",$"Audio {_audioClip.name} Transform must be set for 3D sound.");
                 }
                 else
                 {
-                    Logg.LogError("Transform must be set for 3D sound.");
+                    OSKLogger.LogError("Transform must be set for 3D sound.");
                 }
             }
         }

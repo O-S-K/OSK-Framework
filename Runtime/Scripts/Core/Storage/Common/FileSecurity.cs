@@ -55,7 +55,7 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                OSK.Logg.LogError("Storage",$"[Decryption Error]: {ex.Message}");
+                OSK.OSKLogger.LogError("Storage",$"[Decryption Error]: {ex.Message}");
                 return null;
             }
         }
@@ -116,7 +116,7 @@ namespace OSK
             {
                 sb.Append(hash[i].ToString("x2"));
             }
-            Logg.Log("CalculateMD5Hash" +  sb);
+            OSKLogger.Log("CalculateMD5Hash" +  sb);
             return sb.ToString();
         }
     }

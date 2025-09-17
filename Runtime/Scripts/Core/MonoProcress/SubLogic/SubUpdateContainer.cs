@@ -21,7 +21,7 @@ namespace OSK
             else if (obj is ISubLateUpdate lateUpdate) subLateUpdates.Add(lateUpdate);
             else
             {
-                Logg.LogError("SubUpdateContainer Register Error");
+                OSKLogger.LogError("SubUpdateContainer Register Error");
             }
         }
 
@@ -32,7 +32,7 @@ namespace OSK
             else if (obj is ISubLateUpdate lateUpdate) subLateUpdates.Remove(lateUpdate);
             else
             {
-                Logg.LogError("SubUpdateContainer Unregister Error");
+                OSKLogger.LogError("SubUpdateContainer Unregister Error");
             }
         }
 
@@ -42,13 +42,13 @@ namespace OSK
         
         public void DebugDisplay(string nameContainer)
         {
-            Logg.Log("MonoTick",$"\n<color=cyan>📦 {nameContainer} - Debug Display</color>");
+            OSKLogger.Log("MonoTick",$"\n<color=cyan>📦 {nameContainer} - Debug Display</color>");
 
             int updateCount = subUpdates.GetUpdates().Count;
             int fixedUpdateCount = subFixedUpdates.GetUpdates().Count;
             int lateUpdateCount = subLateUpdates.GetUpdates().Count;
 
-            Logg.Log("MonoTick",$"🔄 Total Updates: <color=yellow>{updateCount}</color> | ⚙️ FixedUpdates: <color=yellow>{fixedUpdateCount}</color> | ⏳ LateUpdates: <color=yellow>{lateUpdateCount}</color>");
+            OSKLogger.Log("MonoTick",$"🔄 Total Updates: <color=yellow>{updateCount}</color> | ⚙️ FixedUpdates: <color=yellow>{fixedUpdateCount}</color> | ⏳ LateUpdates: <color=yellow>{lateUpdateCount}</color>");
 
             DisplayUpdateList("🔄 SubUpdates", subUpdates.GetUpdates());
             DisplayUpdateList("⚙️ SubFixedUpdates", subFixedUpdates.GetUpdates());
@@ -59,14 +59,14 @@ namespace OSK
         {
             if (updates.Count == 0)
             {
-                Logg.Log("MonoTick",$"<color=gray>{title}: Empty</color>");
+                OSKLogger.Log("MonoTick",$"<color=gray>{title}: Empty</color>");
                 return;
             }
 
-            Logg.Log("MonoTick",$"<color=magenta>{title} ({updates.Count}):</color>");
+            OSKLogger.Log("MonoTick",$"<color=magenta>{title} ({updates.Count}):</color>");
             for (int i = 0; i < updates.Count; i++)
             {
-                Logg.Log("MonoTick",$"  - <color=green>{updates[i].GetType().Name}</color>");
+                OSKLogger.Log("MonoTick",$"  - <color=green>{updates[i].GetType().Name}</color>");
             }
         } 
     }

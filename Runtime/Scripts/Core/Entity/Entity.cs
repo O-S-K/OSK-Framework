@@ -18,7 +18,7 @@ namespace OSK
             var type = typeof(T);
             if (_components.ContainsKey(type))
             {
-                Logg.LogError($"Component {type} already exists");
+                OSKLogger.LogError($"Component {type} already exists");
                 return null;
             }
 

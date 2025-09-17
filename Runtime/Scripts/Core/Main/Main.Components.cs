@@ -62,11 +62,11 @@ namespace OSK
                 {
                     var module = newObject.AddComponent(componentType) as GameFrameworkComponent;
                     AssignModuleInstance(module);
-                    Logg.Log("Main",$"[Main] Module {moduleType} initialized.");
+                    OSKLogger.Log("Main",$"[Main] Module {moduleType} initialized.");
                 }
                 else
                 {
-                    Logg.LogError("Main",$"[Main] Module {moduleType} not found in MainModules.");
+                    OSKLogger.LogError("Main",$"[Main] Module {moduleType} not found in MainModules.");
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace OSK
             else if (module is BlackboardManager blackboard) Blackboard = blackboard;
             else if (module is ProcedureManager procedure) Procedure = procedure;
             else if (module is GameInit gameInit) GameInit = gameInit;
-            else Logg.LogError("Main",$"[AssignModuleToField] Unknown module type: {module}");
+            else OSKLogger.LogError("Main",$"[AssignModuleToField] Unknown module type: {module}");
         }
 
         private void InitDataComponents()
@@ -104,41 +104,41 @@ namespace OSK
                 {
                     if (current.Value == null)
                     {
-                        Logg.LogError("Main",$"[InitData] Component '{componentName}' is NULL.");
+                        OSKLogger.LogError("Main",$"[InitData] Component '{componentName}' is NULL.");
                     }
                     else
                     {
-                        Logg.Log("Main",$"[InitData] Initializing '{componentName}'...");
+                        OSKLogger.Log("Main",$"[InitData] Initializing '{componentName}'...");
                         current.Value.OnInit();
                     }
                 }
                 catch (Exception e)
                 {
-                    Logg.LogError("Main",$"[InitData] Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
+                    OSKLogger.LogError("Main",$"[InitData] Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
                 }
 
                 current = current.Next;
             }
 
-            Logg.Log("[InitData] Init Data Components Done!");
+            OSKLogger.Log("[InitData] Init Data Components Done!");
         }
 
         private void InitConfigs()
         {
             if (configInit == null)
             {
-                Logg.LogError("[InitConfigs] ConfigInit is not set.");
+                OSKLogger.LogError("[InitConfigs] ConfigInit is not set.");
                 return;
             }
 
             Application.targetFrameRate = configInit.TargetFrameRate;
-            if(configInit != null) Logg.SetLogEnabled(configInit.IsEnableLogg);
+            if(configInit != null) OSKLogger.SetLogEnabled(configInit.IsEnableLogg);
             if(Main.Storage) Main.Storage.isEncrypt = configInit.IsEncryptStorage;
             if(Main.Configs) Main.Configs.CheckVersion(() =>
             {
                 Debug.Log("New version");
             });
-            Logg.Log("[InitConfigs] Configs initialized successfully.");
+            OSKLogger.Log("[InitConfigs] Configs initialized successfully.");
         }
 
         private void OnDestroy()

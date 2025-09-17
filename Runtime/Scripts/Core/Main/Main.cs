@@ -55,7 +55,7 @@ namespace OSK
         {
             if (gameFrameworkComponent == null)
             {
-                OSK.Logg.Log("Game Framework component is invalid.");
+                OSK.OSKLogger.Log("Game Framework component is invalid.");
                 return;
             }
 
@@ -66,7 +66,7 @@ namespace OSK
             {
                 if (current.Value.GetType() == type)
                 {
-                    OSK.Logg.Log("Main",$"Game Framework component type {type.FullName} is already exist.");
+                    OSK.OSKLogger.Log("Main",$"Game Framework component type {type.FullName} is already exist.");
                     return;
                 }
 
@@ -80,7 +80,7 @@ namespace OSK
         {
             if (gameFrameworkComponent == null)
             {
-                OSK.Logg.Log("Game Framework component is invalid.");
+                OSK.OSKLogger.Log("Game Framework component is invalid.");
                 return;
             }
 
@@ -101,7 +101,7 @@ namespace OSK
         
         public static void Shutdown(ShutdownType shutdownType)
         {
-            OSK.Logg.Log("Main",$"Shutdown Game Framework ({shutdownType})...");
+            OSK.OSKLogger.Log("Main",$"Shutdown Game Framework ({shutdownType})...");
             SGameFrameworkComponents.Clear();
 
             if (shutdownType == ShutdownType.None)

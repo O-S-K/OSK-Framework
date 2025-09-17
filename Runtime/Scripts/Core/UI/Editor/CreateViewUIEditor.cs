@@ -87,7 +87,7 @@ namespace OSK
                     }
                     else
                     {
-                        Logg.LogError("Please select a folder inside the Assets folder.");
+                        OSKLogger.LogError("Please select a folder inside the Assets folder.");
                     }
                 }
             }
@@ -129,7 +129,7 @@ namespace OSK
             string scriptPath = Path.Combine(folderPath, scriptName + ".cs");
             if (File.Exists(scriptPath))
             {
-                Logg.LogWarning("Script already exists.");
+                OSKLogger.LogWarning("Script already exists.");
                 return;
             }
 
@@ -161,7 +161,7 @@ public class {scriptName} : {viewType}
             AssetDatabase.ImportAsset(scriptPath);
             AssetDatabase.Refresh();
 
-            Logg.Log("UI",$"Created script at: {scriptPath}");
+            OSKLogger.Log("UI",$"Created script at: {scriptPath}");
         }
 
         private void CreateViewPrefabOnly()
@@ -177,14 +177,14 @@ public class {scriptName} : {viewType}
 
             Selection.activeGameObject = createdView;
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-            Logg.Log("UI","Created view GameObject in scene.");
+            OSKLogger.Log("UI","Created view GameObject in scene.");
         }
 
         private void TryAttachScript()
         {
             if (createdView == null)
             {
-                Logg.LogError("View GameObject not created yet.");
+                OSKLogger.LogError("View GameObject not created yet.");
                 return;
             }
 
@@ -192,14 +192,14 @@ public class {scriptName} : {viewType}
             MonoScript monoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(scriptAssetPath);
             if (monoScript == null)
             {
-                Logg.LogError("Script not found. Try refreshing or check path.");
+                OSKLogger.LogError("Script not found. Try refreshing or check path.");
                 return;
             }
 
             Type scriptType = monoScript.GetClass();
             if (scriptType == null)
             {
-                Logg.LogWarning("Script not compiled yet. Will retry after compile.");
+                OSKLogger.LogWarning("Script not compiled yet. Will retry after compile.");
                 EditorApplication.update += WaitForCompilation;
                 return;
             }
@@ -218,14 +218,14 @@ public class {scriptName} : {viewType}
             MonoScript monoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath);
             if (monoScript == null)
             {
-                Logg.LogError($"Failed to load script at {scriptPath}");
+                OSKLogger.LogError($"Failed to load script at {scriptPath}");
                 return;
             }
 
             Type scriptType = monoScript.GetClass();
             if (scriptType == null)
             {
-                Logg.LogError("Failed to get script class after compilation.");
+                OSKLogger.LogError("Failed to get script class after compilation.");
                 return;
             }
 
@@ -236,7 +236,7 @@ public class {scriptName} : {viewType}
         {
             if (createdView == null)
             {
-                Logg.LogError("No view to attach script to.");
+                OSKLogger.LogError("No view to attach script to.");
                 return;
             }
 
@@ -245,11 +245,11 @@ public class {scriptName} : {viewType}
                 createdView.AddComponent(type);
                 createdView.GetComponent<View>().viewType = viewType;
                 createdView.GetComponent<View>().depthEdit = depth;
-                Logg.Log("UI","Script attached to view.");
+                OSKLogger.Log("UI","Script attached to view.");
             }
             else
             {
-                Logg.Log("UI","Script already attached.");
+                OSKLogger.Log("UI","Script already attached.");
             }
         }
 

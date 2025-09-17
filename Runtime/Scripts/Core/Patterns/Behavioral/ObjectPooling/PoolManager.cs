@@ -57,7 +57,7 @@ namespace OSK
             {
                 if (size <= 0)
                 {
-                    Logg.LogError("Pool size must be greater than 0.");
+                    OSKLogger.LogError("Pool size must be greater than 0.");
                     return null;
                 }
 
@@ -69,7 +69,7 @@ namespace OSK
 
             if (instance == null)
             {
-                Logg.LogError("Pool",$"Object from pool is null or destroyed. Group: {groupName}, Prefab: {prefab.name}");
+                OSKLogger.LogError("Pool",$"Object from pool is null or destroyed. Group: {groupName}, Prefab: {prefab.name}");
                 return null;
             }
 
@@ -87,7 +87,7 @@ namespace OSK
 
             if (!InstanceLookup.TryAdd(instance, pool))
             {
-                Logg.LogWarning("Pool",$"This object pool already contains the item provided: {instance}");
+                OSKLogger.LogWarning("Pool",$"This object pool already contains the item provided: {instance}");
                 return instance;
             }
 
@@ -98,13 +98,13 @@ namespace OSK
         {
             if (IsGroupAndPrefabExist(group, prefab))
             {
-                Logg.LogError("Pool",$"Pool for prefab '{prefab.name}' in group '{group}' has already been created.");
+                OSKLogger.LogError("Pool",$"Pool for prefab '{prefab.name}' in group '{group}' has already been created.");
                 return;
             }
 
             if (size <= 0)
             {
-                Logg.LogError("Pool size must be greater than 0.");
+                OSKLogger.LogError("Pool size must be greater than 0.");
                 return;
             }
 
@@ -137,7 +137,7 @@ namespace OSK
             }
             else
             {
-                Logg.LogWarning("Pool",$"{instance} not found in any pool.");
+                OSKLogger.LogWarning("Pool",$"{instance} not found in any pool.");
             }
         }
 

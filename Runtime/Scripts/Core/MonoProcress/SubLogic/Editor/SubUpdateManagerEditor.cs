@@ -12,21 +12,21 @@ namespace OSK
        
         private void OnEnable()
         {
-            Logg.Log("MonoTick",$"[Editor] Checking target: {target?.GetType().Name}");
+            OSKLogger.Log("MonoTick",$"[Editor] Checking target: {target?.GetType().Name}");
 
             if (target is IHasSubUpdateContainer hasContainer)
             {
                 containerObject = hasContainer;
-                Logg.Log("MonoTick",$"[Editor] ✅ Found SubUpdateContainer in {target.GetType().Name}");
+                OSKLogger.Log("MonoTick",$"[Editor] ✅ Found SubUpdateContainer in {target.GetType().Name}");
             }
             else
             {
-                    Logg.Log("MonoTick",$"[Editor] ❌ {target.GetType().Name} does NOT implement IHasSubUpdateContainer");
+                    OSKLogger.Log("MonoTick",$"[Editor] ❌ {target.GetType().Name} does NOT implement IHasSubUpdateContainer");
             }
             
             EditorApplication.delayCall += () =>
             {
-                Logg.Log("Force refresh Editor...");
+                OSKLogger.Log("Force refresh Editor...");
                 Repaint(); 
             };
         }

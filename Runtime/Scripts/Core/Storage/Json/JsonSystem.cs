@@ -34,11 +34,11 @@ namespace OSK
 
                 RefreshEditor();
 
-                OSK.Logg.Log("Storage",$"[Save File Success]: {fileName + ".json"} \n {filePath}");
+                OSK.OSKLogger.Log("Storage",$"[Save File Success]: {fileName + ".json"} \n {filePath}");
             }
             catch (System.Exception ex)
             {
-                OSK.Logg.LogError("Storage",$"[Save File Exception]: {fileName + ".json"}  {ex.Message}");
+                OSK.OSKLogger.LogError("Storage",$"[Save File Exception]: {fileName + ".json"}  {ex.Message}");
             }
         }
 
@@ -49,7 +49,7 @@ namespace OSK
                     System.Globalization.CultureInfo.InvariantCulture, out double number)
                     ? number.ToString("F" + decimalPlaces, System.Globalization.CultureInfo.InvariantCulture)
                     : match.Value);
-            OSK.Logg.Log("Storage",$"[Format Json Decimals]: {dataRegex}");
+            OSK.OSKLogger.Log("Storage",$"[Format Json Decimals]: {dataRegex}");
             return dataRegex;
         }
 
@@ -58,7 +58,7 @@ namespace OSK
             var path = IOUtility.FilePath(fileName + ".json");
             if (!File.Exists(path))
             {
-                OSK.Logg.LogError("Storage",$"[Load File Error]: {fileName + ".json"} NOT found at {path}");
+                OSK.OSKLogger.LogError("Storage",$"[Load File Error]: {fileName + ".json"} NOT found at {path}");
                 return default;
             }
 
@@ -71,7 +71,7 @@ namespace OSK
                     byte[] encryptedBytes = File.ReadAllBytes(path);
                     if (encryptedBytes.Length == 0)
                     {
-                        OSK.Logg.LogError("Storage",$"[Load File Error]: {fileName}.json is empty or corrupt");
+                        OSK.OSKLogger.LogError("Storage",$"[Load File Error]: {fileName}.json is empty or corrupt");
                         return default;
                     }
 
@@ -85,23 +85,23 @@ namespace OSK
 
                 if (string.IsNullOrWhiteSpace(loadJson))
                 {
-                    OSK.Logg.LogError("Storage",$"[Load File Error]: {fileName}.json is empty");
+                    OSK.OSKLogger.LogError("Storage",$"[Load File Error]: {fileName}.json is empty");
                     return default;
                 }
 
                 T data = JsonConvert.DeserializeObject<T>(loadJson);
                 if (data == null)
                 {
-                    OSK.Logg.LogError("Storage",$"[Load File Error]: {fileName}.json deserialized to null");
+                    OSK.OSKLogger.LogError("Storage",$"[Load File Error]: {fileName}.json deserialized to null");
                     return default;
                 }
 
-                OSK.Logg.Log("Storage",$"[Load File Success]: {fileName}.json\n{path}");
+                OSK.OSKLogger.Log("Storage",$"[Load File Success]: {fileName}.json\n{path}");
                 return data;
             }
             catch (System.Exception ex)
             {
-                OSK.Logg.LogError("Storage",$"[Load File Exception]: {fileName}.json\n{ex.Message}");
+                OSK.OSKLogger.LogError("Storage",$"[Load File Exception]: {fileName}.json\n{ex.Message}");
                 return default;
             }
         }

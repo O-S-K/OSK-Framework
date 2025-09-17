@@ -43,7 +43,7 @@ namespace OSK
             string[] guids = AssetDatabase.FindAssets("t:ListViewSO");
             if (guids.Length == 0)
             {
-                Logg.LogError("No ListViewSO found in the project.");
+                OSKLogger.LogError("No ListViewSO found in the project.");
                 return;
             }
 
@@ -57,13 +57,13 @@ namespace OSK
 
             if (viewData.Count == 0)
             {
-                Logg.LogError("No ListViewSO found in the project.");
+                OSKLogger.LogError("No ListViewSO found in the project.");
             }
             else
             {
                 foreach (var v in viewData)
                 {
-                    Logg.Log("ListViewSO found: " + v.name);
+                    OSKLogger.Log("ListViewSO found: " + v.name);
                     Selection.activeObject = v;
                     EditorGUIUtility.PingObject(v);
                 }
@@ -75,7 +75,7 @@ namespace OSK
             string[] guids = AssetDatabase.FindAssets("t:ListSoundSO");
             if (guids.Length == 0)
             {
-                Logg.LogError("No SoundSO found in the project.");
+                OSKLogger.LogError("No SoundSO found in the project.");
                 return;
             }
 
@@ -89,13 +89,13 @@ namespace OSK
 
             if (soundData.Count == 0)
             {
-                Logg.LogError("No SoundSO found in the project.");
+                OSKLogger.LogError("No SoundSO found in the project.");
             }
             else
             {
                 foreach (var v in soundData)
                 {
-                    Logg.Log("SoundSO found: " + v.name);
+                    OSKLogger.Log("SoundSO found: " + v.name);
                     Selection.activeObject = v;
                     EditorGUIUtility.PingObject(v);
                 }

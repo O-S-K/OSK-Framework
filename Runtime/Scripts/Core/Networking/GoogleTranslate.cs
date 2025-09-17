@@ -59,7 +59,7 @@ namespace OSK
 
 			if (webRequest.isHttpError || webRequest.isNetworkError)
 			{
-				Logg.LogError(webRequest.error);
+				OSKLogger.LogError(webRequest.error);
 				callback.Invoke(false, string.Empty);
 				yield break;
 			}

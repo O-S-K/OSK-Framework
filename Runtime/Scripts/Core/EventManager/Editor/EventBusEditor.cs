@@ -197,13 +197,13 @@ namespace OSK
 
                 if (eventType == null)
                 {
-                    Logg.LogError("Event",$"[EventBusEditor] Event type '{_testEventTypeName}' not found!");
+                    OSKLogger.LogError("Event",$"[EventBusEditor] Event type '{_testEventTypeName}' not found!");
                     return;
                 }
 
                 if (!typeof(GameEvent).IsAssignableFrom(eventType))
                 {
-                    Logg.LogError("Event",$"[EventBusEditor] Type '{_testEventTypeName}' is not a GameEvent!");
+                    OSKLogger.LogError("Event",$"[EventBusEditor] Type '{_testEventTypeName}' is not a GameEvent!");
                     return;
                 }
 
@@ -212,11 +212,11 @@ namespace OSK
                     var instance = Activator.CreateInstance(eventType) as GameEvent;
                     var method = typeof(EventBusManager).GetMethod("Publish")?.MakeGenericMethod(eventType);
                     method?.Invoke(_eventBusManager, new object[] { instance });
-                    Logg.Log("Event",$"[EventBusEditor] Published test event: {eventType.Name}");
+                    OSKLogger.Log("Event",$"[EventBusEditor] Published test event: {eventType.Name}");
                 }
                 catch (Exception ex)
                 {
-                    Logg.LogError("Event",$"[EventBusEditor] Failed to publish test event: {ex}");
+                    OSKLogger.LogError("Event",$"[EventBusEditor] Failed to publish test event: {ex}");
                 }
             }
         }

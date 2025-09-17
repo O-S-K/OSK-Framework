@@ -17,7 +17,7 @@ namespace OSK
             Type type = typeof(T);
             if (!k_DataStore.ContainsKey(type))
             {
-                Logg.Log("Data",$"Creating data store for type {type}.");
+                OSKLogger.Log("Data",$"Creating data store for type {type}.");
                 k_DataStore[type] = new List<IData>();
             }
 
@@ -25,12 +25,12 @@ namespace OSK
 
             if (!list.Contains(data))
             {
-                Logg.Log("Data",$"Adding data of type {type}.");
+                OSKLogger.Log("Data",$"Adding data of type {type}.");
                 list.Add(data);
             }
             else
             {
-                Logg.LogWarning("Data",$"Data of type {type} already exists.");
+                OSKLogger.LogWarning("Data",$"Data of type {type} already exists.");
             }
         }
 
@@ -43,7 +43,7 @@ namespace OSK
                 k_DataStore[type] = new List<IData>();
             }
 
-            Logg.Log("Data",$"Adding list of type {type}.");
+            OSKLogger.Log("Data",$"Adding list of type {type}.");
             k_DataStore[type].AddRange(dataList);
         }
 
@@ -53,11 +53,11 @@ namespace OSK
             Type type = typeof(T);
             if (k_DataStore.TryGetValue(type, out var value))
             {
-                Logg.Log("Data",$"Data of type {type} found.");
+                OSKLogger.Log("Data",$"Data of type {type} found.");
                 return value.ConvertAll(x => x as T);
             }
 
-            Logg.LogWarning("Data",$"No data found of type {type}.");
+            OSKLogger.LogWarning("Data",$"No data found of type {type}.");
             return new List<T>();
         }
 
@@ -67,11 +67,11 @@ namespace OSK
             Type type = typeof(T);
             if (k_DataStore.TryGetValue(type, out var value) && value.Count > 0)
             {
-                Logg.Log("Data",$"Data of type {type} found.");
+                OSKLogger.Log("Data",$"Data of type {type} found.");
                 return value[0] as T;
             }
 
-            Logg.LogWarning("Data",$"No data found of type {type}.");
+            OSKLogger.LogWarning("Data",$"No data found of type {type}.");
             return null;
         }
 
@@ -81,11 +81,11 @@ namespace OSK
             Type type = typeof(T);
             if (k_DataStore.TryGetValue(type, out var value))
             {
-                Logg.Log("Data",$"Querying data of type {type}.");
+                OSKLogger.Log("Data",$"Querying data of type {type}.");
                 return value.ConvertAll(x => x as T).Find(query);
             }
 
-            Logg.LogWarning("Data",$"No data found of type {type}.");
+            OSKLogger.LogWarning("Data",$"No data found of type {type}.");
             return null;
         }
 
@@ -95,11 +95,11 @@ namespace OSK
             Type type = typeof(T);
             if (k_DataStore.TryGetValue(type, out var value))
             {
-                Logg.Log("Data",$"Querying all data of type {type}.");
+                OSKLogger.Log("Data",$"Querying all data of type {type}.");
                 return value.ConvertAll(x => x as T).FindAll(query);
             }
 
-            Logg.LogWarning("Data",$"No data found of type {type}.");
+            OSKLogger.LogWarning("Data",$"No data found of type {type}.");
             return new List<T>();
         }
         
@@ -110,7 +110,7 @@ namespace OSK
             Type type = typeof(T);
             if (k_DataStore.TryGetValue(type, out var value))
             {
-                Logg.Log("Data",$"Saving data of type {type}.");
+                OSKLogger.Log("Data",$"Saving data of type {type}.");
                 int index = value.IndexOf(data);
                 if (index >= 0)
                 {
@@ -120,12 +120,12 @@ namespace OSK
                 }
                 else
                 {
-                    Logg.LogWarning("Data",$"Data of type {type} not found in store.");
+                    OSKLogger.LogWarning("Data",$"Data of type {type} not found in store.");
                 }
             }
             else
             {
-                Logg.LogWarning("Data",$"No data store found for type {type}.");
+                OSKLogger.LogWarning("Data",$"No data store found for type {type}.");
             }
         }
         
@@ -136,7 +136,7 @@ namespace OSK
             Type type = typeof(T);
             if (k_DataStore.TryGetValue(type, out var value))
             {
-                Logg.Log("Data",$"Getting saved data of type {type}.");
+                OSKLogger.Log("Data",$"Getting saved data of type {type}.");
                 T data = Main.Storage.Load<JsonSystem, T>(nameData);
                 if (data != null)
                 {
@@ -148,12 +148,12 @@ namespace OSK
                 }
                 else
                 {
-                    Logg.LogWarning("Data",$"No saved data found for type {type} with name {nameData}.");
+                    OSKLogger.LogWarning("Data",$"No saved data found for type {type} with name {nameData}.");
                 }
             }
             else
             {
-                Logg.LogWarning("Data",$"No data store found for type {type}.");
+                OSKLogger.LogWarning("Data",$"No data store found for type {type}.");
             }
             return null;
         }
@@ -163,7 +163,7 @@ namespace OSK
             Type type = typeof(T);
             if (k_DataStore.TryGetValue(type, out var value))
             {
-                Logg.Log("Data",$"Removing data of type {type}.");
+                OSKLogger.Log("Data",$"Removing data of type {type}.");
                 value.Remove(data);
             }
         }
@@ -174,7 +174,7 @@ namespace OSK
             Type type = typeof(T);
             if (k_DataStore.TryGetValue(type, out var value))
             {
-                Logg.Log("Data",$"Removing data of type {type}.");
+                OSKLogger.Log("Data",$"Removing data of type {type}.");
                 value.RemoveAll(x => query((T)x));
             }
         }

@@ -44,7 +44,7 @@ namespace OSK
                 var cam = Camera.main;
                 if (cam == null)
                 {
-                    Logg.LogError("Camera.main is null");
+                    OSKLogger.LogError("Camera.main is null");
                     return null;
                 }
 
@@ -65,7 +65,7 @@ namespace OSK
             _listSoundData = Main.Instance.configInit.data.listSoundSo.ListSoundInfos;
             if (_listSoundData == null || _listSoundData.Count == 0)
             {
-                Logg.LogError("SoundInfos is empty");
+                OSKLogger.LogError("SoundInfos is empty");
                 return;
             }
 
@@ -151,7 +151,7 @@ namespace OSK
             var data = GetSoundInfo(id);
             if (data == null)
             {
-                Logg.LogError("[Sound] No Sound Info with id: " + id);
+                OSKLogger.LogError("[Sound] No Sound Info with id: " + id);
                 return null;
             }
 
@@ -297,7 +297,7 @@ namespace OSK
         {
             if (_parentGroup == null)
             {
-                Logg.LogError("ParentGroup Sound is null. Please set it before calling this method.");
+                OSKLogger.LogError("ParentGroup Sound is null. Please set it before calling this method.");
                 return;
             }
 
@@ -318,28 +318,28 @@ namespace OSK
 
         public void LogStatus()
         {
-            Logg.Log("SoundManager Status");
-            Logg.Log("Sound",$"1.Main.Configs.init.data.listSoundSo: {Main.Instance.configInit.data.listSoundSo}");
-            Logg.Log("Sound",$"2.KeyGroupPool.AudioSound: {KEY_POOL.KEY_AUDIO_SOUND}");
-            Logg.Log("Sound",$"3.CameraTransform: {CameraTransform}");
-            Logg.Log("Sound",$"4.ParentGroup: {_parentGroup}");
+            OSKLogger.Log("SoundManager Status");
+            OSKLogger.Log("Sound",$"1.Main.Configs.init.data.listSoundSo: {Main.Instance.configInit.data.listSoundSo}");
+            OSKLogger.Log("Sound",$"2.KeyGroupPool.AudioSound: {KEY_POOL.KEY_AUDIO_SOUND}");
+            OSKLogger.Log("Sound",$"3.CameraTransform: {CameraTransform}");
+            OSKLogger.Log("Sound",$"4.ParentGroup: {_parentGroup}");
 
-            Logg.Log("Sound",$"AudioListener: {AudioListener.pause}");
-            Logg.Log("Sound",$"5.IsEnableMusic: {IsEnableMusic}");
-            Logg.Log("Sound",$"6.IsEnableSoundSFX: {IsEnableSoundSFX}");
+            OSKLogger.Log("Sound",$"AudioListener: {AudioListener.pause}");
+            OSKLogger.Log("Sound",$"5.IsEnableMusic: {IsEnableMusic}");
+            OSKLogger.Log("Sound",$"6.IsEnableSoundSFX: {IsEnableSoundSFX}");
 
-            Logg.Log("Sound",$"7.MaxCapacityMusic: {maxCapacityMusic}");
-            Logg.Log("Sound",$"8.MaxCapacitySoundEffects: {maxCapacitySoundEffects}");
+            OSKLogger.Log("Sound",$"7.MaxCapacityMusic: {maxCapacityMusic}");
+            OSKLogger.Log("Sound",$"8.MaxCapacitySoundEffects: {maxCapacitySoundEffects}");
 
-            Logg.Log("Sound",$"9.ListSoundInfos: {_listSoundData.Count}");
-            Logg.Log("Sound",$"10.ListMusicInfos: {_listSoundPlayings.Count}");
+            OSKLogger.Log("Sound",$"9.ListSoundInfos: {_listSoundData.Count}");
+            OSKLogger.Log("Sound",$"10.ListMusicInfos: {_listSoundPlayings.Count}");
 
             for (int i = 0; i < _listSoundPlayings.Count; i++)
             {
-                Logg.Log("Sound",$"_listMusicInfos[{i}]: {_listSoundPlayings[i].SoundData.id}");
+                OSKLogger.Log("Sound",$"_listMusicInfos[{i}]: {_listSoundPlayings[i].SoundData.id}");
             }
 
-            Logg.Log("End SoundManager Status");
+            OSKLogger.Log("End SoundManager Status");
         }
     }
 }

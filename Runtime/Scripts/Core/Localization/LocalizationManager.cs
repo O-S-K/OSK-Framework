@@ -36,7 +36,7 @@ namespace OSK
             _isSetDefaultLanguage = true;
             LoadLocalizationData(languageCode);
             _currentLanguage = languageCode;
-            Logg.Log("Localization",$"Set language to: {languageCode}");
+            OSKLogger.Log("Localization",$"Set language to: {languageCode}");
         }
 
 
@@ -54,7 +54,7 @@ namespace OSK
         {
             if (_isSetDefaultLanguage == false)
             {
-                Logg.LogError("Localization","Please set default language first." + key);
+                OSKLogger.LogError("Localization","Please set default language first." + key);
                 return "";
             }
 
@@ -63,7 +63,7 @@ namespace OSK
                 return value;
             }
 
-            Logg.LogError("Localization",$"Key '{key}' not found in localization data.");
+            OSKLogger.LogError("Localization",$"Key '{key}' not found in localization data.");
             return "";
         }
 
@@ -81,7 +81,7 @@ namespace OSK
             TextAsset textFile = Resources.Load<TextAsset>(path);
             if (textFile == null)
             {
-                Logg.LogError("Localization","Not found localization file: " + path);
+                OSKLogger.LogError("Localization","Not found localization file: " + path);
                 return;
             }
 
@@ -97,7 +97,7 @@ namespace OSK
 
             if (languageColumnIndex == -1)
             {
-                Logg.LogError("Localization",$"Language '{languageCode}' not found in localization file.");
+                OSKLogger.LogError("Localization",$"Language '{languageCode}' not found in localization file.");
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace OSK
                 }
             }
 
-            Logg.Log("Localization",$"Load localization data for language: {languageCode}");
+            OSKLogger.Log("Localization",$"Load localization data for language: {languageCode}");
         }
 
         private void GetValueFormLanguage(string[] columns, int languageColumnIndex, int i)
@@ -133,7 +133,7 @@ namespace OSK
             }
             else
             {
-                Logg.LogWarning("Localization",$"Invalid or missing data at line {i + 1} in localization file.");
+                OSKLogger.LogWarning("Localization",$"Invalid or missing data at line {i + 1} in localization file.");
             }
         }
 

@@ -25,7 +25,7 @@ public class CSVDownloader : MonoBehaviour
             }
             else
             {
-                Logg.LogError("Web",$"⚠️ Error downloading CSV: {webRequest.error}");
+                OSKLogger.LogError("Web",$"⚠️ Error downloading CSV: {webRequest.error}");
             }
         }
         Destroy(gameObject); 

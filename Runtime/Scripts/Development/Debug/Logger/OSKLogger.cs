@@ -5,12 +5,12 @@ namespace OSK
     using UnityEngine;
     using System.Collections.Generic;
 
-    public class Logg
+    public class OSKLogger
     {
-        private static Logg instance;
-        private static Logg Instance => instance ??= new Logg();
+        private static OSKLogger instance;
+        private static OSKLogger Instance => instance ??= new OSKLogger();
 
-        private Logg()
+        private OSKLogger()
         {
         }
 
@@ -127,6 +127,9 @@ namespace OSK
         public static void LogFatal(string message) => FinalLog("OSK", "Fatal", message);
         public static void LogFatal(string channel, string message) => FinalLog(channel, "Fatal", message);
 
+        #if UNITY_6000_OR_NEWER
+        [HideInCallstack]
+        #endif
         private static void FinalLog(string channel, string level, string message)
         {
             if (!IsLogEnabled) return;

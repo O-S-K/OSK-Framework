@@ -8,7 +8,7 @@ namespace OSK
     {
         private Vector2 scrollPos;
 
-        [MenuItem("Logging/Logger Window")]
+        [MenuItem("OSK Logger/Logger Window")]
         public static void ShowWindow()
         {
             GetWindow<LoggerEditor>("Logger");
@@ -19,10 +19,10 @@ namespace OSK
             GUILayout.Space(5);
 
             // Global enable/disable logging
-            bool globalEnabled = Logg.IsLogEnabled;
+            bool globalEnabled = OSKLogger.IsLogEnabled;
             bool newGlobalEnabled = EditorGUILayout.ToggleLeft("Enable Logging", globalEnabled);
             if (newGlobalEnabled != globalEnabled)
-                Logg.SetLogEnabled(newGlobalEnabled);
+                OSKLogger.SetLogEnabled(newGlobalEnabled);
 
             GUILayout.Space(10);
 
@@ -30,13 +30,13 @@ namespace OSK
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Disable all"))
             {
-                foreach (var channel in Logg.GetAllChannels())
-                    Logg.SetChannelEnabled(channel, false);
+                foreach (var channel in OSKLogger.GetAllChannels())
+                    OSKLogger.SetChannelEnabled(channel, false);
             }
             if (GUILayout.Button("Enable all"))
             {
-                foreach (var channel in Logg.GetAllChannels())
-                    Logg.SetChannelEnabled(channel, true);
+                foreach (var channel in OSKLogger.GetAllChannels())
+                    OSKLogger.SetChannelEnabled(channel, true);
             }
             EditorGUILayout.EndHorizontal();
 
@@ -45,21 +45,21 @@ namespace OSK
 
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 
-            foreach (var channel in Logg.GetAllChannels())
+            foreach (var channel in OSKLogger.GetAllChannels())
             {
                 EditorGUILayout.BeginHorizontal();
 
                 // Toggle active
-                bool active = Logg.IsChannelActive(channel);
+                bool active = OSKLogger.IsChannelActive(channel);
                 bool newActive = EditorGUILayout.ToggleLeft(channel, active, GUILayout.Width(150));
                 if (newActive != active)
-                    Logg.SetChannelEnabled(channel, newActive);
+                    OSKLogger.SetChannelEnabled(channel, newActive);
 
                 // Color picker
-                Color oldColor = Logg.GetChannelColor(channel);
+                Color oldColor = OSKLogger.GetChannelColor(channel);
                 Color newColor = EditorGUILayout.ColorField(oldColor, GUILayout.Width(70));
                 if (newColor != oldColor)
-                    Logg.SetChannelColor(channel, newColor);
+                    OSKLogger.SetChannelColor(channel, newColor);
 
                 EditorGUILayout.EndHorizontal();
             }

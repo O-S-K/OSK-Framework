@@ -45,7 +45,7 @@ namespace OSK
                 }
                 else
                 {
-                    Logg.LogError("Web",$"⚠️ Error downloading CSV: {webRequest.error}");
+                    OSKLogger.LogError("Web",$"⚠️ Error downloading CSV: {webRequest.error}");
                 }
             }
         }
@@ -106,15 +106,15 @@ namespace OSK
 
         protected virtual void OnBeforeRequest(UnityWebRequest webRequest)
         {
-            Logg.Log("Web",$"[WebRequestManager] Sending request to: {webRequest.url}");
+            OSKLogger.Log("Web",$"[WebRequestManager] Sending request to: {webRequest.url}");
         }
 
         protected virtual void OnAfterRequest(UnityWebRequest webRequest, bool isSuccess)
         {
             if (isSuccess)
-                Logg.Log("Web",$"[WebRequestManager] Request successful: {webRequest.downloadHandler.text}");
+                OSKLogger.Log("Web",$"[WebRequestManager] Request successful: {webRequest.downloadHandler.text}");
             else
-                Logg.LogError("Web",$"[WebRequestManager] Request failed: {webRequest.error}");
+                OSKLogger.LogError("Web",$"[WebRequestManager] Request failed: {webRequest.error}");
         }
 
         private IEnumerator HandleRequest(UnityWebRequest webRequest, System.Action<string> onSuccess,

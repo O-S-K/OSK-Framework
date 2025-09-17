@@ -14,7 +14,7 @@ namespace OSK
         {
             if (Main.Instance.configInit == null)
             {
-                Logg.LogError("Not found ConfigInit in Main");
+                OSKLogger.LogError("Not found ConfigInit in Main");
                 return;
             }
             init = Main.Instance.configInit;
@@ -35,12 +35,12 @@ namespace OSK
                 }
                 else
                 {
-                    Logg.Log("No new version");
+                    OSKLogger.Log("No new version");
                 }
             }
             else
             {
-                Logg.Log("First time version");
+                OSKLogger.Log("First time version");
             } 
 
             PlayerPrefs.SetString(key, currentVersion);

@@ -49,7 +49,7 @@ namespace OSK
                     }
                 }
             }
-            Logg.Log("Sound",$"Playing clip: {clip.name} + pitch: {_editorAudioSource.pitch} + volume: {_editorAudioSource.volume}");
+            OSKLogger.Log("Sound",$"Playing clip: {clip.name} + pitch: {_editorAudioSource.pitch} + volume: {_editorAudioSource.volume}");
         }
 
         public static void StopClip(AudioClip clip)

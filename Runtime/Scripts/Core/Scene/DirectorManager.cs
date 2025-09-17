@@ -49,7 +49,7 @@ namespace OSK
             Scene scene = SceneManager.GetSceneByName(sceneName);
             if (!scene.isLoaded)
             {
-                Logg.LogWarning("Director",$"[DirectorManager] Scene '{sceneName}' chưa được load hoặc đã unload.");
+                OSKLogger.LogWarning("Director",$"[DirectorManager] Scene '{sceneName}' chưa được load hoặc đã unload.");
                 onComplete?.Invoke();
                 return;
             }
@@ -89,7 +89,7 @@ namespace OSK
 
             _isLoading = false;
             _loadingProgress = 1f;
-            Logg.Log("Director",$"[DirectorManager] Scenes loaded:" +
+            OSKLogger.Log("Director",$"[DirectorManager] Scenes loaded:" +
                                 $" {string.Join(", ", Array.ConvertAll(scenes, s => s.sceneName))}");
             onComplete?.Invoke();
         }
@@ -184,7 +184,7 @@ namespace OSK
             {
                 if (!SceneExists(s.sceneName))
                 {
-                    Logg.LogError("Director",$"[DirectorManager] Scene '{s.sceneName}' does not exist in Build Settings.");
+                    OSKLogger.LogError("Director",$"[DirectorManager] Scene '{s.sceneName}' does not exist in Build Settings.");
                     return false;
                 }
             }
@@ -232,7 +232,7 @@ namespace OSK
             AsyncOperation asyncOp = SceneManager.UnloadSceneAsync(sceneName);
             if (asyncOp == null)
             {
-                Logg.LogError("Director",$"[DirectorManager] Không thể unload scene '{sceneName}'");
+                OSKLogger.LogError("Director",$"[DirectorManager] Không thể unload scene '{sceneName}'");
                 onComplete?.Invoke();
                 yield break;
             }
@@ -241,7 +241,7 @@ namespace OSK
                 yield return null;
 
             LoadedScenes.Remove(sceneName);
-            Logg.Log("Director",$"[DirectorManager] Đã unload scene '{sceneName}' thành công.");
+            OSKLogger.Log("Director",$"[DirectorManager] Đã unload scene '{sceneName}' thành công.");
             onComplete?.Invoke();
         }
 
@@ -286,7 +286,7 @@ namespace OSK
                 }
             }
 
-            Logg.Log("Director",$"[DirectorManager] Reloaded scene: {sceneName}");
+            OSKLogger.Log("Director",$"[DirectorManager] Reloaded scene: {sceneName}");
         }
         #endregion
     }

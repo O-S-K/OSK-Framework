@@ -116,7 +116,7 @@ namespace OSK
             DOTween.Init();
             if (contentUI == null)
             {
-                Logg.Log("UI","contentUI not set, using RectTransform instead => " + gameObject.name);
+                OSKLogger.Log("UI","contentUI not set, using RectTransform instead => " + gameObject.name);
             }
 
             _canvasGroup = GetComponent<CanvasGroup>();
@@ -139,7 +139,7 @@ namespace OSK
                 case TransitionType.Fade:
                     if (_canvasGroup == null)
                     {
-                        Logg.Log("UI","_canvasGroup not add to component => " + gameObject.name);
+                        OSKLogger.Log("UI","_canvasGroup not add to component => " + gameObject.name);
                         _canvasGroup = gameObject.AddComponent<CanvasGroup>();
                         break;
                     }
@@ -195,7 +195,7 @@ namespace OSK
                 case TransitionType.Fade:
                     if (_canvasGroup == null)
                     {
-                        Logg.Log("UI","_canvasGroup not add to component => " + gameObject.name);
+                        OSKLogger.Log("UI","_canvasGroup not add to component => " + gameObject.name);
                         _canvasGroup = gameObject.AddComponent<CanvasGroup>();
                         break;
                     }

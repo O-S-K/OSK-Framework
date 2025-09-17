@@ -126,17 +126,17 @@ namespace OSK
             // show all SoundDataSO assets
             if (soundDataAssets.Count > 0)
             {
-                Logg.Log("Found " + soundDataAssets.Count + " SoundDataSO assets:");
+                OSKLogger.Log("Found " + soundDataAssets.Count + " SoundDataSO assets:");
                 foreach (ListSoundSO data in soundDataAssets)
                 {
-                    Logg.Log(" - " + AssetDatabase.GetAssetPath(data));
+                    OSKLogger.Log(" - " + AssetDatabase.GetAssetPath(data));
                     Selection.activeObject = data;
                     EditorGUIUtility.PingObject(data);
                 }
             }
             else
             {
-                Logg.Log("No SoundDataSO assets found.");
+                OSKLogger.Log("No SoundDataSO assets found.");
             }
         }
     }

@@ -22,7 +22,7 @@ namespace OSK
 
             if (textComponent == null)
             {
-                Logg.LogWarning("No suitable text component found on " + gameObject.name);
+                OSKLogger.LogWarning("No suitable text component found on " + gameObject.name);
                 return;
             }
         }
@@ -70,7 +70,7 @@ namespace OSK
         {
             if (string.IsNullOrEmpty(key))
             {
-                Logg.LogError("Key is empty");
+                OSKLogger.LogError("Key is empty");
                 return;
             }
 
@@ -83,7 +83,7 @@ namespace OSK
             var textAsset = Resources.Load<TextAsset>(path);
             if (textAsset == null)
             {
-                Logg.LogError("Not found localization file: " + path);
+                OSKLogger.LogError("Not found localization file: " + path);
                 return null;
             }
 
@@ -93,12 +93,12 @@ namespace OSK
                 var split = line.Split(',');
                 if (split[0] == key)
                 {
-                    Logg.Log("Localization",$"Key found: {split[0]}");
+                    OSKLogger.Log("Localization",$"Key found: {split[0]}");
                     return split[1];
                 }
             }
 
-            Logg.Log("Localization",$"Key Not found: {key}");
+            OSKLogger.Log("Localization",$"Key Not found: {key}");
             return null;
         }
 #endif

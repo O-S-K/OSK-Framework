@@ -26,11 +26,11 @@ namespace OSK
                 {
                     string details = string.Join(", ", _data.Select(d =>
                         d == null ? "null" : $"{d.GetType().Name}({d})"));
-                    Logg.Log("UI",$"[DebugData] {GetType().Name} received data: [{details}]");
+                    OSKLogger.Log("UI",$"[DebugData] {GetType().Name} received data: [{details}]");
                 }
                 else
                 {
-                    Logg.Log("UI",$"[DebugData] {GetType().Name} received empty data");
+                    OSKLogger.Log("UI",$"[DebugData] {GetType().Name} received empty data");
                 }
 #endif
             }
@@ -102,7 +102,7 @@ namespace OSK
 
             if (_rootUI == null)
             {
-                Logg.LogError("UI","[View] RootUI is still null after initialization.");
+                OSKLogger.LogError("UI","[View] RootUI is still null after initialization.");
             }
 
             SetDepth();
@@ -147,7 +147,7 @@ namespace OSK
         {
             if (data == null || data.Length == 0)
             {
-                Logg.Log("UI",$"[SetData] No data passed to {GetType().Name}");
+                OSKLogger.Log("UI",$"[SetData] No data passed to {GetType().Name}");
                 return;
             }
 
@@ -206,7 +206,7 @@ namespace OSK
             if (!_isShowing) return;
 
             _isShowing = false;
-            Logg.Log("UI",$"[View] Hide {gameObject.name} is showing {_isShowing}");
+            OSKLogger.Log("UI",$"[View] Hide {gameObject.name} is showing {_isShowing}");
 
             if (_uiTransition != null)
                 _uiTransition.CloseTrans(FinalizeHide);
@@ -225,7 +225,7 @@ namespace OSK
         {
             if (_rootUI == null)
             {
-                Logg.LogError(
+                OSKLogger.LogError(
                     "UI","[View] View Manager is null. Ensure that the View has been initialized before calling Open.");
                 return false;
             }
@@ -237,7 +237,7 @@ namespace OSK
         {
             
             if (!_isShowing) return false;
-            Logg.LogWarning("UI","[View] View is already showing");
+            OSKLogger.LogWarning("UI","[View] View is already showing");
             return true;
         }
 
