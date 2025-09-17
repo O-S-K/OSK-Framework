@@ -26,13 +26,13 @@ namespace OSK
             }
         }
  
-        [MenuItem("OSK-Framework/SO Files/List View")]
+        [MenuItem("OSK-Framework/List View SO")]
         public static void LoadListView()
         {
             FindViewDataSOAssets();
         }
 
-        [MenuItem("OSK-Framework/SO Files/List Sound")]
+        [MenuItem("OSK-Framework/List Sound SO")]
         public static void LoadListSound()
         {
             FindSoundSOAssets();

@@ -1,292 +1,182 @@
 using System;
-using Sirenix.OdinInspector;
 using DG.Tweening;
-using UnityEditor;
+using Sirenix.OdinInspector;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 namespace OSK
 {
-    public enum TransitionType
-    {
-        None,
-        Fade,
-        Scale,
-        SlideRight,
-        SlideLeft,
-        SlideUp,
-        SlideDown,
-        Animation
-    }
-    [System.Serializable]
-    public class TweenSettings
-    {
-        [TableColumnWidth(120, Resizable = false)]
-        public TransitionType transition;
-
-        [TableColumnWidth(60)]
-        [HideIf(nameof(transition), TransitionType.None)]
-        [HideIf(nameof(transition), TransitionType.Animation)]
-        public float time = 0.25f;
-
-        [TableColumnWidth(70)]
-        [HideIf(nameof(transition), TransitionType.None)]
-        [HideIf(nameof(useCustomCurve), true)]
-        [HideIf(nameof(transition), TransitionType.Animation)]
-        public bool useEase = false;
-
-        [ShowIf(nameof(useEase))]
-        [HideIf(nameof(transition), TransitionType.Animation)]
-        public Ease ease = Ease.OutQuad;
-
-        [ShowIf(nameof(transition), TransitionType.Scale)]
-        public Vector3 initScale;
-
-        [HideIf(nameof(transition), TransitionType.None)]
-        [HideIf(nameof(useEase), true)]
-        public bool useCustomCurve = false;
-
-        [ShowIf(nameof(useCustomCurve))]
-        public AnimationCurve curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-
-        [ShowIf(nameof(transition), TransitionType.Animation)]
-        public Animation animationClip;
-    }
-
-
     [RequireComponent(typeof(CanvasGroup), typeof(RectTransform))]
     public class UITransition : MonoBehaviour
     {
-        [LabelText("If not set, will use RectTransform of this GameObject")] 
-        [Header("Content UI")]
+        [LabelText("If not set, will use Rect of this GO")] 
         [SerializeField] private RectTransform contentUI;
-        
-        [Title("Transition Settings")]
+
         public bool runIgnoreTimeScale = true;
-        
-        [HorizontalGroup("Tweens", Width = 0.5f)]
-        [VerticalGroup("Tweens/Opening")]
-        [Title("Opening")]
-        [TableList(ShowPaging = false, AlwaysExpanded = true)]
+
+        [HideLabel, InlineProperty]
+        [BoxGroup("Open", ShowLabel = true)]
         public TweenSettings _openingTweenSettings;
-        
-        
-        [VerticalGroup("Tweens/Closing")]
-        [Title("Closing")]
-        [TableList(ShowPaging = false, AlwaysExpanded = true)]
+
+        [HideLabel, InlineProperty]
+        [BoxGroup("Close", ShowLabel = true)]
         public TweenSettings _closingTweenSettings;
 
         private CanvasGroup _canvasGroup;
         private RectTransform _rectTransform;
 
-        [Button]
-        public void AutoRefContent()
-        {
-            if (transform.childCount > 0)
-            {
-                if (transform.Find("Container") != null)
-                {
-                    contentUI = transform.Find("Container").GetComponent<RectTransform>();
-                }
-                else
-                {
-                    Debug.LogWarning("No child named 'Container' found, using the first child instead.");
-                    contentUI = transform.GetChild(0).GetComponent<RectTransform>();
-                }
-#if UNITY_EDITOR
-                EditorUtility.SetDirty(contentUI);
-#endif
-            }
-        }
-
-        [Button]
-        private void AddImageBlackFade()
-        {
-            var image = gameObject.GetOrAdd<UnityEngine.UI.Image>();
-            image.color = new Color(0, 0, 0, 0.9f);
-            image.rectTransform.anchorMin = Vector2.zero;
-            image.rectTransform.anchorMax = Vector2.one;
-            image.rectTransform.sizeDelta = Vector2.zero;
-        }
-
-        // Property to return either contentUI or _rectTransform
         private RectTransform TargetRectTransform => contentUI != null ? contentUI : _rectTransform;
 
         public void Initialize()
         {
-            DOTween.Init();
-            if (contentUI == null)
-            {
-                OSKLogger.Log("UI","contentUI not set, using RectTransform instead => " + gameObject.name);
-            }
-
             _canvasGroup = GetComponent<CanvasGroup>();
             _rectTransform = GetComponent<RectTransform>();
+
+            if (contentUI == null)
+                OSKLogger.Log("UI", $"contentUI not set, using RectTransform instead => {gameObject.name}");
         }
 
-        public void OpenTrans(Action onComplete)
-        {
-            ResetTransitionState();
+        public UniTask OpenTrans() => PlayTransition(_openingTweenSettings, true);
+        public UniTask CloseTrans() => PlayTransition(_closingTweenSettings, false);
 
-            if (_openingTweenSettings.transition == TransitionType.None)
-            {
-                onComplete?.Invoke();
+        // --- Callback API ---
+        public void OpenTrans(Action onComplete) => OpenTrans().ContinueWith(onComplete).Forget();
+        public void CloseTrans(Action onComplete) => CloseTrans().ContinueWith(onComplete).Forget();
+ 
+        public void AnyClose(Action onComplete)
+        {
+            DOTween.Kill(TargetRectTransform);
+            DOTween.Kill(_canvasGroup);
+
+            _canvasGroup.alpha = 0;
+            _canvasGroup.interactable = false;
+            _canvasGroup.blocksRaycasts = false;
+            
+            TargetRectTransform.localScale = Vector3.one;
+            TargetRectTransform.anchoredPosition = Vector2.zero;
+
+            onComplete?.Invoke();
+        }
+        
+        // Example: 
+        /* open with Fade + Scale
+        uiTransition.SetOpenSettings(
+            TransitionType.Fade | TransitionType.Scale,
+            0.3f,
+            Ease.OutBack,
+            new Vector3(0.8f, 0.8f, 1f)
+        );
+
+        // close with Slide Down
+        uiTransition.SetCloseSettings(
+            TransitionType.Slide,
+            0.25f,
+            Ease.InQuad,
+            SlideType.SlideDown
+        );*/
+        
+        public void SetOpenSettings(TweenSettings settings) => _openingTweenSettings = settings;
+        public void SetCloseSettings(TweenSettings settings) => _closingTweenSettings = settings;
+
+        private async UniTask PlayTransition(TweenSettings settings, bool isOpen)
+        {
+            if (settings.transition == TransitionType.None)
                 return;
+
+            // Reset state before open
+            if (isOpen) ResetTransitionState();
+            _canvasGroup.interactable = false;
+            _canvasGroup.blocksRaycasts = false;
+            
+            Sequence seq = DOTween.Sequence();
+
+            // Fade
+            if (settings.transition.HasFlag(TransitionType.Fade))
+            {
+                if (isOpen) _canvasGroup.alpha = 0;
+                float target = isOpen ? 1 : 0;
+                seq.Join(_canvasGroup.DOFade(target, settings.duration));
             }
 
-            Tween tween = null;
-            switch (_openingTweenSettings.transition)
+            // Scale
+            if (settings.transition.HasFlag(TransitionType.Scale))
             {
-                case TransitionType.Fade:
-                    if (_canvasGroup == null)
-                    {
-                        OSKLogger.Log("UI","_canvasGroup not add to component => " + gameObject.name);
-                        _canvasGroup = gameObject.AddComponent<CanvasGroup>();
-                        break;
-                    }
-
-                    _canvasGroup.alpha = 0;
-                    tween = _canvasGroup.DOFade(1, _openingTweenSettings.time);
-                    break;
-
-                case TransitionType.Scale:
-                    TargetRectTransform.localScale = _openingTweenSettings.initScale;
-                    tween = TargetRectTransform.DOScale(Vector3.one, _openingTweenSettings.time);
-                    break;
-
-                case TransitionType.SlideRight:
-                    TargetRectTransform.anchoredPosition = new Vector2(-TargetRectTransform.rect.width, 0);
-                    tween = TargetRectTransform.DOAnchorPosX(0, _openingTweenSettings.time);
-                    break;
-
-                case TransitionType.SlideLeft:
-                    TargetRectTransform.anchoredPosition = new Vector2(TargetRectTransform.rect.width, 0);
-                    tween = TargetRectTransform.DOAnchorPosX(0, _openingTweenSettings.time);
-                    break;
-
-                case TransitionType.SlideUp:
-                    TargetRectTransform.anchoredPosition = new Vector2(0, -TargetRectTransform.rect.height);
-                    tween = TargetRectTransform.DOAnchorPosY(0, _openingTweenSettings.time);
-                    break;
-                case TransitionType.SlideDown:
-                    TargetRectTransform.anchoredPosition = new Vector2(0, TargetRectTransform.rect.height);
-                    tween = TargetRectTransform.DOAnchorPosY(0, _openingTweenSettings.time);
-                    break;
-                case TransitionType.Animation:
-                    _openingTweenSettings.animationClip?.Play();
-                    break;
+                if (isOpen) TargetRectTransform.localScale = settings.initScale;
+                Vector3 target = isOpen ? Vector3.one : Vector3.zero;
+                seq.Join(TargetRectTransform.DOScale(target, settings.duration));
             }
 
-            OnCompletedTween(_openingTweenSettings, tween, onComplete, true);
-        }
-
-        public void CloseTrans(Action onComplete)
-        {
-            ResetTransitionState();
-
-            if (_closingTweenSettings.transition == TransitionType.None)
+            // Slide
+            if (settings.transition.HasFlag(TransitionType.Slide))
             {
-                onComplete?.Invoke();
-                return;
-            }
-
-            Tween tween = null;
-            switch (_closingTweenSettings.transition)
-            {
-                case TransitionType.Fade:
-                    if (_canvasGroup == null)
-                    {
-                        OSKLogger.Log("UI","_canvasGroup not add to component => " + gameObject.name);
-                        _canvasGroup = gameObject.AddComponent<CanvasGroup>();
-                        break;
-                    }
-
-                    tween = _canvasGroup.DOFade(0, _closingTweenSettings.time);
-                    break;
-
-                case TransitionType.Scale:
-                    tween = TargetRectTransform.DOScale(Vector3.zero, _closingTweenSettings.time);
-                    break;
-
-                case TransitionType.SlideRight:
-                    tween = TargetRectTransform.DOAnchorPosX(TargetRectTransform.rect.width,
-                        _closingTweenSettings.time);
-                    break;
-
-                case TransitionType.SlideLeft:
-                    tween = TargetRectTransform.DOAnchorPosX(-TargetRectTransform.rect.width,
-                        _closingTweenSettings.time);
-                    break;
-
-                case TransitionType.SlideUp:
-                    tween = TargetRectTransform.DOAnchorPosY(TargetRectTransform.rect.height,
-                        _closingTweenSettings.time);
-                    break;
-
-                case TransitionType.SlideDown:
-                    tween = TargetRectTransform.DOAnchorPosY(-TargetRectTransform.rect.height,
-                        _closingTweenSettings.time);
-                    break;
-                case TransitionType.Animation:
-                    _closingTweenSettings.animationClip?.Play();
-                    break;
-            }
-
-            OnCompletedTween(_closingTweenSettings, tween, onComplete, false);
-        }
-
-
-        private void OnCompletedTween(TweenSettings tweenSettings, Tween tween, Action onComplete, bool isOpen)
-        {
-            if (tweenSettings.transition == TransitionType.Animation)
-            {
-                if (tweenSettings.animationClip != null)
+                switch (settings.slideType)
                 {
-                    float clipLength = tweenSettings.animationClip.clip.length;
-                    DOVirtual.DelayedCall(clipLength, () => { onComplete?.Invoke(); });
+                    case SlideType.SlideRight:
+                        if (isOpen)
+                            TargetRectTransform.anchoredPosition = new Vector2(-TargetRectTransform.rect.width * settings.slideDistanceFactor, 0);
+                        seq.Join(TargetRectTransform.DOAnchorPosX(isOpen ? 0 : TargetRectTransform.rect.width * settings.slideDistanceFactor, settings.duration));
+                        break;
+
+                    case SlideType.SlideLeft:
+                        if (isOpen)
+                            TargetRectTransform.anchoredPosition = new Vector2(TargetRectTransform.rect.width * settings.slideDistanceFactor, 0);
+                        seq.Join(TargetRectTransform.DOAnchorPosX(isOpen ? 0 : -TargetRectTransform.rect.width * settings.slideDistanceFactor, settings.duration));
+                        break;
+
+                    case SlideType.SlideUp:
+                        if (isOpen)
+                            TargetRectTransform.anchoredPosition = new Vector2(0, -TargetRectTransform.rect.height * settings.slideDistanceFactor);
+                        seq.Join(TargetRectTransform.DOAnchorPosY(isOpen ? 0 : TargetRectTransform.rect.height * settings.slideDistanceFactor, settings.duration));
+                        break;
+
+                    case SlideType.SlideDown:
+                        if (isOpen)
+                            TargetRectTransform.anchoredPosition = new Vector2(0, TargetRectTransform.rect.height * settings.slideDistanceFactor);
+                        seq.Join(TargetRectTransform.DOAnchorPosY(isOpen ? 0 : -TargetRectTransform.rect.height * settings.slideDistanceFactor, settings.duration));
+                        break;
                 }
             }
-            else
+
+            // Animation
+            if (settings.transition.HasFlag(TransitionType.Animation) && settings.animationComponent != null)
             {
-                if (tween != null)
+                var clip = settings.animationComponent.clip;
+                if (clip != null)
                 {
-                    ApplyTween(tween, isOpen);
-                    tween.SetUpdate(runIgnoreTimeScale);
-                    tween.OnComplete(() =>
-                    {
-                        ResetTransitionState();
-                        onComplete?.Invoke();
-                    });
+                    settings.animationComponent.Play();
+                    await UniTask.Delay(TimeSpan.FromSeconds(clip.length), ignoreTimeScale: runIgnoreTimeScale);
+                }
+                return;
+            }
+
+            if (seq.IsActive())
+            {
+                ApplyTween(seq, settings);
+                seq.SetUpdate(runIgnoreTimeScale);
+
+                await seq.AsyncWaitForCompletion();
+
+                if (isOpen)
+                {
+                    _canvasGroup.interactable = true;
+                    _canvasGroup.blocksRaycasts = true;
                 }
                 else
                 {
                     ResetTransitionState();
-                    onComplete?.Invoke();
                 }
             }
         }
 
-        private void ApplyTween(Tween tween, bool isOpen)
+        private void ApplyTween(Tween tween, TweenSettings settings)
         {
-            if (isOpen)
-            {
-                if (_openingTweenSettings.useEase)
-                    tween.SetEase(_openingTweenSettings.ease);
-                else if (_openingTweenSettings.useCustomCurve)
-                    tween.SetEase(_openingTweenSettings.curve);
-                else
-                    tween.SetEase(Ease.Linear);
-            }
+            if (settings.useEase)
+                tween.SetEase(settings.ease);
+            else if (settings.curve != null)
+                tween.SetEase(settings.curve);
             else
-            {
-                if (_closingTweenSettings.useEase)
-                    tween.SetEase(_closingTweenSettings.ease);
-                else if (_closingTweenSettings.useCustomCurve)
-                    tween.SetEase(_closingTweenSettings.curve);
-                else
-                    tween.SetEase(Ease.Linear);
-            }
+                tween.SetEase(Ease.Linear);
         }
-
 
         private void ResetTransitionState()
         {
@@ -296,13 +186,6 @@ namespace OSK
             _canvasGroup.alpha = 1;
             TargetRectTransform.localScale = Vector3.one;
             TargetRectTransform.anchoredPosition = Vector2.zero;
-        }
-
-        public void AnyClose(Action onComplete)
-        {
-            DOTween.KillAll();
-            ResetTransitionState();
-            onComplete?.Invoke();
         }
     }
 }

@@ -127,12 +127,11 @@ namespace OSK
             GUI.color = Color.yellow;
             EditorGUILayout.LabelField("➕ New View Draft", EditorStyles.boldLabel, GUILayout.Height(20));
             GUI.color = Color.white;
+            newViewDraft.view = (View)EditorGUILayout.ObjectField("View", newViewDraft.view, typeof(View), false);
             newViewDraft.depth = EditorGUILayout.IntField("Depth", newViewDraft.depth);
             newViewDraft.viewType = (EViewType)EditorGUILayout.EnumPopup("View Type", newViewDraft.viewType);
             newViewDraft.isPreloadSpawn = EditorGUILayout.Toggle("Is Preload Spawn", newViewDraft.isPreloadSpawn);
             newViewDraft.isRemoveOnHide = EditorGUILayout.Toggle("Is Remove On Hide", newViewDraft.isRemoveOnHide);
-            newViewDraft.view =
-                (View)EditorGUILayout.ObjectField("View", newViewDraft.view, typeof(View), false);
 
             if (newViewDraft.view != null)
             {

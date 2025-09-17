@@ -125,7 +125,7 @@ namespace OSK
             Opened();
         }
 
-        protected void Opened()
+        protected async void Opened()
         {
             if (_uiTransition)
             {
@@ -152,6 +152,16 @@ namespace OSK
             }
 
             this.Data = data;    
+        }
+
+        public void SetTweenUIOpen(TweenSettings settings)
+        {
+            _uiTransition.SetOpenSettings(settings);
+        }
+        
+        public void SetTweenUIClose(TweenSettings settings)
+        {
+            _uiTransition.SetCloseSettings(settings);
         }
         
         
@@ -197,9 +207,6 @@ namespace OSK
                 }
             }
         }
-
-
- 
 
         public virtual void Hide()
         {

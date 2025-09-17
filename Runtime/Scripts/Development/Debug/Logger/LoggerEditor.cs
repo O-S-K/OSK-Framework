@@ -8,7 +8,7 @@ namespace OSK
     {
         private Vector2 scrollPos;
 
-        [MenuItem("OSK Logger/Logger Window")]
+        [MenuItem("OSK-Framework/Logger Window")]
         public static void ShowWindow()
         {
             GetWindow<LoggerEditor>("Logger");
