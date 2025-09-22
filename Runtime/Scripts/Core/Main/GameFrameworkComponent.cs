@@ -5,12 +5,12 @@ namespace OSK
     [DefaultExecutionOrder(-1001)]
     public abstract class GameFrameworkComponent : MonoBehaviour
     {
-        protected void Awake()
+        public virtual void Awake()
         {
             Main.Register(this);
         }
         
-        public void OnDestroy() 
+        public virtual void OnDestroy() 
         {
             Main.UnRegister(this);
         }

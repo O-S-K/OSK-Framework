@@ -9,8 +9,8 @@ namespace OSK
 {
     public partial class SoundManager : GameFrameworkComponent
     {
-        [ShowInInspector] private List<SoundData> _listSoundData = new List<SoundData>();
-        [ShowInInspector] private List<PlayingSound> _listSoundPlayings = new List<PlayingSound>();
+        [ReadOnly, SerializeField] private List<SoundData> _listSoundData = new List<SoundData>();
+        [ReadOnly, SerializeField] private List<PlayingSound> _listSoundPlayings = new List<PlayingSound>();
         private Dictionary<string, Tween> _playingTweens = new Dictionary<string, Tween>();
 
         public List<SoundData> GetListSoundData => _listSoundData;
@@ -56,7 +56,6 @@ namespace OSK
         private AudioSource _soundObject;
         private bool pauseWhenInBackground;
 
-
         public override void OnInit()
         {
             if (Main.Instance.configInit.data.listSoundSo == null)
@@ -82,8 +81,7 @@ namespace OSK
         {
             pauseWhenInBackground = pause;
         }
-#endif
-
+#endif 
 
         private void Update() => CheckForStoppedMusic();
 

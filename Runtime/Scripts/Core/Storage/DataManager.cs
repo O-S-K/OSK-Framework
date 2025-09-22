@@ -1,6 +1,6 @@
 namespace OSK
 {
-    public class StorageManager : GameFrameworkComponent
+    public class DataManager : GameFrameworkComponent
     {
         public bool isEncrypt = false;
         private JsonSystem _json = new JsonSystem();

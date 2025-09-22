@@ -368,6 +368,21 @@ namespace OSK
         {
             EditorGUILayout.Space(20);
             EditorGUILayout.LabelField("Gen enum SoundID", EditorStyles.boldLabel);
+
+            EditorGUILayout.BeginHorizontal();
+            if(GUILayout.Button("Open File"))
+            {
+                string path = EditorUtility.SaveFilePanel("Select File Path", "Assets", "SoundID.cs", "cs");
+                if (string.IsNullOrEmpty(path)) return;
+                path = "Assets" + path.Replace(Application.dataPath, "");
+                listSoundSo.filePathSoundID = path;
+                EditorUtility.SetDirty(listSoundSo);
+            }
+            
+            EditorGUILayout.LabelField("File Path:", GUILayout.Width(70));
+            EditorGUILayout.LabelField(listSoundSo.filePathSoundID);
+            EditorGUILayout.EndHorizontal();
+
             if (GUILayout.Button("Generate Enum ID"))
             {
                 var names = listSoundSo.ListSoundInfos
@@ -385,6 +400,7 @@ namespace OSK
                 File.WriteAllText(filePath, sb.ToString());
                 AssetDatabase.Refresh();
             }
+       
         }
 
         #endregion

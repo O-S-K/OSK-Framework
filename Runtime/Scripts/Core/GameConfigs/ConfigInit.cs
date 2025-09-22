@@ -9,8 +9,22 @@ namespace OSK
     public class ConfigInit
     {
         [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+        [Range(30, 144)]
         public int TargetFrameRate = 60;
+        
+        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+        [Range(0,10)]
+        public int GameSpeed = 1;
+        
+        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+        public bool RunInBackground = true;
 
+        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+        public int VSyncCount;
+        
+        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+        public bool NeverSleep = true;
+        
         [BoxGroup("🎮 Game Settings"), LabelText("Encrypt Storage")]
         public bool IsEncryptStorage = false;
         

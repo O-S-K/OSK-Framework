@@ -7,11 +7,13 @@ namespace OSK
     [CreateAssetMenu(fileName = "ListSoundSO", menuName = "OSK/Sound/ListSoundSO")]
     public class ListSoundSO : ScriptableObject
     {
-        [HideInInspector]
-        public string filePathSoundID = "Assets";
-        
         public bool showSoundSettings = true;
         
+        [FilePath]
+        [HideInInspector]
+        [Title("Sound Settings")]
+        public string filePathSoundID = "Assets";
+
         [Title("Sound Settings")]
         [ShowIf("showSoundSettings")]
         [Space]

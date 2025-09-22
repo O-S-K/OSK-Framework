@@ -14,5 +14,10 @@ namespace OSK
         public const string KEY_UPDATE_LANGUAGE = "UpdateLanguage";
         public const string KEY_SOUND_EVENT = "SoundEvent";
     }
+    
+    public class KEY_SAVE
+    {
+        public const string KEY_SAVE_SOUND_PLAYING_CACHE = "SaveSoundPlayingCache";
+    }
      
 }

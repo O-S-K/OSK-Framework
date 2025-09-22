@@ -3,28 +3,37 @@ using UnityEngine;
 using System.Collections;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
-using Sirenix.Utilities;
+using System.Reflection;
 
 namespace OSK
 {
-    public class MonoManager : GameFrameworkComponent 
+    public class MonoManager : GameFrameworkComponent
     {
-        private readonly List<Action> _toMainThreads = new();
+        [ReadOnly, ShowInInspector] private readonly List<Action> _toMainThreads = new();
+        [ReadOnly, ShowInInspector] private List<Action> _localToMainThreads = new();
         private volatile bool _isToMainThreadQueueEmpty = true;
-        private List<Action> _localToMainThreads = new();
-        internal event Action<bool> OnGamePause= null;
+
+        // Tick processes
+        [ShowInInspector] private readonly List<IUpdate> tickProcesses = new(1024);
+        [ShowInInspector] private readonly List<IFixedUpdate> fixedTickProcesses = new(512);
+        [ShowInInspector] private readonly List<ILateUpdate> lateTickProcesses = new(256);
+
+        // Lifecycle processes
+        [ShowInInspector] private readonly List<IAwake> awakeProcesses = new(128);
+        [ShowInInspector] private readonly List<IOnEnable> enableProcesses = new(128);
+        [ShowInInspector] private readonly List<IOnDisable> disableProcesses = new(128);
+        [ShowInInspector] private readonly List<IStart> startProcesses = new(128);
+        [ShowInInspector] private readonly List<IDestroy> destroyProcesses = new(128);
+
+        [ShowInInspector] public bool IsPause { get; private set; } = false;
+        [ShowInInspector] public float TimeScale { get; private set; } = 1f;
+        [ShowInInspector] public float SpeedGame { get; private set; } = 1f;
+        
+        
+        internal event Action<bool> OnGamePause = null;
         internal event Action OnGameQuit = null;
 
-        [ShowInInspector] private readonly List<IUpdate> tickProcesses = new List<IUpdate>(1024);
-        [ShowInInspector] private readonly List<IFixedUpdate> fixedTickProcesses = new List<IFixedUpdate>(512);
-        [ShowInInspector] private readonly List<ILateUpdate> lateTickProcesses = new List<ILateUpdate>(256);
-
-        [ShowInInspector] public bool IsPause { get; private set; }
-        [ShowInInspector] public float TimeScale { get; private set; }
-
-        [ShowInInspector] public float speed = 1f; 
-
-        #region Set
+        #region Init
 
         public override void OnInit()
         {
@@ -33,12 +42,41 @@ namespace OSK
             AutoRegisterAll();
         }
 
+        public override void Awake()
+        {
+            foreach (var a in awakeProcesses) a?.OnAwake();
+        }
+
+        protected void OnEnable()
+        {
+            foreach (var e in enableProcesses) e?.OnEnable();
+        }
+
+        protected void Start()
+        {
+            foreach (var s in startProcesses) s?.OnStart();
+        }
+
+        protected void OnDisable()
+        {
+            foreach (var d in disableProcesses) d?.OnDisable();
+        }
+
+        public override void OnDestroy()
+        {
+            foreach (var d in destroyProcesses) d?.OnDestroy();
+        }
+
+        #endregion
+
+        #region Config
+
         public MonoManager SetSpeed(float speed = 1f)
         {
-            this.speed = speed;
+            this.SpeedGame = speed;
             return this;
-        } 
-        
+        }
+
         public MonoManager SetTimeScale(float timeScale)
         {
             TimeScale = timeScale;
@@ -54,14 +92,14 @@ namespace OSK
 
         #endregion
 
-        #region Sub / UnSub 
- 
+        #region Register / Unregister
+
         private void AutoRegisterAll()
         {
             foreach (var obj in FindObjectsOfType<MonoBehaviour>())
             {
-                if (obj?.GetType().GetCustomAttribute<AutoRegisterUpdateAttribute>() == null) 
-                    continue; 
+                if (obj?.GetType().GetCustomAttribute<AutoRegisterUpdateAttribute>() == null)
+                    continue;
                 Register(obj);
             }
         }
@@ -69,30 +107,37 @@ namespace OSK
         public void Register(object obj)
         {
             if (obj is IUpdate tick) tickProcesses.Add(tick);
-            else if (obj is IFixedUpdate fixedTick) fixedTickProcesses.Add(fixedTick);
-            else if (obj is ILateUpdate lateTick) lateTickProcesses.Add(lateTick);
-            else
-            {
-                OSKLogger.LogError("MonoTick",$"MonoManager.Register: {obj.GetType()} not implement IUpdate, IFixedUpdate, ILateUpdate");
-            }
+            if (obj is IFixedUpdate fixedTick) fixedTickProcesses.Add(fixedTick);
+            if (obj is ILateUpdate lateTick) lateTickProcesses.Add(lateTick);
+            if (obj is IAwake awake) awakeProcesses.Add(awake);
+            if (obj is IOnEnable en) enableProcesses.Add(en);
+            if (obj is IOnDisable dis) disableProcesses.Add(dis);
+            if (obj is IStart st) startProcesses.Add(st);
+            if (obj is IDestroy de) destroyProcesses.Add(de);
         }
 
         public void UnRegister(object obj)
         {
             if (obj is IUpdate tick) tickProcesses.Remove(tick);
-            else if (obj is IFixedUpdate fixedTick) fixedTickProcesses.Remove(fixedTick);
-            else if (obj is ILateUpdate lateTick) lateTickProcesses.Remove(lateTick);
-            else
-            {
-                OSKLogger.LogError("MonoTick",$"MonoManager.Unregister: {obj.GetType()} not implement IUpdate, IFixedUpdate, ILateUpdate");
-            }
+            if (obj is IFixedUpdate fixedTick) fixedTickProcesses.Remove(fixedTick);
+            if (obj is ILateUpdate lateTick) lateTickProcesses.Remove(lateTick);
+            if (obj is IAwake awake) awakeProcesses.Remove(awake);
+            if (obj is IOnEnable en) enableProcesses.Remove(en);
+            if (obj is IOnDisable dis) disableProcesses.Remove(dis);
+            if (obj is IStart st) startProcesses.Remove(st);
+            if (obj is IDestroy de) destroyProcesses.Remove(de);
         }
-         
+
         public void RemoveAllTickProcess()
         {
             tickProcesses?.Clear();
             fixedTickProcesses?.Clear();
             lateTickProcesses?.Clear();
+            awakeProcesses?.Clear();
+            enableProcesses?.Clear();
+            disableProcesses?.Clear();
+            startProcesses?.Clear();
+            destroyProcesses?.Clear();
         }
 
         #endregion
@@ -101,11 +146,11 @@ namespace OSK
 
         private void Update()
         {
-            if (IsPause || speed == 0) return;
+            if (IsPause || SpeedGame == 0) return;
 
-            float deltaTime = Time.deltaTime * speed;
-    
-            foreach (var t in tickProcesses) 
+            float deltaTime = Time.deltaTime * SpeedGame;
+
+            foreach (var t in tickProcesses)
                 t?.Tick(deltaTime);
 
             if (_isToMainThreadQueueEmpty) return;
@@ -119,25 +164,25 @@ namespace OSK
 
             for (var i = _localToMainThreads.Count - 1; i >= 0; i--)
             {
-                _localToMainThreads[i].Invoke();
+                _localToMainThreads[i]?.Invoke();
             }
         }
 
         private void FixedUpdate()
         {
-            if (IsPause || speed == 0) return;
+            if (IsPause || SpeedGame == 0) return;
 
-            float fixedDeltaTime = Time.fixedDeltaTime * speed;
-            foreach (var t in fixedTickProcesses) 
+            float fixedDeltaTime = Time.fixedDeltaTime * SpeedGame;
+            foreach (var t in fixedTickProcesses)
                 t?.FixedTick(fixedDeltaTime);
         }
 
         private void LateUpdate()
         {
-            if (IsPause || speed == 0) return;
+            if (IsPause || SpeedGame == 0) return;
 
-            float deltaTime = Time.deltaTime * speed;
-            foreach (var t in lateTickProcesses) 
+            float deltaTime = Time.deltaTime * SpeedGame;
+            foreach (var t in lateTickProcesses)
                 t?.LateTick(deltaTime);
         }
 
@@ -147,22 +192,22 @@ namespace OSK
 
         private void OnApplicationFocus(bool hasFocus)
         {
-            OnGamePause?.Invoke(hasFocus); // hasFocus = true when game is focus
+            OnGamePause?.Invoke(hasFocus);
         }
 
         private void OnApplicationPause(bool pauseStatus)
         {
-            OnGamePause?.Invoke(pauseStatus); // pauseStatus = true when game is pause
+            OnGamePause?.Invoke(pauseStatus);
         }
 
         private void OnApplicationQuit()
         {
-            OnGameQuit?.Invoke(); // Game is quit
+            OnGameQuit?.Invoke();
         }
 
         #endregion
 
-        #region Effective
+        #region Effective (Coroutine + MainThread)
 
         public Coroutine StartCoroutineImpl(IEnumerator routine)
         {
@@ -202,10 +247,6 @@ namespace OSK
             StopAllCoroutines();
         }
 
-        /// <summary>
-        /// Schedules the specifies action to be run on the main thread (game thread).
-        /// The action will be invoked upon the next Unity Update event.
-        /// </summary>
         public void RunOnMainThreadImpl(Action action)
         {
             lock (_toMainThreads)
@@ -213,22 +254,14 @@ namespace OSK
                 _toMainThreads.Add(action);
                 _isToMainThreadQueueEmpty = false;
             }
-        } 
+        }
 
-        /// <summary>
-        /// Converts the specified action to one that runs on the main thread.
-        /// The converted action will be invoked upon the next Unity Update event.
-        /// </summary>
         public Action ToMainThreadImpl(Action action)
         {
             if (action == null) return delegate { };
             return () => RunOnMainThreadImpl(action);
         }
 
-        /// <summary>
-        /// Converts the specified action to one that runs on the main thread.
-        /// The converted action will be invoked upon the next Unity Update event.
-        /// </summary>
         public Action<T> ToMainThreadImpl<T>(Action<T> action)
         {
             if (action == null) return delegate { };

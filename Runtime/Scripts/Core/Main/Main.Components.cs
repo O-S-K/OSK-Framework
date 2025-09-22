@@ -16,7 +16,6 @@ namespace OSK
         public static CommandManager Command { get; private set; }
         public static DirectorManager Director { get; private set; }
         public static ResourceManager Res { get; private set; }
-        public static StorageManager Storage { get; private set; }
         public static DataManager Data { get; private set; }
         public static WebRequestManager WebRequest { get; private set; }
         public static GameConfigsManager Configs { get; private set; }
@@ -28,16 +27,14 @@ namespace OSK
         public static ProcedureManager Procedure { get; private set; }
         public static GameInit GameInit { get; private set; }
 
-        [HideLabel, InlineProperty]
-        public ConfigInit configInit;
-        
-        [HideLabel, InlineProperty]
-        public MainModules mainModules;
+        [HideLabel, InlineProperty] public ConfigInit configInit;
+
+        [HideLabel, InlineProperty] public MainModules mainModules;
 
         public bool isDestroyingOnLoad = false;
 
         public static Main Instance => SingletonManager.Instance.Get<Main>();
-        
+
         protected void Awake()
         {
             SingletonManager.Instance.RegisterGlobal(this);
@@ -62,11 +59,11 @@ namespace OSK
                 {
                     var module = newObject.AddComponent(componentType) as GameFrameworkComponent;
                     AssignModuleInstance(module);
-                    OSKLogger.Log("Main",$"[Main] Module {moduleType} initialized.");
+                    OSKLogger.Log("Main", $"Module {moduleType} initialized.");
                 }
                 else
                 {
-                    OSKLogger.LogError("Main",$"[Main] Module {moduleType} not found in MainModules.");
+                    OSKLogger.LogError("Main", $"Module {moduleType} not found in MainModules.");
                 }
             }
         }
@@ -80,7 +77,6 @@ namespace OSK
             else if (module is CommandManager command) Command = command;
             else if (module is DirectorManager scene) Director = scene;
             else if (module is ResourceManager res) Res = res;
-            else if (module is StorageManager save) Storage = save;
             else if (module is DataManager data) Data = data;
             else if (module is WebRequestManager webRequest) WebRequest = webRequest;
             else if (module is GameConfigsManager configs) Configs = configs;
@@ -91,7 +87,7 @@ namespace OSK
             else if (module is BlackboardManager blackboard) Blackboard = blackboard;
             else if (module is ProcedureManager procedure) Procedure = procedure;
             else if (module is GameInit gameInit) GameInit = gameInit;
-            else OSKLogger.LogError("Main",$"[AssignModuleToField] Unknown module type: {module}");
+            else OSKLogger.LogError("Main", $"[AssignModuleToField] Unknown module type: {module}");
         }
 
         private void InitDataComponents()
@@ -104,17 +100,17 @@ namespace OSK
                 {
                     if (current.Value == null)
                     {
-                        OSKLogger.LogError("Main",$"[InitData] Component '{componentName}' is NULL.");
+                        OSKLogger.LogError("Main", $"[InitData] Component '{componentName}' is NULL.");
                     }
                     else
                     {
-                        OSKLogger.Log("Main",$"[InitData] Initializing '{componentName}'...");
                         current.Value.OnInit();
                     }
                 }
                 catch (Exception e)
                 {
-                    OSKLogger.LogError("Main",$"[InitData] Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
+                    OSKLogger.LogError("Main",
+                        $"[InitData] Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
                 }
 
                 current = current.Next;
@@ -131,13 +127,19 @@ namespace OSK
                 return;
             }
 
-            Application.targetFrameRate = configInit.TargetFrameRate;
-            if(configInit != null) OSKLogger.SetLogEnabled(configInit.IsEnableLogg);
-            if(Main.Storage) Main.Storage.isEncrypt = configInit.IsEncryptStorage;
-            if(Main.Configs) Main.Configs.CheckVersion(() =>
+
+            if (configInit != null)
             {
-                Debug.Log("New version");
-            });
+                Application.targetFrameRate = configInit.TargetFrameRate;
+                Application.runInBackground = configInit.RunInBackground;
+                Time.timeScale = configInit.GameSpeed;
+                QualitySettings.vSyncCount = configInit.VSyncCount;
+                Screen.sleepTimeout = configInit.NeverSleep ? SleepTimeout.NeverSleep : SleepTimeout.SystemSetting;
+                OSKLogger.SetLogEnabled(configInit.IsEnableLogg);
+            }
+
+            if (Data) Data.isEncrypt = configInit.IsEncryptStorage;
+            if (Configs) Configs.CheckVersion(() => { Debug.Log("New version"); });
             OSKLogger.Log("[InitConfigs] Configs initialized successfully.");
         }
 

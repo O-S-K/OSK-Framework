@@ -14,25 +14,6 @@ namespace OSK
         {
         }
 
-        // =============================
-        // Members
-        // =============================
-        private static readonly Dictionary<string, Color> channelToColour = new()
-        {
-            { "OSK", new Color(0.3f, 0.8f, 0.49f) },
-            { "UI", Color.cyan },
-            { "Sound", Color.green },
-            { "Pool", Color.yellow },
-            { "Data", Color.magenta },
-            { "Localization", Color.grey },
-            { "Main", Color.blue },
-            { "MonoTick", new Color(1f, 0.5f, 0f) },
-            { "Resource", new Color(0.5f, 0f, 1f) },
-            { "Director", new Color(0f, 1f, 0.5f) },
-            { "Storage", new Color(1f, 0f, 0.5f) },
-        };
-
-        private static readonly Dictionary<string, bool> channelEnabled = new();
 
         public static bool IsLogEnabled = true;
         public static void SetLogEnabled(bool value) => IsLogEnabled = value;
@@ -40,77 +21,6 @@ namespace OSK
         public delegate void OnLogFunc(string channel, int priority, string message);
 
         public static event OnLogFunc OnLog;
-
-        // =============================
-        // Channel Control
-        // =============================
-        public static void AddChannelDefinition(string channel, Color? defaultColor = null)
-        {
-            if (string.IsNullOrEmpty(channel)) return;
-            EnsureChannel(channel, defaultColor ?? Color.white);
-        }
-
-        public static void EnsureChannel(string channel, Color defaultColor)
-        {
-            // Color
-            if (!channelToColour.ContainsKey(channel))
-            {
-#if UNITY_EDITOR
-                string savedHex = UnityEditor.EditorPrefs.GetString($"OSK.Logg.ChannelColor.{channel}",
-                    ColorUtility.ToHtmlStringRGB(defaultColor));
-                if (ColorUtility.TryParseHtmlString("#" + savedHex, out var col))
-                    channelToColour[channel] = col;
-                else
-                    channelToColour[channel] = defaultColor;
-#else
-                channelToColour[channel] = defaultColor;
-#endif
-            }
-
-            // Enabled state
-            if (!channelEnabled.ContainsKey(channel))
-            {
-#if UNITY_EDITOR
-                bool saved = UnityEditor.EditorPrefs.GetBool($"OSK.Logg.Channel.{channel}", true);
-                channelEnabled[channel] = saved;
-#else
-                channelEnabled[channel] = true;
-#endif
-            }
-        }
-
-        public static void SetChannelEnabled(string channel, bool enabled)
-        {
-            EnsureChannel(channel, Color.white);
-            channelEnabled[channel] = enabled;
-#if UNITY_EDITOR
-            UnityEditor.EditorPrefs.SetBool($"OSK.Logg.Channel.{channel}", enabled);
-#endif
-        }
-
-        public static bool IsChannelActive(string channel)
-        {
-            return channelEnabled.TryGetValue(channel, out var enabled) && enabled;
-        }
-
-        public static IEnumerable<string> GetAllChannels() => channelToColour.Keys;
-
-        public static Color GetChannelColor(string channel)
-        {
-            if (channelToColour.TryGetValue(channel, out var col))
-                return col;
-            return Color.white;
-        }
-
-        public static void SetChannelColor(string channel, Color color)
-        {
-            EnsureChannel(channel, color);
-            channelToColour[channel] = color;
-#if UNITY_EDITOR
-            string hex = ColorUtility.ToHtmlStringRGB(color);
-            UnityEditor.EditorPrefs.SetString($"OSK.Logg.ChannelColor.{channel}", hex);
-#endif
-        }
 
         // =============================
         // Logging
@@ -133,9 +43,6 @@ namespace OSK
         private static void FinalLog(string channel, string level, string message)
         {
             if (!IsLogEnabled) return;
-
-            EnsureChannel(channel, Color.white);
-            if (!IsChannelActive(channel)) return;
 
             string finalMessage = ConstructFinalString(channel, level, message);
 
@@ -161,9 +68,6 @@ namespace OSK
 
         private static string ConstructFinalString(string channel, string level, string message)
         {
-            Color col = GetChannelColor(channel);
-            string channelHex = ColorUtility.ToHtmlStringRGB(col);
-
             string levelColor = level switch
             {
                 "Warning" => "orange",
@@ -172,7 +76,7 @@ namespace OSK
                 _ => "white"
             };
 
-            return $"<b><color=#{channelHex}>[{channel}]</color></b> <color={levelColor}>{message}</color>";
+            return $"[{channel.Bold()}] <color={levelColor}>{message}</color>";
         }
     }
 
