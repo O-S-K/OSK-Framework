@@ -31,18 +31,18 @@ namespace OSK
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Playing Sounds", EditorStyles.boldLabel, GUILayout.Width(400));
 
-            if (soundManager.GetListSoundData != null &&
-                (soundManager.GetListSoundPlayings != null && soundManager.GetListSoundPlayings.Count > 0))
+            if (soundManager.ListSoundData != null &&
+                (soundManager.ListSoundPlayings != null && soundManager.ListSoundPlayings.Count > 0))
             {
-                EditorGUILayout.LabelField("Total Sounds Playing: " + soundManager.GetListSoundPlayings.Count);
-                EditorGUILayout.LabelField("Total Sound Delay: " + soundManager.GetPlayingTweens.Count);
+                EditorGUILayout.LabelField("Total Sounds Playing: " + soundManager.ListSoundPlayings.Count);
+                EditorGUILayout.LabelField("Total Sound Delay: " + soundManager.PlayingTweens.Count);
                 EditorGUILayout.Space();
 
                 // dropdown menu to select sound type
                 showMusic = EditorGUILayout.Foldout(showMusic, "Music");
                 if (showMusic)
                 {
-                    foreach (var playingSound in soundManager.GetListSoundPlayings)
+                    foreach (var playingSound in soundManager.ListSoundPlayings)
                     {
                         if (playingSound.SoundData.type == SoundType.MUSIC) 
                         {
@@ -55,7 +55,7 @@ namespace OSK
                 showSFX = EditorGUILayout.Foldout(showSFX, "SFX");
                 if (showSFX)
                 {
-                    foreach (var playingSound in soundManager.GetListSoundPlayings)
+                    foreach (var playingSound in soundManager.ListSoundPlayings)
                     {
                         if (playingSound.SoundData.type == SoundType.SFX) 
                         {
@@ -96,8 +96,8 @@ namespace OSK
             {
                 playingSound.AudioSource.Stop();
                 DestroyImmediate(playingSound.AudioSource.gameObject);
-                ((SoundManager)target).GetListSoundPlayings.Remove(playingSound);
-                ((SoundManager)target).GetListSoundPlayings.RefreshList();
+                ((SoundManager)target).ListSoundPlayings.Remove(playingSound);
+                ((SoundManager)target).ListSoundPlayings.RefreshList();
             }
             
             // volume slider
