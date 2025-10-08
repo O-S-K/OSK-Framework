@@ -278,25 +278,25 @@ namespace OSK
 
         public void SetStatusSoundType(SoundType type, bool isOn)
         {
-            switch (type)
+            if (type == SoundType.MUSIC)
             {
-                case SoundType.MUSIC:
-                    IsEnableMusic = isOn;
-                    if (IsEnableMusic)
-                        Resume(SoundType.MUSIC);
-                    else
-                        Pause(SoundType.MUSIC);
-                    break;
-                case SoundType.SFX:
-                    IsEnableSoundSFX = isOn;
-                    if (IsEnableSoundSFX)
-                        Resume(SoundType.SFX);
-                    else
-                        Pause(SoundType.SFX);
-                    break;
+                IsEnableMusic = isOn;
+                if (IsEnableMusic)
+                {
+                    Resume(SoundType.MUSIC);
+                    RefreshSoundSettings();
+                }
+                else
+                    Pause(SoundType.MUSIC);
             }
-            
-            RefreshSoundSettings();
+            else if (type == SoundType.SFX)
+            {
+                IsEnableSoundSFX = isOn;
+                if (IsEnableSoundSFX)
+                    Resume(SoundType.SFX);
+                else
+                    Pause(SoundType.SFX);
+            }
         }
 
 
@@ -312,20 +312,18 @@ namespace OSK
             else
             {
                 ResumeAll();
+                RefreshSoundSettings();
             }
-
-            RefreshSoundSettings();
         }
         
         public void RefreshSoundSettings()
         {
-            if (IsEnableMusic && _pendingMusic.Count > 0)
+            if (!IsEnableMusic || _pendingMusic.Count <= 0) return;
+            
+            foreach (var music in _pendingMusic.ToList())
             {
-                foreach (var music in _pendingMusic.ToList())
-                {
-                    Play(music.id, loop: true);
-                    _pendingMusic.Remove(music);
-                }
+                Play(music.id, loop: true);
+                _pendingMusic.Remove(music);
             }
         }
 
@@ -365,32 +363,17 @@ namespace OSK
 
         public AudioClip GetAudioClipInSO(string id)
         {
-            foreach (var t in _listSoundData)
-            {
-                if (t.id == id) return t.audioClip;
-            }
-
-            return null;
+            return (from t in _listSoundData where t.id == id select t.audioClip).FirstOrDefault();
         }
 
         public AudioClip GetAudioClipInSO(AudioClip audioClip)
         {
-            foreach (var t in _listSoundData)
-            {
-                if (t.audioClip == audioClip) return t.audioClip;
-            }
-
-            return null;
+            return (from t in _listSoundData where t.audioClip == audioClip select t.audioClip).FirstOrDefault();
         }
 
         public AudioClip GetAudioClipOnScene(string id)
         {
-            foreach (var t in _listSoundPlayings)
-            {
-                if (t.SoundData.id == id) return t.AudioSource.clip;
-            }
-
-            return null;
+            return (from t in _listSoundPlayings where t.SoundData.id == id select t.AudioSource.clip).FirstOrDefault();
         }
 
         #endregion
