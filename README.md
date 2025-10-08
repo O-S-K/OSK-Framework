@@ -55,9 +55,10 @@ Fixbug
 ## **🚀 Quick Start**
 
 ### **1. Install Dependencies**
-- Odin Inspector: https://assetstore.unity.com/packages/tools/utilities/odin-inspector-and-serializer-89041
-- DoTween: https://github.com/O-S-K/DOTween
-- Newtonsoft.json: com.unity.nuget.newtonsoft-json
+- Odin Inspector:    https://assetstore.unity.com/packages/tools/utilities/odin-inspector-and-serializer-89041
+- DoTween:           https://github.com/O-S-K/DOTween
+- Newtonsoft.json:   com.unity.nuget.newtonsoft-json
+* UniTask:           https://github.com/Cysharp/UniTask
 
 ** Optional **
 - UIFeel: https://github.com/O-S-K/Osk-UIFeel
