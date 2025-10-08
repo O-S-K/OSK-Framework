@@ -1,102 +1,83 @@
 using System;
 using System.IO;
-using UnityEngine;
-using Newtonsoft.Json;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace OSK
 {
     public class FileSystem : IFile
     {
-        public void Save<T>(string fileName, T data, bool isEncrypt = false)
+        public void Save<T>(string fileName, T data, bool encrypt = false)
         {
+            string path = IOUtility.GetPath($"{fileName}.dat");
+
             try
             {
-                var path = IOUtility.GetPath(fileName + ".dat");
-                using (FileStream fileStream = File.Open(path, FileMode.Create))
-                using (BinaryWriter writer = new BinaryWriter(fileStream))
-                {
-                    string json = JsonConvert.SerializeObject(data, Formatting.None);
-                    byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
+                string json = JsonConvert.SerializeObject(data, Formatting.None);
+                byte[] bytes = Encoding.UTF8.GetBytes(json);
 
-                    // Ghi độ dài của dữ liệu trước (để kiểm tra khi đọc)
-                    writer.Write(jsonBytes.Length);
-                    writer.Write(jsonBytes);
+                using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
+                {
+                    writer.Write(bytes.Length);
+                    writer.Write(bytes);
                 }
 
-                if (isEncrypt)
+                if (encrypt)
                 {
-                    byte[] encryptedData = FileSecurity.Encrypt(File.ReadAllBytes(path), IOUtility.encryptKey);
-                    File.WriteAllBytes(path, encryptedData);
+                    var enc = FileSecurity.Encrypt(File.ReadAllBytes(path), IOUtility.encryptKey);
+                    File.WriteAllBytes(path, enc);
                 }
 
                 RefreshEditor();
-                OSK.OSKLogger.Log("Storage",$"[Save File Success]: {fileName + ".dat"} {DateTime.Now}\n{path}");
+                OSKLogger.Log("Storage", $"✅ Saved: {path}");
             }
             catch (Exception ex)
             {
-                OSK.OSKLogger.LogError("Storage",$"[Save File Exception]: {fileName + ".dat"} {ex.Message}");
+                OSKLogger.LogError("Storage", $"❌ Save Error: {fileName}.dat → {ex.Message}");
             }
         }
 
-        public T Load<T>(string fileName, bool isDecrypt = false)
+        public T Load<T>(string fileName, bool decrypt = false)
         {
+            string path = IOUtility.GetPath($"{fileName}.dat");
+            if (!File.Exists(path))
+            {
+                OSKLogger.LogError("Storage", $"❌ File not found: {path}");
+                return default;
+            }
+
             try
             {
-                var path = IOUtility.GetPath(fileName + ".dat");
-                if (!File.Exists(path))
-                {
-                    OSK.OSKLogger.LogError("Storage",$"[Load File Error]: {fileName + ".dat"} NOT found at {path}");
-                    return default;
-                }
+                byte[] bytes = File.ReadAllBytes(path);
+                if (decrypt)
+                    bytes = FileSecurity.Decrypt(bytes, IOUtility.encryptKey);
 
-                byte[] fileBytes = File.ReadAllBytes(path);
-                if (isDecrypt)
-                {
-                    fileBytes = FileSecurity.Decrypt(fileBytes, IOUtility.encryptKey);
-                }
+                using var reader = new BinaryReader(new MemoryStream(bytes));
+                int len = reader.ReadInt32();
+                string json = Encoding.UTF8.GetString(reader.ReadBytes(len));
 
-                using (MemoryStream memoryStream = new MemoryStream(fileBytes))
-                using (BinaryReader reader = new BinaryReader(memoryStream))
-                {
-                    int dataLength = reader.ReadInt32();
-                    byte[] jsonBytes = reader.ReadBytes(dataLength);
-                    string json = Encoding.UTF8.GetString(jsonBytes);
-                    
-                    OSK.OSKLogger.Log("Storage",$"[Load File Success]: {fileName + ".dat"} \n{path}");
-                    return JsonConvert.DeserializeObject<T>(json);
-                }
+                OSKLogger.Log("Storage", $"✅ Loaded: {path}");
+                return JsonConvert.DeserializeObject<T>(json);
             }
             catch (Exception ex)
             {
-                OSK.OSKLogger.LogError("Storage",$"[Load File Exception]: {fileName + ".dat"} {ex.Message}");
+                OSKLogger.LogError("Storage", $"❌ Load Error: {fileName}.dat → {ex.Message}");
                 return default;
             }
         }
 
-        public void Delete(string fileName)
+        public void Delete(string fileName) => IOUtility.DeleteFile($"{fileName}.dat");
+
+        public T Query<T>(string fileName, bool condition) => condition ? Load<T>(fileName) : default;
+
+        public void WriteAllLines(string fileName, string[] lines)
         {
-            IOUtility.DeleteFile(fileName + ".dat");
-        }
-        
-        public T Query<T>(string fileName, bool condition)
-        {
-            if (condition)
-            {
-                return Load<T>(fileName);
-            }
-            return default;
-        }
-        
-              
-        public void WriteAllLines(string fileName, string[] json)
-        {
-            var path = IOUtility.GetPath(fileName + ".txt");
-            OSK.OSKLogger.Log("Path Save: " + path);
-            File.WriteAllLines(path, json);
+            string path = IOUtility.GetPath($"{fileName}.txt");
+            File.WriteAllLines(path, lines);
+            OSKLogger.Log("Storage", $"📝 Wrote lines to: {path}");
         }
 
-        private void RefreshEditor()
+        private static void RefreshEditor()
         {
 #if UNITY_EDITOR
             UnityEditor.AssetDatabase.Refresh();

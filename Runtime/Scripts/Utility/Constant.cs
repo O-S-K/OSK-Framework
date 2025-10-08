@@ -17,7 +17,6 @@ namespace OSK
     
     public class KEY_SAVE
     {
-        public const string KEY_SAVE_SOUND_PLAYING_CACHE = "SaveSoundPlayingCache";
     }
      
 }

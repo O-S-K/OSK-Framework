@@ -69,6 +69,7 @@ namespace OSK
 
         public void Initialize()
         {
+            gameObject.name = " ========== [RootUI] ==========";
             if (dontDestroyOnLoad)
                 DontDestroyOnLoad(gameObject);
 

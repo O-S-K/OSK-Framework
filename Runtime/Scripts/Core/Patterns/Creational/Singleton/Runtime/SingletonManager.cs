@@ -39,7 +39,7 @@ namespace OSK
         {
             if (_instance == null)
             {
-                var go = new GameObject("SingletonManager");
+                var go = new GameObject("======= [OSK SingletonManager] ==========");
                 _instance = go.AddComponent<SingletonManager>();
                 DontDestroyOnLoad(go);
             }

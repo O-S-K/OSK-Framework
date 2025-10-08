@@ -76,7 +76,7 @@ namespace OSK
                 _ => "white"
             };
 
-            return $"[{channel.Bold()}] <color={levelColor}>{message}</color>";
+            return $"[{channel.Bold()}]<color={levelColor}> -> {message}</color>";
         }
     }
 

@@ -8,35 +8,91 @@ namespace OSK
     [System.Serializable]
     public class ConfigInit
     {
-        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+        // ======================================================================
+        // 🎮 GAME SETTINGS
+        // ======================================================================
+        [TitleGroup("🎮 Game Settings", boldTitle: true)]
+        [FoldoutGroup("🎮 Game Settings/FPS & Speed", expanded: true)]
+        [LabelWidth(150)]
         [Range(30, 144)]
         public int TargetFrameRate = 60;
-        
-        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
-        [Range(0,10)]
+
+        [FoldoutGroup("🎮 Game Settings/FPS & Speed")]
+        [LabelWidth(150)]
+        [Range(0, 10)]
         public int GameSpeed = 1;
-        
-        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+
+
+        // ---------------- SAVE PATH SETTINGS ----------------
+        [FoldoutGroup("🎮 Game Settings/Save Path")]
+        [VerticalGroup("🎮 Game Settings/Save Path/PathGroup")]
+        [HorizontalGroup("🎮 Game Settings/Save Path/PathGroup/Top", Width = 0.7f)]
+        [LabelWidth(150)]
+        public IOUtility.StorageDirectory directoryPathSave = IOUtility.StorageDirectory.PersistentData;
+
+        [HorizontalGroup("🎮 Game Settings/Save Path/PathGroup/Top", Width = 0.3f)]
+        [Button("📂 Open Folder", ButtonHeight = 22)]
+        private void OpenSaveDirectory()
+        {
+            string path = IOUtility.GetDirectoryPath(directoryPathSave, CustomPathSave);
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.RevealInFinder(path);
+#else
+            Application.OpenURL(path.Replace("\\", "/"));
+#endif
+            OSKLogger.Log("Storage", $"[Open Folder] {path}");
+        }
+
+        [FoldoutGroup("🎮 Game Settings/Save Path")]
+        [LabelWidth(150)]
+        [FolderPath]
+        [ShowIf(nameof(directoryPathSave), IOUtility.StorageDirectory.Custom)]
+        public string CustomPathSave = "";
+
+        [FoldoutGroup("🎮 Game Settings/Save Path")]
+        [ShowInInspector, ReadOnly, GUIColor(0.8f, 1f, 0.8f)]
+        [LabelText("Current Save Path")]
+        private string CurrentSavePath => IOUtility.GetDirectoryPath(directoryPathSave, CustomPathSave);
+
+
+        // ---------------- RUNTIME SETTINGS ----------------
+        [FoldoutGroup("🎮 Game Settings/Runtime Options")]
+        [LabelWidth(150)]
         public bool RunInBackground = true;
 
-        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+        [FoldoutGroup("🎮 Game Settings/Runtime Options")]
+        [LabelWidth(150)]
         public int VSyncCount;
-        
-        [BoxGroup("🎮 Game Settings"), LabelWidth(150)]
+
+        [FoldoutGroup("🎮 Game Settings/Runtime Options")]
+        [LabelWidth(150)]
         public bool NeverSleep = true;
-        
-        [BoxGroup("🎮 Game Settings"), LabelText("Encrypt Storage")]
+
+
+        // ---------------- SECURITY & LOGGING ----------------
+        [FoldoutGroup("🎮 Game Settings/Security & Logging")]
+        [LabelWidth(150), LabelText("Encrypt Storage")]
         public bool IsEncryptStorage = false;
-        
-        [BoxGroup("🎮 Game Settings"), LabelText("Enable Logs")]
+
+        [FoldoutGroup("🎮 Game Settings/Security & Logging")]
+        [LabelWidth(150), LabelText("Enable Logs")]
         public bool IsEnableLogg = true;
 
-        [BoxGroup("🎮 Game Settings")]
+
+
+        // ======================================================================
+        // ⚙️ ENGINE SETTINGS
+        // ======================================================================
+        [TitleGroup("⚙️ Engine Settings", boldTitle: true)]
+        [FoldoutGroup("⚙️ Engine Settings/Define Symbols", expanded: true)]
+        [LabelWidth(150)]
+        [MultiLineProperty(3)]
+        [Tooltip("Enter scripting define symbols separated by comma or semicolon")]
         public string DefineOtherSettings = "";
-        
-        [BoxGroup("🎮 Game Settings")]
+
+        [FoldoutGroup("⚙️ Engine Settings/Define Symbols")]
         [Button(ButtonSizes.Medium, Name = "Apply Defines Settings")]
-        private void ButtonDefineOtherSettings()
+        private void ApplyDefineSettings()
         {
             Application.targetFrameRate = TargetFrameRate;
 
@@ -44,62 +100,67 @@ namespace OSK
                 return;
 
 #if UNITY_EDITOR
-            // Danh sách build target cần set define
-            UnityEditor.BuildTargetGroup[] buildTargetGroups =
+            UnityEditor.BuildTargetGroup[] targetGroups =
             {
                 UnityEditor.BuildTargetGroup.Standalone,
                 UnityEditor.BuildTargetGroup.Android,
                 UnityEditor.BuildTargetGroup.iOS
             };
 
-            // Tách các define do người dùng nhập
             string[] defines = DefineOtherSettings
                 .Split(new char[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(d => d.Trim())
                 .ToArray();
 
-            foreach (var buildTargetGroup in buildTargetGroups)
+            foreach (var group in targetGroups)
             {
-                // Lấy defines hiện tại
-                string currentDefines = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+                string current = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(group);
+                var list = current.Split(';').Select(d => d.Trim()).Where(d => !string.IsNullOrEmpty(d)).ToList();
 
-                // Convert sang list để dễ quản lý
-                var defineList = currentDefines.Split(';').Select(d => d.Trim()).Where(d => !string.IsNullOrEmpty(d)).ToList();
-
-                bool isChanged = false;
-
+                bool changed = false;
                 foreach (var define in defines)
                 {
-                    // Chỉ thêm define nếu chưa tồn tại
-                    if (!defineList.Contains(define))
+                    if (!list.Contains(define))
                     {
-                        defineList.Add(define);
-                        isChanged = true;
+                        list.Add(define);
+                        changed = true;
                     }
                 }
 
-                // Nếu có thay đổi thì set lại define symbols
-                if (isChanged)
+                if (changed)
                 {
-                    string newDefines = string.Join(";", defineList);
-                    UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, newDefines);
-                    Debug.Log($"[Define Added] {buildTargetGroup} → {string.Join(", ", defines)}");
+                    string joined = string.Join(";", list);
+                    UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(group, joined);
+                    Debug.Log($"[Define Added] {group} → {string.Join(", ", defines)}");
                 }
             }
 #endif
         }
-        [BoxGroup("📦 Game Configs")]
+
+
+
+        // ======================================================================
+        // 📦 GAME CONFIG REFERENCES
+        // ======================================================================
+        [TitleGroup("📦 Game Configs", boldTitle: true)]
+        [FoldoutGroup("📦 Game Configs/Data References", expanded: true)]
         [HideLabel, InlineProperty]
         public DataConfigs data;
 
-        //[BoxGroup("⚙ Settings")]
+        //[TitleGroup("📦 Game Configs")]
+        //[HideLabel, InlineProperty]
         //public SettingConfigs setting;
 
-        [BoxGroup("📂 Paths")]
+        [FoldoutGroup("📦 Game Configs/Path References")]
         [HideLabel, InlineProperty]
         public PathConfigs path;
     }
 
+
+
+    // ======================================================================
+    // SUPPORT CLASSES
+    // ======================================================================
 
     [System.Serializable]
     public class SettingConfigs
@@ -121,6 +182,7 @@ namespace OSK
     [System.Serializable]
     public class PathConfigs
     {
-        [FolderPath] public string pathLoadFileCsv = "Localization/Localization";
+        [FolderPath]
+        public string pathLoadFileCsv = "Localization/Localization";
     }
 }

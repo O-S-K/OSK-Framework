@@ -1,127 +1,84 @@
 using System.IO;
 using System.Text;
-using UnityEngine;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace OSK
 {
     public class JsonSystem : IFile
     {
-        // Todo: Call For Mobile Devices
-        // onApplicationPause() => SaveJson
-        public static bool IsFormatDecimals = true;
+        public static bool FormatDecimals = true;
         public static int DecimalPlaces = 4;
 
-        public void Save<T>(string fileName, T data, bool ableEncrypt = false)
+        public void Save<T>(string fileName, T data, bool encrypt = false)
         {
-            var filePath = IOUtility.FilePath(fileName + ".json");
+            string path = IOUtility.FilePath($"{fileName}.json");
             try
             {
-                string saveJson = JsonConvert.SerializeObject(data, Formatting.Indented);
-                if (IsFormatDecimals)
-                    saveJson = FormatJsonDecimals(saveJson, DecimalPlaces);
+                string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+                if (FormatDecimals)
+                    json = FormatJsonDecimals(json, DecimalPlaces);
 
-                if (ableEncrypt)
+                if (encrypt)
                 {
-                    var saveBytes = Encoding.UTF8.GetBytes(saveJson);
-                    File.WriteAllBytes(filePath, Obfuscator.Encrypt(saveBytes, IOUtility.encryptKey));
+                    var bytes = Encoding.UTF8.GetBytes(json);
+                    File.WriteAllBytes(path, Obfuscator.Encrypt(bytes, IOUtility.encryptKey));
                 }
-                else
-                {
-                    File.WriteAllText(filePath, saveJson);
-                }
+                else File.WriteAllText(path, json);
 
                 RefreshEditor();
-
-                OSK.OSKLogger.Log("Storage",$"[Save File Success]: {fileName + ".json"} \n {filePath}");
+                OSKLogger.Log("Storage", $"✅ Saved: {path}");
             }
             catch (System.Exception ex)
             {
-                OSK.OSKLogger.LogError("Storage",$"[Save File Exception]: {fileName + ".json"}  {ex.Message}");
+                OSKLogger.LogError("Storage", $"❌ Save Error: {fileName}.json → {ex.Message}");
             }
         }
 
-        private string FormatJsonDecimals(string json, int decimalPlaces)
+        public T Load<T>(string fileName, bool decrypt = false)
         {
-            var dataRegex = Regex.Replace(json, @"\d+\.\d+",
-                match => double.TryParse(match.Value, System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out double number)
-                    ? number.ToString("F" + decimalPlaces, System.Globalization.CultureInfo.InvariantCulture)
-                    : match.Value);
-            OSK.OSKLogger.Log("Storage",$"[Format Json Decimals]: {dataRegex}");
-            return dataRegex;
-        }
-
-        public T Load<T>(string fileName, bool ableEncrypt = false)
-        {
-            var path = IOUtility.FilePath(fileName + ".json");
+            string path = IOUtility.FilePath($"{fileName}.json");
             if (!File.Exists(path))
             {
-                OSK.OSKLogger.LogError("Storage",$"[Load File Error]: {fileName + ".json"} NOT found at {path}");
+                OSKLogger.LogError("Storage", $"❌ File not found: {path}");
                 return default;
             }
 
             try
             {
-                string loadJson;
+                string json = decrypt
+                    ? Encoding.UTF8.GetString(Obfuscator.Decrypt(File.ReadAllBytes(path), IOUtility.encryptKey))
+                    : File.ReadAllText(path);
 
-                if (ableEncrypt)
-                {
-                    byte[] encryptedBytes = File.ReadAllBytes(path);
-                    if (encryptedBytes.Length == 0)
-                    {
-                        OSK.OSKLogger.LogError("Storage",$"[Load File Error]: {fileName}.json is empty or corrupt");
-                        return default;
-                    }
+                if (string.IsNullOrWhiteSpace(json))
+                    throw new IOException("File empty or corrupt");
 
-                    byte[] decryptedBytes = Obfuscator.Decrypt(encryptedBytes, IOUtility.encryptKey);
-                    loadJson = Encoding.UTF8.GetString(decryptedBytes);
-                }
-                else
-                {
-                    loadJson = File.ReadAllText(path);
-                }
+                T data = JsonConvert.DeserializeObject<T>(json);
+                if (data == null) throw new IOException("Deserialize returned null");
 
-                if (string.IsNullOrWhiteSpace(loadJson))
-                {
-                    OSK.OSKLogger.LogError("Storage",$"[Load File Error]: {fileName}.json is empty");
-                    return default;
-                }
-
-                T data = JsonConvert.DeserializeObject<T>(loadJson);
-                if (data == null)
-                {
-                    OSK.OSKLogger.LogError("Storage",$"[Load File Error]: {fileName}.json deserialized to null");
-                    return default;
-                }
-
-                OSK.OSKLogger.Log("Storage",$"[Load File Success]: {fileName}.json\n{path}");
+                OSKLogger.Log("Storage", $"✅ Loaded: {path}");
                 return data;
             }
             catch (System.Exception ex)
             {
-                OSK.OSKLogger.LogError("Storage",$"[Load File Exception]: {fileName}.json\n{ex.Message}");
+                OSKLogger.LogError("Storage", $"❌ Load Error: {fileName}.json → {ex.Message}");
                 return default;
             }
         }
 
-        public void Delete(string fileName)
+        public void Delete(string fileName) => IOUtility.DeleteFile($"{fileName}.json");
+
+        public T Query<T>(string fileName, bool condition) => condition ? Load<T>(fileName) : default;
+
+        private string FormatJsonDecimals(string json, int places)
         {
-            IOUtility.DeleteFile(fileName + ".json");
+            return Regex.Replace(json, @"\d+\.\d+", match =>
+                double.TryParse(match.Value, out double n)
+                    ? n.ToString($"F{places}", System.Globalization.CultureInfo.InvariantCulture)
+                    : match.Value);
         }
 
-        public T Query<T>(string fileName, bool condition)
-        {
-            if (condition)
-            {
-                return Load<T>(fileName);
-            }
-
-            return default;
-        }
-
-        private void RefreshEditor()
+        private static void RefreshEditor()
         {
 #if UNITY_EDITOR
             UnityEditor.AssetDatabase.Refresh();

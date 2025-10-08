@@ -23,8 +23,8 @@ namespace OSK
         [HideLabel]
         public string title = "";
 
-        [BoxGroup("⚙ Modules Selection/Actions")]
-        [HorizontalGroup("⚙ Modules Selection/Actions/Row")]
+        [BoxGroup("⚙ Modules Selection/Choose")]
+        [HorizontalGroup("⚙ Modules Selection/Choose/Row")]
         [Button(ButtonSizes.Medium)]
         private void EnableAllModule()
         {
@@ -32,7 +32,7 @@ namespace OSK
             Debug.Log("✅ All modules have been selected.");
         }
 
-        [HorizontalGroup("⚙ Modules Selection/Actions/Row")]
+        [HorizontalGroup("⚙ Modules Selection/Choose/Row")]
         [Button(ButtonSizes.Medium)]
         private void DisableAllModule()
         {

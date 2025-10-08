@@ -295,6 +295,8 @@ namespace OSK
                         Pause(SoundType.SFX);
                     break;
             }
+            
+            RefreshSoundSettings();
         }
 
 
@@ -310,6 +312,20 @@ namespace OSK
             else
             {
                 ResumeAll();
+            }
+
+            RefreshSoundSettings();
+        }
+        
+        public void RefreshSoundSettings()
+        {
+            if (IsEnableMusic && _pendingMusic.Count > 0)
+            {
+                foreach (var music in _pendingMusic.ToList())
+                {
+                    Play(music.id, loop: true);
+                    _pendingMusic.Remove(music);
+                }
             }
         }
 

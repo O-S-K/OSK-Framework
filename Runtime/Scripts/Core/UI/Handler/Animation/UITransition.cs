@@ -14,12 +14,14 @@ namespace OSK
 
         public bool runIgnoreTimeScale = true;
 
-        [HideLabel, InlineProperty]
-        [BoxGroup("Open", ShowLabel = true)]
+        [TitleGroup("Open", "Open Settings", HorizontalLine = true)]
+        [GUIColor(0.9f, .9f, 0.8f)]
+        [InlineProperty, HideLabel]
         public TweenSettings _openingTweenSettings;
 
-        [HideLabel, InlineProperty]
-        [BoxGroup("Close", ShowLabel = true)]
+        [TitleGroup("Close", "Close Settings", HorizontalLine = true)]
+        [GUIColor(0.8f, .9f, 0.8f)]
+        [InlineProperty, HideLabel]
         public TweenSettings _closingTweenSettings;
 
         private CanvasGroup _canvasGroup;

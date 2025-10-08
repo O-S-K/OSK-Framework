@@ -37,6 +37,8 @@ namespace OSK
 
         protected void Awake()
         {
+            gameObject.name = " ======= [OSK Framework] ==========";
+
             SingletonManager.Instance.RegisterGlobal(this);
             if (isDestroyingOnLoad)
                 DontDestroyOnLoad(gameObject);
@@ -127,7 +129,6 @@ namespace OSK
                 return;
             }
 
-
             if (configInit != null)
             {
                 Application.targetFrameRate = configInit.TargetFrameRate;
@@ -136,11 +137,14 @@ namespace OSK
                 QualitySettings.vSyncCount = configInit.VSyncCount;
                 Screen.sleepTimeout = configInit.NeverSleep ? SleepTimeout.NeverSleep : SleepTimeout.SystemSetting;
                 OSKLogger.SetLogEnabled(configInit.IsEnableLogg);
+                
+                if (Data) Data.isEncrypt = configInit.IsEncryptStorage;
+                if (Configs) Configs.CheckVersion(() => { Debug.Log("New version"); });
+                IOUtility.directorySave = configInit.directoryPathSave;
+                IOUtility.customPath = configInit.CustomPathSave;
+                OSKLogger.Log("[InitConfigs] Configs initialized successfully.");
             }
 
-            if (Data) Data.isEncrypt = configInit.IsEncryptStorage;
-            if (Configs) Configs.CheckVersion(() => { Debug.Log("New version"); });
-            OSKLogger.Log("[InitConfigs] Configs initialized successfully.");
         }
 
         private void OnDestroy()

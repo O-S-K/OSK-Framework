@@ -11,6 +11,7 @@ namespace OSK
     {
         [ReadOnly, SerializeField] private List<SoundData> _listSoundData = new List<SoundData>();
         [ReadOnly, SerializeField] private List<PlayingSound> _listSoundPlayings = new List<PlayingSound>();
+        [ReadOnly, SerializeField] private List<SoundData> _pendingMusic = new List<SoundData>();
         private Dictionary<string, Tween> _playingTweens = new Dictionary<string, Tween>();
 
         public List<SoundData> GetListSoundData => _listSoundData;
@@ -111,20 +112,28 @@ namespace OSK
             bool loop = false, float delay = 0, int priority = 128, MinMaxFloat pitch = null,
             Transform target = null, int minDistance = 1, int maxDistance = 500)
         {
-            if ((loop && !IsEnableMusic) || !IsEnableSoundSFX) return null;
+            bool isMusic = loop;
+            if ((isMusic && !IsEnableMusic) || (!isMusic && !IsEnableSoundSFX))
+            {
+                if (isMusic)
+                {
+                    var soundData = _listSoundData.FirstOrDefault(s => s.audioClip == clip);
+                    if (soundData != null && !_pendingMusic.Contains(soundData))
+                        _pendingMusic.Add(soundData);
+                }
+                return null;
+            }
+            
             if (_listSoundPlayings.Count >= maxCapacitySoundEffects) RemoveOldestSound(SoundType.SFX);
 
             void PlayNow()
             {
                 if (volume == null)
                 {
-                    var v = _listSoundData.FirstOrDefault(s => s.audioClip == clip).volume;
+                    var v = _listSoundData.FirstOrDefault(s => s.audioClip == clip)!.volume;
                     volume = new VolumeFade(target: v);
                 }
-                
-                if(pitch == null)
-                    pitch =  _listSoundData.FirstOrDefault(s => s.audioClip == clip).pitch;
-                
+                pitch ??= _listSoundData.FirstOrDefault(s => s.audioClip == clip)?.pitch;
 
                 var source = CreateAudioSource(clip.name, clip, soundType, startTime, volume, loop,
                     priority, pitch, target, minDistance, maxDistance);
@@ -144,8 +153,6 @@ namespace OSK
             bool loop = false, float delay = 0, int priority = 128, MinMaxFloat pitch = default,
             Transform target = null, int minDistance = 1, int maxDistance = 500)
         {
-            if (!IsEnableMusic && !IsEnableSoundSFX) return null;
-
             var data = GetSoundInfo(id);
             if (data == null)
             {
@@ -153,25 +160,27 @@ namespace OSK
                 return null;
             }
 
-            if ((data.type == SoundType.MUSIC && !IsEnableMusic) ||
-                (data.type == SoundType.SFX && !IsEnableSoundSFX)) return null;
+            if ((data.type == SoundType.MUSIC && !IsEnableMusic) || (data.type == SoundType.SFX && !IsEnableSoundSFX))
+            {
+                if (data.type == SoundType.MUSIC && !_pendingMusic.Contains(data))
+                    _pendingMusic.Add(data);
+                return null;
+            }
 
-            if (data.type == SoundType.MUSIC &&
-                _listSoundPlayings.Count(s => s.SoundData.type == SoundType.MUSIC) >= maxCapacityMusic)
+            if (data.type == SoundType.MUSIC && _listSoundPlayings.Count(s => s.SoundData.type == SoundType.MUSIC) >= maxCapacityMusic)
                 RemoveOldestSound(SoundType.MUSIC);
-            else if (data.type == SoundType.SFX && _listSoundPlayings.Count(s => s.SoundData.type == SoundType.SFX) >=
-                     maxCapacitySoundEffects)
+            else if (data.type == SoundType.SFX && _listSoundPlayings.Count(s => s.SoundData.type == SoundType.SFX) >=  maxCapacitySoundEffects)
                 RemoveOldestSound(SoundType.SFX);
 
             void PlayNow()
             {
                 if (volume == null)
                 {
-                    var v = _listSoundData.FirstOrDefault(s => s.id == id).volume;
+                    var v = _listSoundData.FirstOrDefault(s => s.id == id)!.volume;
                     volume = new VolumeFade(target: v);
                 }
                 
-                pitch ??= _listSoundData.FirstOrDefault(s => s.id == id).pitch;
+                pitch ??= _listSoundData.FirstOrDefault(s => s.id == id)?.pitch;
                 
                 var source = CreateAudioSource(id, data.audioClip, data.type, startTime, volume, loop, priority, pitch,
                     target,
@@ -281,8 +290,7 @@ namespace OSK
 
         public SoundData GetSoundInfo(AudioClip audioClip) =>
             _listSoundData.FirstOrDefault(s => s.audioClip == audioClip);
-
-
+        
         public void SetCameraTransform(Transform cam) => CameraTransform = cam;
 
         public void SetParentGroup(Transform group, bool setDontDestroy)

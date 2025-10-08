@@ -17,13 +17,11 @@ namespace OSK
         [ShowInInspector] private readonly List<IUpdate> tickProcesses = new(1024);
         [ShowInInspector] private readonly List<IFixedUpdate> fixedTickProcesses = new(512);
         [ShowInInspector] private readonly List<ILateUpdate> lateTickProcesses = new(256);
+        
+        private static readonly List<IUpdate> _tempTickList = new();
+        private static readonly List<IFixedUpdate> _tempFixedList = new();
+        private static readonly List<ILateUpdate> _tempLateList = new();
 
-        // Lifecycle processes
-        [ShowInInspector] private readonly List<IAwake> awakeProcesses = new(128);
-        [ShowInInspector] private readonly List<IOnEnable> enableProcesses = new(128);
-        [ShowInInspector] private readonly List<IOnDisable> disableProcesses = new(128);
-        [ShowInInspector] private readonly List<IStart> startProcesses = new(128);
-        [ShowInInspector] private readonly List<IDestroy> destroyProcesses = new(128);
 
         [ShowInInspector] public bool IsPause { get; private set; } = false;
         [ShowInInspector] public float TimeScale { get; private set; } = 1f;
@@ -40,33 +38,8 @@ namespace OSK
             IsPause = false;
             TimeScale = 1f;
             AutoRegisterAll();
+            
         }
-
-        public override void Awake()
-        {
-            foreach (var a in awakeProcesses) a?.OnAwake();
-        }
-
-        protected void OnEnable()
-        {
-            foreach (var e in enableProcesses) e?.OnEnable();
-        }
-
-        protected void Start()
-        {
-            foreach (var s in startProcesses) s?.OnStart();
-        }
-
-        protected void OnDisable()
-        {
-            foreach (var d in disableProcesses) d?.OnDisable();
-        }
-
-        public override void OnDestroy()
-        {
-            foreach (var d in destroyProcesses) d?.OnDestroy();
-        }
-
         #endregion
 
         #region Config
@@ -106,14 +79,9 @@ namespace OSK
 
         public void Register(object obj)
         {
-            if (obj is IUpdate tick) tickProcesses.Add(tick);
-            if (obj is IFixedUpdate fixedTick) fixedTickProcesses.Add(fixedTick);
-            if (obj is ILateUpdate lateTick) lateTickProcesses.Add(lateTick);
-            if (obj is IAwake awake) awakeProcesses.Add(awake);
-            if (obj is IOnEnable en) enableProcesses.Add(en);
-            if (obj is IOnDisable dis) disableProcesses.Add(dis);
-            if (obj is IStart st) startProcesses.Add(st);
-            if (obj is IDestroy de) destroyProcesses.Add(de);
+            if (obj is IUpdate tick) if (!tickProcesses.Contains(tick)) tickProcesses.Add(tick);
+            if (obj is IFixedUpdate fixedTick) if (!fixedTickProcesses.Contains(fixedTick)) fixedTickProcesses.Add(fixedTick);
+            if (obj is ILateUpdate lateTick) if (!lateTickProcesses.Contains(lateTick)) lateTickProcesses.Add(lateTick);
         }
 
         public void UnRegister(object obj)
@@ -121,11 +89,6 @@ namespace OSK
             if (obj is IUpdate tick) tickProcesses.Remove(tick);
             if (obj is IFixedUpdate fixedTick) fixedTickProcesses.Remove(fixedTick);
             if (obj is ILateUpdate lateTick) lateTickProcesses.Remove(lateTick);
-            if (obj is IAwake awake) awakeProcesses.Remove(awake);
-            if (obj is IOnEnable en) enableProcesses.Remove(en);
-            if (obj is IOnDisable dis) disableProcesses.Remove(dis);
-            if (obj is IStart st) startProcesses.Remove(st);
-            if (obj is IDestroy de) destroyProcesses.Remove(de);
         }
 
         public void RemoveAllTickProcess()
@@ -133,11 +96,6 @@ namespace OSK
             tickProcesses?.Clear();
             fixedTickProcesses?.Clear();
             lateTickProcesses?.Clear();
-            awakeProcesses?.Clear();
-            enableProcesses?.Clear();
-            disableProcesses?.Clear();
-            startProcesses?.Clear();
-            destroyProcesses?.Clear();
         }
 
         #endregion
@@ -150,21 +108,29 @@ namespace OSK
 
             float deltaTime = Time.deltaTime * SpeedGame;
 
-            foreach (var t in tickProcesses)
-                t?.Tick(deltaTime);
+            // Copy snapshot để tránh collection modified
+            _tempTickList.Clear();
+            _tempTickList.AddRange(tickProcesses);
 
-            if (_isToMainThreadQueueEmpty) return;
-            _localToMainThreads.Clear();
-            lock (_toMainThreads)
+            for (int i = 0; i < _tempTickList.Count; i++)
             {
-                _localToMainThreads.AddRange(_toMainThreads);
-                _toMainThreads.Clear();
-                _isToMainThreadQueueEmpty = true;
+                var t = _tempTickList[i];
+                if (t != null) t.Tick(deltaTime);
             }
 
-            for (var i = _localToMainThreads.Count - 1; i >= 0; i--)
+            // Main thread queue
+            if (!_isToMainThreadQueueEmpty)
             {
-                _localToMainThreads[i]?.Invoke();
+                _localToMainThreads.Clear();
+                lock (_toMainThreads)
+                {
+                    _localToMainThreads.AddRange(_toMainThreads);
+                    _toMainThreads.Clear();
+                    _isToMainThreadQueueEmpty = true;
+                }
+
+                for (int i = 0; i < _localToMainThreads.Count; i++)
+                    _localToMainThreads[i]?.Invoke();
             }
         }
 
@@ -173,8 +139,15 @@ namespace OSK
             if (IsPause || SpeedGame == 0) return;
 
             float fixedDeltaTime = Time.fixedDeltaTime * SpeedGame;
-            foreach (var t in fixedTickProcesses)
-                t?.FixedTick(fixedDeltaTime);
+
+            _tempFixedList.Clear();
+            _tempFixedList.AddRange(fixedTickProcesses);
+
+            for (int i = 0; i < _tempFixedList.Count; i++)
+            {
+                var t = _tempFixedList[i];
+                if (t != null) t.FixedTick(fixedDeltaTime);
+            }
         }
 
         private void LateUpdate()
@@ -182,8 +155,15 @@ namespace OSK
             if (IsPause || SpeedGame == 0) return;
 
             float deltaTime = Time.deltaTime * SpeedGame;
-            foreach (var t in lateTickProcesses)
-                t?.LateTick(deltaTime);
+
+            _tempLateList.Clear();
+            _tempLateList.AddRange(lateTickProcesses);
+
+            for (int i = 0; i < _tempLateList.Count; i++)
+            {
+                var t = _tempLateList[i];
+                if (t != null) t.LateTick(deltaTime);
+            }
         }
 
         #endregion
@@ -249,10 +229,16 @@ namespace OSK
 
         public void RunOnMainThreadImpl(Action action)
         {
+            if (action == null) return;
             lock (_toMainThreads)
             {
-                _toMainThreads.Add(action);
-                _isToMainThreadQueueEmpty = false;
+                if (_toMainThreads.Count == 0)
+                    return;
+
+                _localToMainThreads.Clear();
+                _localToMainThreads.AddRange(_toMainThreads);
+                _toMainThreads.Clear();
+                _isToMainThreadQueueEmpty = true;
             }
         }
 

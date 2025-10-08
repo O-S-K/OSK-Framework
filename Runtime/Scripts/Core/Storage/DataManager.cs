@@ -1,87 +1,73 @@
+using UnityEngine;
+
 namespace OSK
 {
     public class DataManager : GameFrameworkComponent
     {
+        [Header("Global Settings")]
         public bool isEncrypt = false;
-        private JsonSystem _json = new JsonSystem();
-        private FileSystem _file = new FileSystem();
-        private XMLSystem _xml = new XMLSystem();
 
-        public override void OnInit()
-        {
-        }
+        private readonly JsonSystem _json = new JsonSystem();
+        private readonly FileSystem _file = new FileSystem();
+        private readonly XMLSystem _xml = new XMLSystem();
+        
+        /// Example: Save<JsonSystem, PlayerData>("playerData.json", playerData);
+        /// Example: PlayerData playerData = Load<JsonSystem, PlayerData>("playerData.json");
+        /// Example: Query<JsonSystem, PlayerData>("playerData.json", File.Exists("playerData.json"));
+        /// Example: Delete<JsonSystem>("playerData.json");
+
+        public override void OnInit() { }
 
         /// <summary>
-        ///  Save data to file, T is the file system type, U is the data type
-        ///  Example: Save<JsonSystem, PlayerData>("playerData.json", playerData);
-        /// </summary> 
+        /// Save data to file (T = file system type, U = data type)
+        /// </summary>
         public void Save<T, U>(string fileName, U data)
         {
             IFile fileSystem = GetFileSystem<T>();
-            if (fileSystem != null)
-            {
-                fileSystem.Save(fileName, data, isEncrypt);
-            }
+            fileSystem?.Save(fileName, data, isEncrypt);
         }
 
         /// <summary>
-        ///  Write all text to file, T is the file system type
-        ///  </summary>
-        public void WriteAllText(string fileName,  string[] text)
-        {
-            FileSystem fileSystem = new FileSystem();
-            fileSystem.WriteAllLines(fileName, text);
-        }
-
-        /// <summary>
-        ///  Load data from file, T is the file system type, U is the data type
-        ///  Example: Load<JsonSystem, PlayerData>("playerData.json");
+        /// Load data from file
         /// </summary>
         public U Load<T, U>(string fileName)
         {
             IFile fileSystem = GetFileSystem<T>();
-            if (fileSystem != null)
-            {
-                return fileSystem.Load<U>(fileName, isEncrypt);
-            }
-            return default(U);
+            return fileSystem != null ? fileSystem.Load<U>(fileName, isEncrypt) : default(U);
         }
 
         /// <summary>
-        ///  Query data from file, T is the file system type, U is the data type
+        /// Query data (conditional load)
         /// </summary>
         public U Query<T, U>(string fileName, bool condition)
         {
-            IFile fileSystem = GetFileSystem<T>();
-            if (fileSystem != null)
-            {
-                return fileSystem.Query<U>(fileName, condition);
-            }
-            return default(U);
+            return condition ? Load<T, U>(fileName) : default;
         }
 
         /// <summary>
-        ///  Delete file, T is the file system type
-        ///  Example: Delete<JsonSystem>("playerData.json");
+        /// Delete file
         /// </summary>
         public void Delete<T>(string fileName)
         {
             IFile fileSystem = GetFileSystem<T>();
-            if (fileSystem != null)
-            {
-                fileSystem.Delete(fileName);
-            }
+            fileSystem?.Delete(fileName);
         }
-          
-        private IFile GetFileSystem<T>()
+
+        /// <summary>
+        /// Write plain text file (.txt)
+        /// </summary>
+        public void WriteAllText(string fileName, string[] lines)
         {
-            if (typeof(T) == typeof(JsonSystem))
-                return _json;
-            if (typeof(T) == typeof(FileSystem))
-                return _file;
-            if (typeof(T) == typeof(XMLSystem))
-                return _xml;
-            return null;
+            _file.WriteAllLines(fileName, lines);
         }
+
+        private IFile GetFileSystem<T>() =>
+            typeof(T) switch
+            {
+                var t when t == typeof(JsonSystem) => _json,
+                var t when t == typeof(FileSystem) => _file,
+                var t when t == typeof(XMLSystem) => _xml,
+                _ => null
+            };
     }
 }
