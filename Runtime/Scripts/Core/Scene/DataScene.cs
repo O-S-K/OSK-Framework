@@ -1,13 +1,39 @@
+using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using Sirenix.OdinInspector;
+
 namespace OSK
 {
-    // Data class for scene management
+    [System.Serializable]
     public class DataScene
     {
-        // Scene name to load
+#if UNITY_EDITOR
+        [HideLabel, LabelWidth(60)]
+        public SceneAsset sceneAsset;
+#endif
+
+        [HorizontalGroup("Scene"), ReadOnly, LabelText("Scene Name"), LabelWidth(90)]
+        [Required]
         public string sceneName;
-        // Load mode (Single or Additive)
+
+        [HorizontalGroup("Scene"), Button(ButtonSizes.Small), GUIColor(0.6f, 1f, 0.6f)]
+#if UNITY_EDITOR
+        private void UpdateSceneName()
+        {
+            if (sceneAsset != null)
+                sceneName = sceneAsset.name;
+            else
+                sceneName = string.Empty;
+        }
+#endif
+
+        [Space]
+        [EnumToggleButtons]
         public ELoadMode loadMode;
-        // Whether to automatically remove the scene when unloading
+
+        [Tooltip("Whether to automatically remove the scene when unloading")]
         public bool autoRemove = true;
     }
 }

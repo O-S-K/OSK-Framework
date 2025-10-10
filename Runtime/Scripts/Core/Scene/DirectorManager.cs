@@ -23,19 +23,19 @@ namespace OSK
         {
             Main.UI.Get<TransitionUI>().Hide();
         }).Build();
-    */
 
+        Note: Not create more scene mode Single in list scene data load
+    */ 
+    
     public class DirectorManager : GameFrameworkComponent
     {
-        [SerializeField, ReadOnly] private string _currentSceneName = "";
+        [SerializeField, ReadOnly] private string[] _currentScenesName;
         [SerializeField, ReadOnly] private bool _isLoading = false;
         [SerializeField, ReadOnly] private float _loadingProgress = 0f;
+        [SerializeField, ReadOnly]  private float _timer;
         public HashSet<string> LoadedScenes { get; private set; } = new HashSet<string>();
-        private float timer;
 
-        public override void OnInit()
-        {
-        }
+        public override void OnInit() { }
 
         public SceneLoadBuilder LoadScene(params DataScene[] sceneNames)
         {
@@ -123,10 +123,12 @@ namespace OSK
             // Load các scene mới
             foreach (var sceneData in scenes)
             {
+                #if UNITY_EDITOR
+                _currentScenesName = Array.ConvertAll(scenes, s => s.sceneName);
+                #endif
+                
                 if (sceneData.loadMode == ELoadMode.Single)
                 {
-                    _currentSceneName = sceneData.sceneName;
-
                     if (async)
                     {
                         var op = SceneManager.LoadSceneAsync(sceneData.sceneName, LoadSceneMode.Single);
@@ -192,24 +194,20 @@ namespace OSK
             return true;
         }
 
-        private IEnumerator HandleAsyncLoading(List<AsyncOperation> ops, bool fakeLoading,
-            float minLoadTime, string[] sceneNames)
+        private IEnumerator HandleAsyncLoading(List<AsyncOperation> ops, bool fakeLoading, float minLoadTime, string[] sceneNames)
         {
-            timer = 0f;
+            _timer = 0f;
+            float totalProgress = 0f;
+            
             while (true)
             {
-                timer += Time.deltaTime;
+                _timer += Time.deltaTime;
+                foreach (var op in ops) totalProgress += Mathf.Clamp01(op.progress / 0.9f);
 
-                float totalProgress = 0f;
-                foreach (var op in ops)
-                    totalProgress += Mathf.Clamp01(op.progress / 0.9f);
+                _loadingProgress = fakeLoading ? Mathf.Clamp01(_timer / minLoadTime) : totalProgress / ops.Count;
 
-                _loadingProgress = fakeLoading
-                    ? Mathf.Clamp01(timer / minLoadTime)
-                    : totalProgress / ops.Count;
-
-                if ((!fakeLoading && _loadingProgress >= 1f && timer >= minLoadTime) ||
-                    (fakeLoading && timer >= minLoadTime))
+                if ((!fakeLoading && _loadingProgress >= 1f && _timer >= minLoadTime) ||
+                    (fakeLoading && _timer >= minLoadTime))
                 {
                     foreach (var op in ops) op.allowSceneActivation = true;
                     break;
@@ -250,10 +248,9 @@ namespace OSK
             for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
             {
                 string path = SceneUtility.GetScenePathByBuildIndex(i);
-                string name = System.IO.Path.GetFileNameWithoutExtension(path);
-                if (name == sceneName) return true;
+                string nameSceneInPath = System.IO.Path.GetFileNameWithoutExtension(path);
+                if (nameSceneInPath == sceneName) return true;
             }
-
             return false;
         }
 
