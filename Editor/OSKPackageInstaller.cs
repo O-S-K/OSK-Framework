@@ -17,7 +17,7 @@ namespace OSK.Framework.Editor
         {
             { "OSK-UIFeel", "https://github.com/O-S-K/UIFeel.git" },
             { "OSK-UIParticle", "https://github.com/O-S-K/OSK-UIParticle.git" },
-            { "OSK-Observable", "https://github.com/O-S-K/OSK-Observable.git" }
+            { "OSK-Binders", "https://github.com/O-S-K/OSK-Binders.git"}
         };
 
         // === INTERNAL STATE ===
