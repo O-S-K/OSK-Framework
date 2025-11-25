@@ -147,6 +147,7 @@ namespace OSK
             {
                 if (newViewDraft.view != null)
                 {
+                    newViewDraft.view.viewType = newViewDraft.viewType;
                     listViewSO.Views.Add(newViewDraft);
                     newViewDraft = null;
                     EditorUtility.SetDirty(listViewSO);

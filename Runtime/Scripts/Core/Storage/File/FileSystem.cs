@@ -1,15 +1,29 @@
+// FileSystem.cs
 using System;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
+using Cysharp.Threading.Tasks;
 
 namespace OSK
 {
     public class FileSystem : IFile
     {
+        private static string EnsureExtension(string fileName, string ext)
+        {
+            if (Path.HasExtension(fileName)) return fileName;
+            return fileName + ext;
+        }
+
+        private string ResolvePath(string fileName)
+        {
+            string filename = EnsureExtension(fileName, ".dat");
+            return IOUtility.GetPath(filename);
+        }
+
         public void Save<T>(string fileName, T data, bool encrypt = false)
         {
-            string path = IOUtility.GetPath($"{fileName}.dat");
+            string path = ResolvePath(fileName);
 
             try
             {
@@ -33,13 +47,13 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Save Error: {fileName}.dat → {ex.Message}");
+                OSKLogger.LogError("Storage", $"❌ Save Error: {Path.GetFileName(path)} → {ex.Message}");
             }
         }
 
         public T Load<T>(string fileName, bool decrypt = false)
         {
-            string path = IOUtility.GetPath($"{fileName}.dat");
+            string path = ResolvePath(fileName);
             if (!File.Exists(path))
             {
                 OSKLogger.LogError("Storage", $"❌ File not found: {path}");
@@ -61,20 +75,27 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Load Error: {fileName}.dat → {ex.Message}");
+                OSKLogger.LogError("Storage", $"❌ Load Error: {Path.GetFileName(path)} → {ex.Message}");
                 return default;
             }
         }
 
-        public void Delete(string fileName) => IOUtility.DeleteFile($"{fileName}.dat");
+        public void Delete(string fileName) => IOUtility.DeleteFile(EnsureExtension(fileName, ".dat"));
 
         public T Query<T>(string fileName, bool condition) => condition ? Load<T>(fileName) : default;
 
         public void WriteAllLines(string fileName, string[] lines)
         {
-            string path = IOUtility.GetPath($"{fileName}.txt");
+            string path = IOUtility.GetPath(EnsureExtension(fileName, ".txt"));
             File.WriteAllLines(path, lines);
             OSKLogger.Log("Storage", $"📝 Wrote lines to: {path}");
+            RefreshEditor();
+        }
+
+        public bool Exists(string fileName)
+        {
+            string path = ResolvePath(fileName);
+            return File.Exists(path);
         }
 
         private static void RefreshEditor()

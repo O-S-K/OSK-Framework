@@ -1,7 +1,11 @@
+using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace OSK
 {
+    public enum SaveType { Json, File, Xml }
+
     public class DataManager : GameFrameworkComponent
     {
         [Header("Global Settings")]
@@ -10,64 +14,128 @@ namespace OSK
         private readonly JsonSystem _json = new JsonSystem();
         private readonly FileSystem _file = new FileSystem();
         private readonly XMLSystem _xml = new XMLSystem();
-        
-        /// Example: Save<JsonSystem, PlayerData>("playerData.json", playerData);
-        /// Example: PlayerData playerData = Load<JsonSystem, PlayerData>("playerData.json");
-        /// Example: Query<JsonSystem, PlayerData>("playerData.json", File.Exists("playerData.json"));
-        /// Example: Delete<JsonSystem>("playerData.json");
 
-        public override void OnInit() { }
+        private readonly Dictionary<SaveType, IFile> _typeMap = new Dictionary<SaveType, IFile>();
 
-        /// <summary>
-        /// Save data to file (T = file system type, U = data type)
-        /// </summary>
-        public void Save<T, U>(string fileName, U data)
+        public override void OnInit()
         {
-            IFile fileSystem = GetFileSystem<T>();
-            fileSystem?.Save(fileName, data, isEncrypt);
+#if UNITY_WEBGL
+            var _web = new WebJsonSystem();
+            Register(SaveType.Json,_web);
+            Register(SaveType.File, _web);
+            Register(SaveType.Xml, _web);
+#else
+            Register(SaveType.Json, _json);
+            Register(SaveType.File, _file);
+            Register(SaveType.Xml, _xml);
+#endif
         }
 
-        /// <summary>
-        /// Load data from file
-        /// </summary>
-        public U Load<T, U>(string fileName)
+        // ---------- Registration API (extensibility) ----------
+        public void Register(SaveType key, IFile impl)
         {
-            IFile fileSystem = GetFileSystem<T>();
-            return fileSystem != null ? fileSystem.Load<U>(fileName, isEncrypt) : default(U);
+            _typeMap[key] = impl ?? throw new ArgumentNullException(nameof(impl));
         }
 
-        /// <summary>
-        /// Query data (conditional load)
-        /// </summary>
-        public U Query<T, U>(string fileName, bool condition)
+        public void Unregister(SaveType key) => _typeMap.Remove(key);
+
+        // ---------- Synchronous APIs (enum-based) ----------
+        public void Save(SaveType type, string fileName, object data)
         {
-            return condition ? Load<T, U>(fileName) : default;
+            Debug .Log($"DataManager.Save: {fileName} ({type})");
+            var fs = Resolve(type);
+            Debug .Log($"DataManager.fs: {fs})");
+            
+            if (fs == null)
+            {
+                Debug.LogError($"DataManager.Save: Unknown SaveType {type}");
+                return;
+            }
+            try
+            {
+                fs.Save(fileName, data, isEncrypt);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"DataManager.Save ERROR: {fileName} ({type})\n{ex}");
+            }
         }
 
-        /// <summary>
-        /// Delete file
-        /// </summary>
-        public void Delete<T>(string fileName)
+        public T Load<T>(SaveType type, string fileName)
         {
-            IFile fileSystem = GetFileSystem<T>();
-            fileSystem?.Delete(fileName);
+            var fs = Resolve(type);
+            if (fs == null)
+            {
+                Debug.LogError($"DataManager.Load: Unknown SaveType {type}");
+                return default;
+            }
+
+            try
+            {
+                if (!fs.Exists(fileName)) return default;
+                return fs.Load<T>(fileName, isEncrypt);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"DataManager.Load ERROR: {fileName} ({type})\n{ex}");
+                return default;
+            }
         }
 
-        /// <summary>
-        /// Write plain text file (.txt)
-        /// </summary>
+        public void Delete(SaveType type, string fileName)
+        {
+            var fs = Resolve(type);
+            if (fs == null)
+            {
+                Debug.LogError($"DataManager.Delete: Unknown SaveType {type}");
+                return;
+            }
+
+            try
+            {
+                if (!fs.Exists(fileName)) return;
+                fs.Delete(fileName);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"DataManager.Delete ERROR: {fileName} ({type})\n{ex}");
+            }
+        }
+
+        public T Query<T>(SaveType type, string fileName, bool condition) =>
+            condition ? Load<T>(type, fileName) : default;
+
         public void WriteAllText(string fileName, string[] lines)
         {
-            _file.WriteAllLines(fileName, lines);
+            try
+            {
+                _file.WriteAllLines(fileName, lines);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"DataManager.WriteAllText ERROR: {fileName}\n{ex}");
+            }
         }
 
-        private IFile GetFileSystem<T>() =>
-            typeof(T) switch
+        public void WriteAllLines(SaveType type, string fileName, string[] lines)
+        {
+            var fs = Resolve(type);
+            if (fs == null)
             {
-                var t when t == typeof(JsonSystem) => _json,
-                var t when t == typeof(FileSystem) => _file,
-                var t when t == typeof(XMLSystem) => _xml,
-                _ => null
-            };
+                Debug.LogError($"DataManager.WriteAllLines: Unknown SaveType {type}");
+                return;
+            }
+            try
+            {
+                fs.WriteAllLines(fileName, lines);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"DataManager.WriteAllLines ERROR: {fileName} ({type})\n{ex}");
+            }
+        }
+ 
+        // ---------- Internal helpers ----------
+        private IFile Resolve(SaveType type) => _typeMap.GetValueOrDefault(type);
     }
 }

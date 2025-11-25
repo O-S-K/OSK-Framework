@@ -10,9 +10,21 @@ namespace OSK
         public static bool FormatDecimals = true;
         public static int DecimalPlaces = 4;
 
+        private static string EnsureExtension(string fileName, string ext)
+        {
+            if (Path.HasExtension(fileName)) return fileName;
+            return fileName + ext;
+        }
+
+        private string ResolvePath(string fileName)
+        {
+            string filename = EnsureExtension(fileName, ".json");
+            return IOUtility.GetPath(filename);
+        }
+
         public void Save<T>(string fileName, T data, bool encrypt = false)
         {
-            string path = IOUtility.FilePath($"{fileName}.json");
+            string path = ResolvePath(fileName);
             try
             {
                 string json = JsonConvert.SerializeObject(data, Formatting.Indented);
@@ -31,13 +43,13 @@ namespace OSK
             }
             catch (System.Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Save Error: {fileName}.json → {ex.Message}");
+                OSKLogger.LogError("Storage", $"❌ Save Error: {Path.GetFileName(path)} → {ex.Message}");
             }
         }
 
         public T Load<T>(string fileName, bool decrypt = false)
         {
-            string path = IOUtility.FilePath($"{fileName}.json");
+            string path = ResolvePath(fileName);
             if (!File.Exists(path))
             {
                 OSKLogger.LogError("Storage", $"❌ File not found: {path}");
@@ -61,14 +73,25 @@ namespace OSK
             }
             catch (System.Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Load Error: {fileName}.json → {ex.Message}");
+                OSKLogger.LogError("Storage", $"❌ Load Error: {Path.GetFileName(path)} → {ex.Message}");
                 return default;
             }
         }
 
-        public void Delete(string fileName) => IOUtility.DeleteFile($"{fileName}.json");
+        public void Delete(string fileName) => IOUtility.DeleteFile(EnsureExtension(fileName, ".json"));
 
         public T Query<T>(string fileName, bool condition) => condition ? Load<T>(fileName) : default;
+
+        public bool Exists(string fileName)
+        {
+            string path = ResolvePath(fileName);
+            return File.Exists(path);
+        }
+
+        public void WriteAllLines(string fileName, string[] lines)
+        {
+            OSKLogger.LogError("Storage", $"❌ WriteAllLines only SaveType.File");
+        }
 
         private string FormatJsonDecimals(string json, int places)
         {

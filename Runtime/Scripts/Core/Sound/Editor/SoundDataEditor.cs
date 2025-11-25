@@ -20,6 +20,7 @@ namespace OSK
 
         [ListDrawerSettings(Expanded = true, DraggableItems = false, ShowIndexLabels = true)]
         private static List<string> groupNames = new List<string>() { "Music", "UI" };
+
         private ListSoundSO listSoundSo;
         private SoundData newSoundDraft = null;
 
@@ -42,11 +43,12 @@ namespace OSK
 
             EditorGUILayout.Space(20);
             GUI.color = Color.yellow;
-            EditorGUILayout.LabelField("⚠️ Please enable sound in scene game to test play sound.", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("⚠️ Please enable sound in scene game to test play sound.",
+                EditorStyles.boldLabel);
             GUI.color = Color.white;
             EditorGUILayout.Space(10);
 
-            showTable = EditorGUILayout.Foldout(showTable, "Show Sound Info Table",true, EditorStyles.boldLabel);
+            showTable = EditorGUILayout.Foldout(showTable, "Show Sound Info Table", true, EditorStyles.boldLabel);
             if (!showTable) return;
 
             GUILayout.Space(10);
@@ -72,14 +74,15 @@ namespace OSK
                     soundTypeFoldoutsPerGroup[group] = new Dictionary<SoundType, bool>();
 
                 GUI.color = Color.white;
-                groupFoldouts[group] = EditorGUILayout.Foldout(groupFoldouts[group], $"Group: {group}", true, new GUIStyle()
-                {
-                    fontStyle = FontStyle.Bold,
-                    fontSize = 14,
-                    normal = new GUIStyleState() { textColor = ColorUtils.LawnGreen }
-                });
+                groupFoldouts[group] = EditorGUILayout.Foldout(groupFoldouts[group], $"Group: {group}", true,
+                    new GUIStyle()
+                    {
+                        fontStyle = FontStyle.Bold,
+                        fontSize = 14,
+                        normal = new GUIStyleState() { textColor = ColorUtils.LawnGreen }
+                    });
                 GUI.color = Color.white;
-                
+
                 if (!groupFoldouts[group]) continue;
 
                 EditorGUI.indentLevel++;
@@ -111,7 +114,7 @@ namespace OSK
             }
 
             EditorGUILayout.Space(20);
-             
+
             GUI.color = Color.green;
             if (GUILayout.Button("Add New Sound Info", GUILayout.Width(200)))
             {
@@ -125,6 +128,7 @@ namespace OSK
                     pitch = new MinMaxFloat(1f, 1f)
                 };
             }
+
             GUI.color = Color.white;
 
             if (newSoundDraft != null)
@@ -174,7 +178,7 @@ namespace OSK
             EditorGUI.MinMaxSlider(sliderRect, ref newMin, ref newMax, 0.1f, 2.0f);
             string minStr = newMin.ToString("F1");
             string maxStr = newMax.ToString("F1");
-            
+
             GUILayout.Space(-25);
             minStr = EditorGUILayout.DelayedTextField(minStr, GUILayout.Width(70));
             GUILayout.Space(-25);
@@ -245,7 +249,7 @@ namespace OSK
             EditorGUILayout.LabelField("Pitch", GUILayout.Width(75));
             EditorGUILayout.LabelField("Min", GUILayout.Width(45));
             EditorGUILayout.LabelField("Max", GUILayout.Width(75));
-            
+
             GUILayout.Label("Play", GUILayout.Width(40));
             GUILayout.Label("Stop", GUILayout.Width(40));
             GUILayout.Label("Remove", GUILayout.Width(50));
@@ -370,18 +374,79 @@ namespace OSK
             EditorGUILayout.LabelField("Gen enum SoundID", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
-            if(GUILayout.Button("Open File"))
+
+            // Chọn file trong project (Open existing .cs file)
+            if (GUILayout.Button("Open File", GUILayout.Width(120)))
             {
-                string path = EditorUtility.SaveFilePanel("Select File Path", "Assets", "SoundID.cs", "cs");
-                if (string.IsNullOrEmpty(path)) return;
-                path = "Assets" + path.Replace(Application.dataPath, "");
-                listSoundSo.filePathSoundID = path;
-                EditorUtility.SetDirty(listSoundSo);
+                string absPath = EditorUtility.OpenFilePanel("Select File (in Project)", Application.dataPath, "cs");
+                if (!string.IsNullOrEmpty(absPath))
+                {
+                    // convert absolute path to relative project path "Assets/..."
+                    if (absPath.StartsWith(Application.dataPath))
+                    {
+                        string relPath = "Assets" + absPath.Replace(Application.dataPath, "");
+                        listSoundSo.filePathSoundID = relPath;
+                        EditorUtility.SetDirty(listSoundSo);
+                    }
+                    else
+                    {
+                        // nếu chọn file ngoài project, hỏi lưu vào project
+                        string savePath = EditorUtility.SaveFilePanel("Save SoundID.cs to Project",
+                            Application.dataPath, "SoundID", "cs");
+                        if (!string.IsNullOrEmpty(savePath))
+                        {
+                            if (savePath.StartsWith(Application.dataPath))
+                            {
+                                string relSave = "Assets" + savePath.Replace(Application.dataPath, "");
+                                listSoundSo.filePathSoundID = relSave;
+                                EditorUtility.SetDirty(listSoundSo);
+                            }
+                        }
+                    }
+                }
             }
-            
-            EditorGUILayout.LabelField("File Path:", GUILayout.Width(70));
-            EditorGUILayout.LabelField(listSoundSo.filePathSoundID);
+
+            // Mở file đã lưu bằng editor (mở script trong external editor hoặc internal)
+            if (GUILayout.Button("Open In Editor", GUILayout.Width(120)))
+            {
+                if (!string.IsNullOrEmpty(listSoundSo.filePathSoundID))
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(listSoundSo.filePathSoundID);
+                    if (asset != null)
+                    {
+                        AssetDatabase.OpenAsset(asset);
+                    }
+                    else
+                    {
+                        // nếu asset không tìm thấy, thông báo và offer reveal path
+                        if (File.Exists(listSoundSo.filePathSoundID))
+                        {
+                            EditorUtility.RevealInFinder(listSoundSo.filePathSoundID);
+                        }
+                        else
+                        {
+                            EditorUtility.DisplayDialog("File not found",
+                                $"Could not find file at '{listSoundSo.filePathSoundID}'. Please set a valid path.",
+                                "OK");
+                        }
+                    }
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("No file selected",
+                        "Please select or save a file first (use Open File or Generate Enum ID which will prompt you to save).",
+                        "OK");
+                }
+            }
+
             EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.LabelField("File Path:", GUILayout.Width(70));
+            EditorGUILayout.LabelField(string.IsNullOrEmpty(listSoundSo.filePathSoundID)
+                ? "<Not set>"
+                : listSoundSo.filePathSoundID);
+
+            EditorGUILayout.Space(6);
 
             if (GUILayout.Button("Generate Enum ID"))
             {
@@ -392,15 +457,67 @@ namespace OSK
                     .ToList();
 
                 string filePath = listSoundSo.filePathSoundID;
+
+                // Nếu chưa có file path thì yêu cầu user chọn nơi lưu trong project
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    string savePath =
+                        EditorUtility.SaveFilePanel("Save SoundID.cs", Application.dataPath, "SoundID", "cs");
+                    if (string.IsNullOrEmpty(savePath)) return;
+                    if (!savePath.StartsWith(Application.dataPath))
+                    {
+                        EditorUtility.DisplayDialog("Invalid location",
+                            "Please save the file inside the project's Assets folder.", "OK");
+                        return;
+                    }
+
+                    filePath = "Assets" + savePath.Replace(Application.dataPath, "");
+                    listSoundSo.filePathSoundID = filePath;
+                    EditorUtility.SetDirty(listSoundSo);
+                }
+
+                // Build source
                 var sb = new StringBuilder();
-                sb.AppendLine("public enum SoundID {");
+                sb.AppendLine("// Auto-generated SoundID enum");
+                sb.AppendLine("public enum SoundID");
+                sb.AppendLine("{");
                 foreach (var n in names)
-                    sb.AppendLine($"    {n},");
+                {
+                    // ensure valid identifier: replace spaces/hyphens etc.
+                    string safe = MakeSafeEnumName(n);
+                    sb.AppendLine($"    {safe},");
+                }
+
                 sb.AppendLine("}");
-                File.WriteAllText(filePath, sb.ToString());
+
+                // Write to disk (relative path to project)
+                string absWritePath = Path.Combine(Application.dataPath,
+                    filePath.Substring("Assets".Length)
+                        .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                File.WriteAllText(absWritePath, sb.ToString(), Encoding.UTF8);
+
                 AssetDatabase.Refresh();
             }
-       
+        }
+
+// helper to convert arbitrary name to safe C# enum identifier
+        private static string MakeSafeEnumName(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return "_UNKNOWN";
+            // remove invalid chars, replace spaces/dashes with underscore, ensure starts with letter or underscore
+            var sb = new StringBuilder();
+            foreach (char c in s)
+            {
+                if (char.IsLetterOrDigit(c) || c == '_')
+                    sb.Append(c);
+                else if (char.IsWhiteSpace(c) || c == '-' || c == '.')
+                    sb.Append('_');
+            }
+
+            string outStr = sb.ToString();
+            if (string.IsNullOrEmpty(outStr)) outStr = "_UNKNOWN";
+            if (!char.IsLetter(outStr[0]) && outStr[0] != '_') outStr = "_" + outStr;
+            return outStr;
         }
 
         #endregion

@@ -1,9 +1,8 @@
 #if UNITY_EDITOR
-// #define CustomPlayerPref
 
 using UnityEditor;
 using UnityEngine;
-using System.IO;
+using System.IO; 
 
 namespace OSK
 {
@@ -70,7 +69,7 @@ namespace OSK
             {
                 
 #if CustomPlayerPref
-                 CustomPlayerPref.PlayerPrefsEditor.Init();
+                CustomPlayerPref.PlayerPrefsEditor.PlayerPrefsEditor.Init();
 #endif
             }
         }

@@ -1,11 +1,13 @@
 using System;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace OSK
 {
     public class GameConfigsManager : GameFrameworkComponent
     {
-        private ConfigInit init;
+        [ReadOnly]
+        public ConfigInit Init;
          
         public string VersionApp => Application.version;
 
@@ -17,7 +19,7 @@ namespace OSK
                 OSKLogger.LogError("Not found ConfigInit in Main");
                 return;
             }
-            init = Main.Instance.configInit;
+            Init = Main.Instance.configInit;
         }
 
         public void CheckVersion(Action onNewVersion)

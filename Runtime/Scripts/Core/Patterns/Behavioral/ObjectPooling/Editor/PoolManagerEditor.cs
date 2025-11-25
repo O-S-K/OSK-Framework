@@ -47,7 +47,7 @@ namespace OSK
             foreach (var groupEntry in poolManager.GroupPrefabLookup)
             {
                 string groupName = groupEntry.Key;
-                Dictionary<Object, ObjectPool<Object>> prefabPools = groupEntry.Value;
+                var prefabPools = groupEntry.Value;
 
                 // Initialize the dictionary for this group if it doesn't exist
                 if (!groupPrefabCounts.ContainsKey(groupName))
@@ -58,8 +58,8 @@ namespace OSK
                 foreach (var prefabEntry in prefabPools)
                 {
                     Object prefab = prefabEntry.Key;
-                    ObjectPool<Object> pool = prefabEntry.Value;
-                    int count = pool.Count;
+                    var pool = prefabEntry.Value;
+                    int count = pool.ActiveCount;
 
                     if (groupPrefabCounts[groupName].ContainsKey(prefab.name))
                     {

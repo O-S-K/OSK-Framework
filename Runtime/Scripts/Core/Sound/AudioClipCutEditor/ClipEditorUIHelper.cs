@@ -213,6 +213,16 @@ namespace OSK
 
             // input handling (pass selRect)
             HandleInput(rect, clip, selRect);
+            
+            if (Event.current.isMouse && rect.Contains(Event.current.mousePosition)) 
+            {
+                // Nếu sự kiện là MouseDown hoặc MouseDrag trong vùng này
+                if (Event.current.type == EventType.MouseDown || Event.current.type == EventType.MouseDrag)
+                {
+                    // Lệnh này nói với Unity: "Tôi đã xử lý rồi, đừng can thiệp nữa"
+                    Event.current.Use(); 
+                }
+            }
         }
 
         // Draw small white trim handles

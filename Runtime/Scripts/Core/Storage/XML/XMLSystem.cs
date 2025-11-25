@@ -1,67 +1,87 @@
 using System;
 using System.IO;
-using System.Xml.Serialization;
-using UnityEngine;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace OSK
 {
     public class XMLSystem : IFile
     {
+        private static string EnsureExtension(string fileName, string ext)
+        {
+            if (Path.HasExtension(fileName)) return fileName;
+            return fileName + ext;
+        }
+
+        private string ResolvePath(string fileName)
+        {
+            string filename = EnsureExtension(fileName, ".xml");
+            return IOUtility.GetPath(filename);
+        }
+
         public void Save<T>(string fileName, T data, bool encrypt = false)
         {
-            string path = IOUtility.GetPath($"{fileName}.xml");
-
+            string path = ResolvePath(fileName);
             try
             {
-                using var ms = new MemoryStream();
-                new XmlSerializer(typeof(T)).Serialize(ms, data);
-                byte[] bytes = ms.ToArray();
-
+                string jsonString = JsonConvert.SerializeObject(data, Formatting.Indented, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+                byte[] bytes = Encoding.UTF8.GetBytes(jsonString);
                 if (encrypt)
+                {
                     bytes = FileSecurity.Encrypt(bytes, IOUtility.encryptKey);
-
+                }
                 File.WriteAllBytes(path, bytes);
-                RefreshEditor();
-                OSKLogger.Log("Storage", $"✅ Saved: {path}");
             }
             catch (Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Save Error: {fileName}.xml → {ex.Message}");
+                OSKLogger.LogError("Storage", $"❌ Save JSON Error: {Path.GetFileName(path)} → {ex.Message}");
             }
         }
 
-        public T Load<T>(string fileName, bool decrypt = false)
+        public T Load<T>(string fileName, bool isEncrypted = false)
         {
-            string path = IOUtility.GetPath($"{fileName}.xml");
+            string path = ResolvePath(fileName);
+
             if (!File.Exists(path))
             {
-                OSKLogger.LogError("Storage", $"❌ File not found: {path}");
-                return default;
+                OSKLogger.LogWarning("Storage", $"File not found: {path}");
+                return default(T);
             }
 
             try
             {
                 byte[] bytes = File.ReadAllBytes(path);
-                if (decrypt)
+                if (isEncrypted)
+                {
                     bytes = FileSecurity.Decrypt(bytes, IOUtility.encryptKey);
-
-                using var ms = new MemoryStream(bytes);
-                var serializer = new XmlSerializer(typeof(T));
-                T data = (T)serializer.Deserialize(ms);
-                OSKLogger.Log("Storage", $"✅ Loaded: {path}");
-                return data;
+                }
+                string jsonString = Encoding.UTF8.GetString(bytes);
+                return JsonConvert.DeserializeObject<T>(jsonString);
             }
             catch (Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Load Error: {fileName}.xml → {ex.Message}");
-                return default;
+                OSKLogger.LogError("Storage", $"❌ Load JSON Error: {path}\n{ex.Message}");
+                return default(T);
             }
         }
 
-        public void Delete(string fileName) => IOUtility.DeleteFile($"{fileName}.xml");
+        public void Delete(string fileName) => IOUtility.DeleteFile(EnsureExtension(fileName, ".xml"));
 
         public T Query<T>(string fileName, bool condition) => condition ? Load<T>(fileName) : default;
-         
+
+        public bool Exists(string fileName)
+        {
+            string path = ResolvePath(fileName);
+            return File.Exists(path);
+        }
+
+        public void WriteAllLines(string fileName, string[] lines)
+        {
+            OSKLogger.LogError("Storage", $"❌ WriteAllLines only SaveType.File");
+        }
 
         private static void RefreshEditor()
         {

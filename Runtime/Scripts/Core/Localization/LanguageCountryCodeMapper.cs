@@ -1,12 +1,12 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace OSK
 {
     public static class LanguageCountryCodeMapper
     {
-        private static readonly Dictionary<SystemLanguage, string> _countryCodes =
-            new Dictionary<SystemLanguage, string>
+        private static readonly Dictionary<SystemLanguage, string> _countryCodes = new()
             {
                 { SystemLanguage.Afrikaans, "AF" },
                 { SystemLanguage.Arabic, "AR" },
@@ -50,15 +50,24 @@ namespace OSK
                 { SystemLanguage.Vietnamese, "VI" },
                 { SystemLanguage.ChineseSimplified, "ZH-Hans" },
                 { SystemLanguage.ChineseTraditional, "ZH-Hant" },
-                #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
                 { SystemLanguage.Hindi, "HI" },
-                #endif
+#endif
                 { SystemLanguage.Unknown, "XX" },
             };
 
-        public static string GetCountryCode(SystemLanguage language)
+        public static string GetCountryCode(SystemLanguage lang)
         {
-            return _countryCodes.GetValueOrDefault(language, "XX"); // "XX" for unknown
+            if (_countryCodes.TryGetValue(lang, out string code))
+                return code;
+
+            // fallback safe
+            return lang.ToString().Length >= 2 ? lang.ToString().Substring(0, 2).ToLower() : "en";
+        }
+
+        public static string GetCountryCode(string langName)
+        {
+            return Enum.TryParse(langName, true, out SystemLanguage lang) ? GetCountryCode(lang) : "en";
         }
     }
 }

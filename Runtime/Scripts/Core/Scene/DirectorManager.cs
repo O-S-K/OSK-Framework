@@ -39,6 +39,13 @@ namespace OSK
 
         public SceneLoadBuilder LoadScene(params DataScene[] sceneNames)
         {
+#if UNITY_EDITOR
+            int singleModeCount = sceneNames.Count(s => s.loadMode == ELoadMode.Single);
+            if (singleModeCount > 1)
+            {
+                throw new Exception("Error logic: Only one scene can be loaded in Single mode at a time.");
+            }
+#endif
             return new SceneLoadBuilder(this, sceneNames);
         }
 

@@ -81,7 +81,7 @@ namespace OSK
                 {
                     foreach (var blackboardValue in blackboard.GetAllValues())
                     {
-                        Main.Data.Save<JsonSystem, Blackboard.BlackboardValue>(blackboardValue.Key, blackboardValue.Value);
+                        Main.Data.Save(SaveType.Json, blackboardValue.Key, blackboardValue.Value);
                     }
                 }
             }
@@ -94,7 +94,7 @@ namespace OSK
                 var blackboard = kvp.Value;
                 if (blackboard != null)
                 {
-                    Main.Data.Load<JsonSystem, Dictionary<string, Blackboard>>(kvp.Key);
+                    Main.Data.Load<Dictionary<string, Blackboard>>(SaveType.Json, kvp.Key);
                 }
             }
         }

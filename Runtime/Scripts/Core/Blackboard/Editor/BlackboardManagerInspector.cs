@@ -42,9 +42,7 @@ namespace OSK
                             normal = new GUIStyleState() {textColor = Color.cyan},
                         };
                         EditorGUILayout.Space(3);
-                        foldouts[index] = EditorGUILayout.Foldout(foldouts[index],
-                            $"Blackboard {index + 1}: {name} in {blackboard.GetPingObject().name}", g);
-
+                        foldouts[index] = EditorGUILayout.Foldout(foldouts[index], $"Blackboard {index + 1}: {name} in {blackboard.GetPingObject().name}", g);
                         if (foldouts[index])
                         {
                             EditorGUILayout.BeginVertical("box");

@@ -17,10 +17,10 @@ namespace OSK
         }
 
         [MenuItem(MenuPath)]
-        private static void OpenInEditor()
+        public static void OpenInEditor(bool isOpenEditor = false)
         {
             var clip = Selection.activeObject as AudioClip;
-            if (clip == null) return;
+            if (clip == null && !isOpenEditor) return;
 
             // open window and assign
             var w = EditorWindow.GetWindow<ClipEditorWindow>();

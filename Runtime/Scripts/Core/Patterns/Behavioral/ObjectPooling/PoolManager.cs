@@ -1,51 +1,70 @@
+using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 namespace OSK
 {
-    public class PoolManager : GameFrameworkComponent 
+    public class PoolManager : GameFrameworkComponent
     {
-        public Dictionary<string, Dictionary<Object, ObjectPool<Object>>> GroupPrefabLookup { get; private set; } = new();
-        public Dictionary<Object, ObjectPool<Object>> InstanceLookup { get; private set; } = new();
+        public Dictionary<string, Dictionary<Object, PoolRuntimeInfo>> GroupPrefabLookup { get; private set; } = new();
+        public Dictionary<Object, PoolRuntimeInfo> InstanceLookup { get; private set; } = new();
+        public bool IsDestroyAllOnSceneUnload = false;
 
-        public override void OnInit() {}
+        // --- CONFIG AR DEBUGGER ---
+        [Header("Visual Debugger")]
+        public bool ShowDebugLines = false;   // Vẽ đường dây
+        public bool ShowLabels = false;       // Vẽ tên trên đầu
+        [Range(0.1f, 1f)]
+        public float LineOpacity = 0.3f;     // Độ mờ của dây (để không rối mắt)
+        
+        public override void OnInit()
+        {
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
+        }
+
+        public override void OnDestroy()
+        {
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+            base.OnDestroy();
+        }
+
+        private void OnSceneUnloaded(Scene scene)
+        {
+            if(IsDestroyAllOnSceneUnload)
+                DespawnAllActive();
+        }
 
         public void Preload(PoolData poolData)
         {
-            WarmPool(poolData.GroupName, poolData.Prefab, poolData.Parent, poolData.Size);
-        } 
-        
+            GetOrCreatePoolInfo(poolData.GroupName, poolData.Prefab, poolData.Parent, poolData.Size);
+        }
+
         #region Spawn Methods
 
         public T Spawn<T>(string groupName, T prefab, Transform parent = null) where T : Object
-        {
-            return Spawn(groupName, prefab, parent, Vector3.zero, Quaternion.identity);
-        }
+            => Spawn(groupName, prefab, parent, Vector3.zero, Quaternion.identity);
 
         public T Spawn<T>(string groupName, T prefab, Transform parent, Transform transform) where T : Object
-        {
-            return Spawn(groupName, prefab, parent, transform.position, transform.rotation);
-        }
+            => Spawn(groupName, prefab, parent, transform.position, transform.rotation);
 
         public T Spawn<T>(string groupName, T prefab, Transform parent, Vector3 position) where T : Object
-        {
-            return Spawn(groupName, prefab, parent, position, Quaternion.identity);
-        }
+            => Spawn(groupName, prefab, parent, position, Quaternion.identity);
 
         public T Spawn<T>(string groupName, T prefab, Transform parent, Vector3 position, Quaternion rotation) where T : Object
         {
-            var instance = Spawn(groupName, prefab, parent, 1);
+            var instance = SpawnInternal(groupName, prefab, parent, 1);
+            if (instance == null) return null;
+
+            // Set Position/Rotation
             if (instance is Component component)
             {
-                component.transform.position = position;
-                component.transform.rotation = rotation;
+                component.transform.SetPositionAndRotation(position, rotation);
             }
             else if (instance is GameObject go)
             {
-                go.transform.position = position;
-                go.transform.rotation = rotation;
+                go.transform.SetPositionAndRotation(position, rotation);
             }
 
             return instance;
@@ -53,96 +72,60 @@ namespace OSK
 
         public T Spawn<T>(string groupName, T prefab, Transform parent, int size) where T : Object
         {
-            if (!IsGroupAndPrefabExist(groupName, prefab))
-            {
-                if (size <= 0)
-                {
-                    OSKLogger.LogError("Pool size must be greater than 0.");
-                    return null;
-                }
+            return SpawnInternal(groupName, prefab, parent, size);
+        }
 
-                WarmPool(groupName, prefab, parent, size);
-            }
-
-            var pool = GroupPrefabLookup[groupName][prefab];
-            var instance = pool.GetItem() as T;
+        private T SpawnInternal<T>(string groupName, T prefab, Transform parent, int size) where T : Object
+        {
+            var poolInfo = GetOrCreatePoolInfo(groupName, prefab, parent, size);
+            var instance = poolInfo.Pool.GetItem() as T;
 
             if (instance == null)
             {
-                OSKLogger.LogError("Pool",$"Object from pool is null or destroyed. Group: {groupName}, Prefab: {prefab.name}");
+                OSKLogger.LogError("Pool", $"Object from pool is null. Group: {groupName}, Prefab: {prefab.name}");
                 return null;
             }
-
-            switch (instance)
+            SetupInstance(instance, parent, true);
+            if (!InstanceLookup.TryAdd(instance, poolInfo))
             {
-                case Component component:
-                    component.gameObject.SetActive(true);
-                    component.transform.SetParent(parent);
-                    break;
-                case GameObject go:
-                    go.SetActive(true);
-                    go.transform.SetParent(parent);
-                    break;
+                OSKLogger.LogWarning("Pool", $"Instance lookup already contains: {instance}");
             }
-
-            if (!InstanceLookup.TryAdd(instance, pool))
-            {
-                OSKLogger.LogWarning("Pool",$"This object pool already contains the item provided: {instance}");
-                return instance;
-            }
+            poolInfo.UpdateStats(); 
+            TriggerInterface(instance, true);
 
             return instance;
         }
 
-        private void WarmPool<T>(string group, T prefab, Transform parent, int size) where T : Object
-        {
-            if (IsGroupAndPrefabExist(group, prefab))
-            {
-                OSKLogger.LogError("Pool",$"Pool for prefab '{prefab.name}' in group '{group}' has already been created.");
-                return;
-            }
-
-            if (size <= 0)
-            {
-                OSKLogger.LogError("Pool size must be greater than 0.");
-                return;
-            }
-
-            var pool = new ObjectPool<Object>(() => InstantiatePrefab(prefab, parent), size);
-            if (!GroupPrefabLookup.ContainsKey(group))
-            {
-                GroupPrefabLookup[group] = new Dictionary<Object, ObjectPool<Object>>();
-            }
-
-            GroupPrefabLookup[group][prefab] = pool;
-        }
-
-        private Object InstantiatePrefab<T>(T prefab, Transform parent) where T : Object
-        {
-            return prefab is GameObject go
-                ? Instantiate(go, parent)
-                : Instantiate((Component)(object)prefab, parent);
-        }
         #endregion
-        
+
         #region Despawn Methods
 
         public void Despawn(Object instance)
         {
-            DeactivateInstance(instance);
-            if (InstanceLookup.TryGetValue(instance, out var pool))
+            if (instance == null) return;
+
+            if (InstanceLookup.TryGetValue(instance, out var poolInfo))
             {
-                pool.ReleaseItem(instance);
+                TriggerInterface(instance, false);
+                SetupInstance(instance, null, false);
+                poolInfo.Pool.ReleaseItem(instance);
                 InstanceLookup.Remove(instance);
             }
             else
             {
-                OSKLogger.LogWarning("Pool",$"{instance} not found in any pool.");
+                OSKLogger.LogWarning("Pool", $"{instance} not found in any pool lookup.");
+                SetupInstance(instance, null, false);
             }
         }
 
         public void Despawn(Object instance, float delay, bool unscaleTime = false)
         {
+            if (delay <= 0)
+            {
+                Despawn(instance);
+                return;
+            }
+
             DOVirtual.DelayedCall(delay, () =>
             {
                 if (instance != null) Despawn(instance);
@@ -151,128 +134,199 @@ namespace OSK
 
         public void DespawnAllInGroup(string groupName)
         {
-            if (GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
+            if (GroupPrefabLookup.TryGetValue(groupName, out var prefabDict))
             {
-                foreach (var pool in prefabPools.Values)
+                var toDespawn = new List<Object>();
+                foreach (var pair in InstanceLookup)
                 {
-                    List<Object> toRemove = new();
-                    foreach (var pair in InstanceLookup)
+                    if (prefabDict.ContainsValue(pair.Value))
                     {
-                        if (pair.Value == pool)
-                        {
-                            DeactivateInstance(pair.Key);
-                            pool.ReleaseItem(pair.Key);
-                            toRemove.Add(pair.Key);
-                        }
+                        toDespawn.Add(pair.Key);
                     }
-
-                    foreach (var obj in toRemove)
-                        InstanceLookup.Remove(obj);
                 }
+
+                foreach (var obj in toDespawn) Despawn(obj);
             }
         }
 
         public void DespawnAllActive()
         {
-            foreach (var kv in InstanceLookup)
-            {
-                DeactivateInstance(kv.Key);
-                kv.Value.ReleaseItem(kv.Key);
-            }
-
-            InstanceLookup.Clear();
+            var allActive = InstanceLookup.Keys.ToList();
+            foreach (var obj in allActive) Despawn(obj);
         }
 
-        private void DeactivateInstance(Object instance)
+        #endregion
+
+        #region Editor Tool Methods (Cho Ultimate Window)
+
+        public void ExpandPool(string groupName, Object prefab, int amount)
         {
-            if (instance is Component component)
-                component.gameObject.SetActive(false);
-            else if (instance is GameObject go)
-                go.SetActive(false);
+            if (!IsGroupAndPrefabExist(groupName, prefab)) return;
+            
+            var pool = GroupPrefabLookup[groupName][prefab].Pool;
+            pool.Refill(amount); // Gọi hàm Refill có sẵn trong ObjectPool của bạn
+        }
+ 
+        public void TrimPool(string groupName, Object prefab)
+        {
+            if (!IsGroupAndPrefabExist(groupName, prefab)) return;
+            
+            var pool = GroupPrefabLookup[groupName][prefab].Pool;
+            pool.DestroyAndClean(); 
         }
 
         public void DestroyAllInGroup(string groupName)
         {
-            if (GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
+            DespawnAllInGroup(groupName);
+            if (GroupPrefabLookup.TryGetValue(groupName, out var prefabDict))
             {
-                // Create a copy of the dictionary to avoid modifying it while iterating
-                foreach (var kvp in prefabPools.ToList())
+                foreach (var info in prefabDict.Values)
                 {
-                    var pool = kvp.Value;
-                    pool.DestroyAndClean();
-                    pool.Clear();
+                    info.Pool.DestroyAndClean();
+                    info.Pool.Clear();
                 }
-
                 GroupPrefabLookup.Remove(groupName);
-            }
-        }
-
-        public void DestroyAllGroups()
-        {
-            foreach (var prefabPools in GroupPrefabLookup.Values)
-            {
-                foreach (var pool in prefabPools.Values)
-                {
-                    pool.DestroyAndClean();
-                    pool.Clear();
-                }
-            }
-
-            GroupPrefabLookup.Clear();
-        }
-
-        public void CleanAllDestroyedInPools()
-        {
-            foreach (var prefabPools in GroupPrefabLookup.Values)
-            {
-                foreach (var pool in prefabPools.Values)
-                {
-                    pool.DestroyAndClean();
-                }
             }
         }
 
         #endregion
 
-        #region Query Methods
+        #region Internal Helpers
 
-        public bool HasGroup(string groupName)
+        private PoolRuntimeInfo GetOrCreatePoolInfo(string group, Object prefab, Transform parent, int size)
         {
-            return GroupPrefabLookup.ContainsKey(groupName);
-        }
-        
-        public T Query<T>(string groupName, T prefab) where T : Object
-        {
-            if (GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
+            if (!GroupPrefabLookup.ContainsKey(group)) GroupPrefabLookup[group] = new Dictionary<Object, PoolRuntimeInfo>();
+            if (!GroupPrefabLookup[group].ContainsKey(prefab))
             {
-                if (prefabPools.TryGetValue(prefab, out var pool))
-                {
-                    return pool.GetItem() as T;
-                }
+                if (size <= 0) size = 1;
+                var pool = new ObjectPool<Object>(() => InstantiatePrefab(prefab, parent), size);
+                 
+                // TRUYỀN THÊM 'group' VÀO ĐÂY
+                var info = new PoolRuntimeInfo(group, prefab, pool); 
+                 
+                GroupPrefabLookup[group][prefab] = info;
             }
-
-            return null;
+            return GroupPrefabLookup[group][prefab];
         }
 
-        public string GetGroupFormToPrefab<T>(T prefab) where T : Object
+        private Object InstantiatePrefab(Object prefab, Transform parent)
         {
-            foreach (var group in GroupPrefabLookup)
-            {
-                if (group.Value.ContainsKey(prefab))
-                {
-                    return group.Key;
-                }
-            }
-
-            return null;
+            return prefab is GameObject go
+                ? Instantiate(go, parent)
+                : Instantiate((Component)prefab, parent);
         }
-        
+
+        private void SetupInstance(Object instance, Transform parent, bool active)
+        {
+            if (instance is Component component)
+            {
+                component.gameObject.SetActive(active);
+                if (parent != null) component.transform.SetParent(parent);
+            }
+            else if (instance is GameObject go)
+            {
+                go.SetActive(active);
+                if (parent != null) go.transform.SetParent(parent);
+            }
+        }
+
+        private void TriggerInterface(Object instance, bool isSpawn)
+        {
+            GameObject go = instance is Component c ? c.gameObject : instance as GameObject;
+            if (go == null) return;
+
+            var poolables = go.GetComponents<IPoolable>();
+            foreach (var p in poolables)
+            {
+                if (isSpawn) p.OnSpawn(); else p.OnDespawn();
+            }
+        }
+
         private bool IsGroupAndPrefabExist(string groupName, Object prefab)
         {
             return GroupPrefabLookup.ContainsKey(groupName) &&
                    GroupPrefabLookup[groupName].ContainsKey(prefab);
         }
 
+        public bool HasGroup(string groupName) => GroupPrefabLookup.ContainsKey(groupName);
+        
+        public T Query<T>(string groupName, T prefab) where T : Object
+        {
+            if (GroupPrefabLookup.TryGetValue(groupName, out var prefabPools))
+            {
+                if (prefabPools.TryGetValue(prefab, out var info))
+                {
+                    return info.Pool.GetItem() as T; 
+                }
+            }
+            return null;
+        }
+
         #endregion
+        
+        
+       #if UNITY_EDITOR
+        private void OnDrawGizmos()
+        {
+            if ((!ShowDebugLines && !ShowLabels) || InstanceLookup.Count == 0) return;
+
+            Vector3 centerPos = transform.position;
+
+            foreach (var item in InstanceLookup)
+            {
+                Object objRef = item.Key;
+                PoolRuntimeInfo info = item.Value;
+
+                GameObject go = null;
+                if (objRef is Component c) go = c.gameObject;
+                else if (objRef is GameObject g) go = g;
+
+                if (go != null && go.activeInHierarchy)
+                {
+                    Vector3 targetPos = go.transform.position;
+                    int hash = info.GroupName.GetHashCode();
+                    Color groupColor = Color.HSVToRGB(Mathf.Abs(hash % 100) / 100f, 0.8f, 1f);
+                    
+                    // 1. VẼ LINE
+                    if (ShowDebugLines)
+                    {
+                        Gizmos.color = new Color(groupColor.r, groupColor.g, groupColor.b, LineOpacity);
+                        Gizmos.DrawLine(centerPos, targetPos);
+                    }
+
+                    // 2. VẼ LABEL (CÓ THỜI GIAN)
+                    if (ShowLabels)
+                    {
+                        if (UnityEditor.SceneView.currentDrawingSceneView != null)
+                        {
+                            var cam = UnityEditor.SceneView.currentDrawingSceneView.camera;
+                            if (Vector3.Distance(cam.transform.position, targetPos) < 40f)
+                            {
+                                // Cơ bản: Tên Group và Tên Object
+                                string text = $"<color=#{ColorUtility.ToHtmlStringRGB(groupColor)}>{info.GroupName}</color>\n<b>{go.name}</b>";
+
+                                var timerScript = go.GetComponent<AutoDespawn>();
+                                if (timerScript != null)
+                                {
+                                    float t = timerScript.TimeLeft;
+                                    string colorHex = t < 1.0f ? "red" : "yellow"; // Dưới 1s thì báo đỏ
+                                    text += $"\n<color={colorHex}>⏳ {t:0.0}s</color>"; // Hiện icon đồng hồ và số giây
+                                }
+                                // --------------------------------
+
+                                GUIStyle style = new GUIStyle();
+                                style.alignment = TextAnchor.MiddleCenter;
+                                style.fontSize = 10;
+                                style.richText = true;
+                                style.normal.textColor = Color.white; 
+
+                                UnityEditor.Handles.Label(targetPos + Vector3.up * 1.5f, text, style);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+#endif
     }
 }
