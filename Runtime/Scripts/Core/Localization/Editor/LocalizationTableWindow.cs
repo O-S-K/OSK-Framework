@@ -31,10 +31,10 @@ namespace OSK
         private float translateDelay = 0.12f;
         private int sourceColumnIndex = 1;
 
-        [MenuItem("OSK-Framework/Localization/Table Sheet")]
+        [MenuItem("OSK-Framework/Localization/Window")]
         public static void OpenWindow()
         {
-            var w = GetWindow<LocalizationTableWindow>("Table Sheet");
+            var w = GetWindow<LocalizationTableWindow>("Window");
             w.minSize = new Vector2(700, 360);
         }
 

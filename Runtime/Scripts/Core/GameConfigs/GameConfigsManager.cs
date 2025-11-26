@@ -9,6 +9,7 @@ namespace OSK
         [ReadOnly]
         public ConfigInit Init;
          
+        [ReadOnly]
         public string VersionApp => Application.version;
 
         
@@ -27,9 +28,9 @@ namespace OSK
             string currentVersion = VersionApp;
             string key = "lastVersion";
 
-            if (PlayerPrefs.HasKey(key))
+            if (PrefData.HasKey(key))
             {
-                string savedVersion = PlayerPrefs.GetString(key);
+                string savedVersion = PrefData.GetString(key);
                 if (currentVersion != savedVersion)
                 {
                     // New version
@@ -45,8 +46,8 @@ namespace OSK
                 OSKLogger.Log("First time version");
             } 
 
-            PlayerPrefs.SetString(key, currentVersion);
-            PlayerPrefs.Save();
+            PrefData.SetString(key, currentVersion);
+            PrefData.Save();
         }
     }
 }

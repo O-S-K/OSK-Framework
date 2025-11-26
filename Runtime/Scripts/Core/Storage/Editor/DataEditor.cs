@@ -8,7 +8,7 @@ using System.IO;
 
 namespace OSK
 {
-public class SaveEditor : Editor
+public class DataEditor : Editor
 { 
     
     [MenuItem("OSK-Framework/Tools/Save/Open Persistent Data" )]
@@ -17,7 +17,7 @@ public class SaveEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.PersistentData);
         if (string.IsNullOrEmpty(path))
         {
-            Debug.LogWarning("Path is null or empty");
+            OSKLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);
@@ -29,7 +29,7 @@ public class SaveEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.StreamingAssets);
         if (string.IsNullOrEmpty(path))
         {
-            Debug.LogWarning("Path is null or empty");
+            OSKLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);
@@ -41,7 +41,7 @@ public class SaveEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.DataPath);
         if (string.IsNullOrEmpty(path))
         {
-            Debug.LogWarning("Path is null or empty");
+            OSKLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);
@@ -53,7 +53,7 @@ public class SaveEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.TemporaryCache);
         if (string.IsNullOrEmpty(path))
         {
-            Debug.LogWarning("Path is null or empty");
+            OSKLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);
@@ -65,7 +65,7 @@ public class SaveEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.Custom);
         if (string.IsNullOrEmpty(path))
         {
-            Debug.LogWarning("Path is null or empty");
+            OSKLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);

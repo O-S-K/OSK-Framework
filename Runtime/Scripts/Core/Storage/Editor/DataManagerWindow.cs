@@ -61,10 +61,10 @@ namespace OSK
             }
         }
 
-        [MenuItem("OSK-Framework/Storage/Draw Table")]
+        [MenuItem("OSK-Framework/Storage/Window")]
         public static void ShowWindow()
         {
-            var window = GetWindow<DataManagerWindow>("Save Manager");
+            var window = GetWindow<DataManagerWindow>("Window");
             window.minSize = new Vector2(800, 500);
             window.Show();
         }

@@ -22,10 +22,10 @@ namespace OSK
         // Styles
         private GUIStyle cardStyle, headerStyle, badgeStyleGO, badgeStyleComp;
 
-        [MenuItem("OSK/Ultimate Pool Master")]
+        [MenuItem("OSK-Framework/Pool/Debug Window")]
         public static void ShowWindow()
         {
-            GetWindow<PoolManagerWindow>("Pool Master").minSize = new Vector2(950, 550);
+            GetWindow<PoolManagerWindow>("Debug Window").minSize = new Vector2(950, 550);
         }
 
         private void InitStyles()

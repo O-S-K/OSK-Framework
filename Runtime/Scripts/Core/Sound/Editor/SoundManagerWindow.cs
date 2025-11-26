@@ -35,10 +35,10 @@ namespace OSK
         private Vector2 leftScroll;
         private Vector2 rightScroll;
 
-        [MenuItem("OSK-Framework/Sound/Manager Window")]
+        [MenuItem("OSK-Framework/Sound/Window")]
         public static void ShowWindow()
         {
-            var w = GetWindow<SoundManagerWindow>("Sound Manager");
+            var w = GetWindow<SoundManagerWindow>("Window");
             w.minSize = new Vector2(LeftSidebarWidth + 400, 360);
         }
 

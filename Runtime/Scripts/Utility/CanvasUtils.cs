@@ -65,7 +65,7 @@ namespace OSK
                 Vector3 screenPoint = mainCamera.WorldToScreenPoint(pointTarget.position);
                 if (screenPoint.z < 0)
                 {
-                    Debug.LogWarning("Object is behind the main camera, unable to convert position.");
+                    OSKLogger.LogWarning("Object is behind the main camera, unable to convert position.");
                     return Vector3.zero;
                 }
 

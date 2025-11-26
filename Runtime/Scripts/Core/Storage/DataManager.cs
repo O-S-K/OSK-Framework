@@ -48,7 +48,7 @@ namespace OSK
             
             if (fs == null)
             {
-                Debug.LogError($"DataManager.Save: Unknown SaveType {type}");
+                OSKLogger.LogError($"DataManager.Save: Unknown SaveType {type}");
                 return;
             }
             try
@@ -57,7 +57,7 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                Debug.LogError($"DataManager.Save ERROR: {fileName} ({type})\n{ex}");
+                OSKLogger.LogError($"DataManager.Save ERROR: {fileName} ({type})\n{ex}");
             }
         }
 
@@ -66,7 +66,7 @@ namespace OSK
             var fs = Resolve(type);
             if (fs == null)
             {
-                Debug.LogError($"DataManager.Load: Unknown SaveType {type}");
+                OSKLogger.LogError($"DataManager.Load: Unknown SaveType {type}");
                 return default;
             }
 
@@ -77,7 +77,7 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                Debug.LogError($"DataManager.Load ERROR: {fileName} ({type})\n{ex}");
+                OSKLogger.LogError($"DataManager.Load ERROR: {fileName} ({type})\n{ex}");
                 return default;
             }
         }
@@ -87,7 +87,7 @@ namespace OSK
             var fs = Resolve(type);
             if (fs == null)
             {
-                Debug.LogError($"DataManager.Delete: Unknown SaveType {type}");
+                OSKLogger.LogError($"DataManager.Delete: Unknown SaveType {type}");
                 return;
             }
 
@@ -98,7 +98,7 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                Debug.LogError($"DataManager.Delete ERROR: {fileName} ({type})\n{ex}");
+                OSKLogger.LogError($"DataManager.Delete ERROR: {fileName} ({type})\n{ex}");
             }
         }
 
@@ -113,7 +113,7 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                Debug.LogError($"DataManager.WriteAllText ERROR: {fileName}\n{ex}");
+                OSKLogger.LogError($"DataManager.WriteAllText ERROR: {fileName}\n{ex}");
             }
         }
 
@@ -122,7 +122,7 @@ namespace OSK
             var fs = Resolve(type);
             if (fs == null)
             {
-                Debug.LogError($"DataManager.WriteAllLines: Unknown SaveType {type}");
+                OSKLogger.LogError($"DataManager.WriteAllLines: Unknown SaveType {type}");
                 return;
             }
             try
@@ -131,7 +131,7 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                Debug.LogError($"DataManager.WriteAllLines ERROR: {fileName} ({type})\n{ex}");
+                OSKLogger.LogError($"DataManager.WriteAllLines ERROR: {fileName} ({type})\n{ex}");
             }
         }
  

@@ -19,10 +19,10 @@ namespace OSK
 
         private EViewType? selectedType = null;
 
-        [MenuItem("OSK-Framework/UI/Manager Window")]
+        [MenuItem("OSK-Framework/UI/Window")]
         public static void ShowWindow()
         {
-            var w = GetWindow<UIManagerWindow>("UI Manager");
+            var w = GetWindow<UIManagerWindow>("Window");
             w.minSize = new Vector2(LeftSidebarWidth, 500);
         }
 

@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-
 using UnityEditor;
 using UnityEngine;
 using System.IO; 
@@ -7,7 +6,7 @@ using System.IO;
 namespace OSK
 {
     [CustomEditor(typeof(DataManager))]
-    public class SaveEditorVisual : Editor
+    public class DataEditorVisual : Editor
     {
         private DataManager manager;
 

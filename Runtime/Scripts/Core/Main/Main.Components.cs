@@ -137,8 +137,12 @@ namespace OSK
                 QualitySettings.vSyncCount = configInit.VSyncCount;
                 Screen.sleepTimeout = configInit.NeverSleep ? SleepTimeout.NeverSleep : SleepTimeout.SystemSetting;
                 OSKLogger.SetLogEnabled(configInit.IsEnableLogg);
-                
-                if (Data) Data.isEncrypt = configInit.IsEncryptStorage;
+
+                if (Data)
+                {
+                    Data.isEncrypt = configInit.IsEncryptStorage;
+                    PrefData.IsEncrypt = configInit.IsEncryptStorage;
+                }
                 if (Configs) Configs.CheckVersion(() => { Debug.Log("New version"); });
                 IOUtility.directorySave = configInit.directoryPathSave;
                 IOUtility.customPath = configInit.CustomPathSave;

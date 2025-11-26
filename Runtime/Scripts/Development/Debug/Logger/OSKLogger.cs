@@ -1,69 +1,129 @@
-﻿#define UNITY_DIALOGS // Comment out to disable dialogs for fatal errors
+﻿#define UNITY_DIALOGS
 
 namespace OSK
 {
     using UnityEngine;
-    using System.Collections.Generic;
 
     public class OSKLogger
     {
-        private static OSKLogger instance;
-        private static OSKLogger Instance => instance ??= new OSKLogger();
+        private static OSKLogger _instance;
+        private static OSKLogger Instance => _instance ??= new OSKLogger();
 
-        private OSKLogger()
-        {
-        }
-
+        private OSKLogger() { }
 
         public static bool IsLogEnabled = true;
         public static void SetLogEnabled(bool value) => IsLogEnabled = value;
 
-        public delegate void OnLogFunc(string channel, int priority, string message);
-
+        // Updated delegate to include context
+        public delegate void OnLogFunc(string channel, int priority, string message, Object context);
         public static event OnLogFunc OnLog;
 
-        // =============================
-        // Logging
-        // =============================
-        public static void Log(string message) => FinalLog("OSK", "Log", message);
-        public static void Log(string channel, string message) => FinalLog(channel, "Log", message);
+        // ========================================================================
+        // 1. STANDARD LOGGING (With Context Overloads)
+        // ========================================================================
+        
+        // Log
+        public static void Log(string message, Object context = null) 
+            => FinalLog("OSK", "Log", message, context);
+        public static void Log(string channel, string message, Object context = null) 
+            => FinalLog(channel, "Log", message, context);
 
-        public static void LogWarning(string message) => FinalLog("OSK", "Warning", message);
-        public static void LogWarning(string channel, string message) => FinalLog(channel, "Warning", message);
+        // Warning
+        public static void LogWarning(string message, Object context = null) 
+            => FinalLog("OSK", "Warning", message, context);
+        public static void LogWarning(string channel, string message, Object context = null) 
+            => FinalLog(channel, "Warning", message, context);
 
-        public static void LogError(string message) => FinalLog("OSK", "Error", message);
-        public static void LogError(string channel, string message) => FinalLog(channel, "Error", message);
+        // Error
+        public static void LogError(string message, Object context = null) 
+            => FinalLog("OSK", "Error", message, context);
+        public static void LogError(string channel, string message, Object context = null) 
+            => FinalLog(channel, "Error", message, context);
 
-        public static void LogFatal(string message) => FinalLog("OSK", "Fatal", message);
-        public static void LogFatal(string channel, string message) => FinalLog(channel, "Fatal", message);
+        // Fatal
+        public static void LogFatal(string message, Object context = null) 
+            => FinalLog("OSK", "Fatal", message, context);
+        public static void LogFatal(string channel, string message, Object context = null) 
+            => FinalLog(channel, "Fatal", message, context);
+
+        // ========================================================================
+        // 2. LOG IF (Conditional Logging)
+        // ========================================================================
+
+        public static void LogIf(bool condition, string message, Object context = null)
+        {
+            if (condition) FinalLog("OSK", "Log", message, context);
+        }
+
+        public static void LogWarningIf(bool condition, string message, Object context = null)
+        {
+            if (condition) FinalLog("OSK", "Warning", message, context);
+        }
+
+        public static void LogErrorIf(bool condition, string message, Object context = null)
+        {
+            if (condition) FinalLog("OSK", "Error", message, context);
+        }
+
+        // ========================================================================
+        // 3. LOG FORMAT (String.Format style)
+        // ========================================================================
+
+        public static void LogFormat(string format, params object[] args) 
+            => FinalLog("OSK", "Log", string.Format(format, args));
+
+        public static void LogWarningFormat(string format, params object[] args) 
+            => FinalLog("OSK", "Warning", string.Format(format, args));
+
+        public static void LogErrorFormat(string format, params object[] args) 
+            => FinalLog("OSK", "Error", string.Format(format, args));
+
+        // ========================================================================
+        // 4. LOG NOT NULL / NULL (Quick Debugging)
+        // ========================================================================
+
+        /// <summary>
+        /// Logs an error if the target object is null.
+        /// </summary>
+        public static void LogIfNull(object target, string message, Object context = null)
+        {
+            if (target == null || (target is UnityEngine.Object obj && !obj)) 
+                FinalLog("OSK", "Error", message, context);
+        }
+
+        // ========================================================================
+        // INTERNAL LOGIC
+        // ========================================================================
 
         #if UNITY_6000_OR_NEWER
         [HideInCallstack]
         #endif
-        private static void FinalLog(string channel, string level, string message)
+        private static void FinalLog(string channel, string level, string message, Object context = null)
         {
             if (!IsLogEnabled) return;
 
             string finalMessage = ConstructFinalString(channel, level, message);
 
+            // Updated to pass 'context' to Unity Debug. This allows you to click 
+            // the log in Console and ping the object in the Hierarchy.
             switch (level)
             {
                 case "Fatal":
                 case "Error":
-                    Debug.LogError(finalMessage);
+                    if (context != null) Debug.LogError(finalMessage, context);
+                    else Debug.LogError(finalMessage);
                     break;
                 case "Warning":
-                    Debug.LogWarning(finalMessage);
+                    if (context != null) Debug.LogWarning(finalMessage, context);
+                    else Debug.LogWarning(finalMessage);
                     break;
                 default:
-                    Debug.Log(finalMessage);
+                    if (context != null) Debug.Log(finalMessage, context);
+                    else Debug.Log(finalMessage);
                     break;
             }
 
-            if (OnLog != null)
-            {
-                OnLog.Invoke(channel, level == "Log" ? 0 : level == "Warning" ? 1 : 2, message);
-            }
+            OnLog?.Invoke(channel, level == "Log" ? 0 : level == "Warning" ? 1 : 2, message, context);
         }
 
         private static string ConstructFinalString(string channel, string level, string message)
@@ -80,41 +140,21 @@ namespace OSK
         }
     }
 
-
     public static class ExLog
     {
-        public static string Bold(this string str)
-        {
-            if (string.IsNullOrEmpty(str)) return string.Empty;
-            return $"<b>{str}</b>";
-        }
+        public static string Bold(this string str) => string.IsNullOrEmpty(str) ? string.Empty : $"<b>{str}</b>";
+        
+        public static string Size(this string text, int size) => string.IsNullOrEmpty(text) ? string.Empty : $"<size={size}>{text}</size>";
+        
+        public static string Italic(this string str) => string.IsNullOrEmpty(str) ? string.Empty : $"<i>{str}</i>";
+        
+        public static string Time(this string str) => string.IsNullOrEmpty(str) ? string.Empty : $"<time>{str}</time>";
 
         public static string Color(this string text, Color color)
         {
             if (string.IsNullOrEmpty(text)) return string.Empty;
-
-            if (color == default)
-                color = UnityEngine.Color.white;
-
-            return text.GetColorHtml(color);
-        }
-
-        public static string Size(this string text, int size)
-        {
-            if (string.IsNullOrEmpty(text)) return string.Empty;
-            return $"<size={size}>{text}</size>";
-        }
-
-        public static string Italic(this string str)
-        {
-            if (string.IsNullOrEmpty(str)) return string.Empty;
-            return $"<i>{str}</i>";
-        }
-
-        public static string Time(this string str)
-        {
-            if (string.IsNullOrEmpty(str)) return string.Empty;
-            return $"<time>{str}</time>";
+            if (color == default) color = UnityEngine.Color.white;
+            return $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{text}</color>";
         }
     }
 }
