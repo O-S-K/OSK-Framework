@@ -40,7 +40,7 @@ namespace OSK
                 AssetDatabase.CreateFolder(resourcesPath, "Configs");
             }
 
-            IOUtility.CreateDirectory(path);
+            IOUtility.CreateFilePath(path);
             if (main == null)
             {
                 Debug.LogError("Main instance is null. Please ensure Main is initialized before creating config.");

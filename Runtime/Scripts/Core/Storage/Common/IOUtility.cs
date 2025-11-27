@@ -30,6 +30,15 @@ namespace OSK
         
         public static string encryptKey = "b14ca5898a4e4133bbce2ea2315a1916";
         
+        public static string CreateFilePath(string fileName)
+        {
+            string dir = GetDirectory();
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            return Path.Combine(dir, fileName);
+        }
+        
         public static string CreateDirectory (string folderName)
         {
             string dir = GetDirectory();
