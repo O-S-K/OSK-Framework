@@ -1,20 +1,14 @@
 using System;
 using System.Collections.Generic;
-
-#if CYSHARP_UNITASK
 using Cysharp.Threading.Tasks;
-#endif
 
 
 namespace OSK
 {
     public class EventBusManager : GameFrameworkComponent
     {
-        // Key: Event Type, Value: List of Subscribers
         private readonly Dictionary<Type, List<Delegate>> syncSubscribers = new();
-        // Key: Event Type, Value: List of Async Subscribers
         private readonly Dictionary<Type, List<Delegate>> asyncSubscribers = new();
-        // Key: Event Type, Value: Last Event
         private readonly Dictionary<Type, GameEvent> lastEvents = new();
 
         public override void OnInit() { }
@@ -36,7 +30,7 @@ namespace OSK
                 callback?.Invoke((T)lastEvent);
             }
         }
-#if CYSHARP_UNITASK
+
         public void SubscribeAsync<T>(Func<T, UniTask> callback, bool receiveLastIfExists = false) where T : GameEvent
         {
             Type eventType = typeof(T);
@@ -52,7 +46,6 @@ namespace OSK
                 _ = callback.Invoke((T)lastEvent);
             }
         }
-#endif
         #endregion
 
         #region Unsubscribe
@@ -66,7 +59,6 @@ namespace OSK
             }
         }
 
-#if CYSHARP_UNITASK
         public void UnsubscribeAsync<T>(Func<T, UniTask> callback) where T : GameEvent
         {
             Type eventType = typeof(T);
@@ -75,7 +67,6 @@ namespace OSK
                 asyncSubscribers[eventType].Remove(callback);
             }
         }
-#endif
         #endregion
 
         #region Publish
@@ -96,7 +87,6 @@ namespace OSK
                 }
             }
 
-#if CYSHARP_UNITASK
             // send to async subscribers (fire and forget)
             if (asyncSubscribers.ContainsKey(eventType))
             {
@@ -105,11 +95,9 @@ namespace OSK
                     _ = (subscriber as Func<T, UniTask>)?.Invoke(gameEvent);
                 }
             }
-#endif
         }
 
 
-#if CYSHARP_UNITASK
         public async UniTask PublishAsync<T>(T gameEvent) where T : GameEvent
         {
             Type eventType = typeof(T);
@@ -138,7 +126,6 @@ namespace OSK
                 }
             }
         }
-#endif
         #endregion
     }
 }
