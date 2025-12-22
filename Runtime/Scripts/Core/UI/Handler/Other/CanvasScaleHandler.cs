@@ -20,7 +20,7 @@ namespace OSK
         { 
             if (RootUI?.CanvasScaler == null)
             {
-                OSKLogger.LogWarning("UI","CanvasScaler  is not set up in the RootUI. Please ensure it is assigned.");
+                MyLogger.LogWarning("CanvasScaler  is not set up in the RootUI. Please ensure it is assigned.");
                 return;
             }
 
@@ -37,7 +37,7 @@ namespace OSK
             }
             
             string log = Mathf.Approximately(RootUI.CanvasScaler.matchWidthOrHeight, 1f) ? "1 (Match Width)" : "0 (Match Height)";
-            OSKLogger.Log("UI",$"Ratio: {ratio}. IsPad {IsIpad()} matchWidthOrHeight: {log}");
+            MyLogger.Log($"Ratio: {ratio}. IsPad {IsIpad()} matchWidthOrHeight: {log}");
         }
          
         

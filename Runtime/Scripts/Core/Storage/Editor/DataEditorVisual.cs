@@ -78,11 +78,11 @@ namespace OSK
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
-                OSKLogger.Log("Storage",$"Deleted file: {filePath}");
+                MyLogger.Log($"Deleted file: {filePath}");
             }
             else
             {
-                OSKLogger.LogError("Storage",$"File not found: {filePath}");
+                MyLogger.LogError($"File not found: {filePath}");
             }
         }
 
@@ -95,7 +95,7 @@ namespace OSK
             }
             else
             {
-                OSKLogger.LogError("Storage",$"Directory not found: {fileDirectory}");
+                MyLogger.LogError($"Directory not found: {fileDirectory}");
             }
         }
 

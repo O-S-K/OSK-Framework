@@ -23,6 +23,10 @@ The **OSK Framework** is a modular Unity framework designed to streamline game d
 Update Editor UI, Sound SO
 Fixbug
 
+**version 3.1
+Update debug, Add SheetDataManager
+Fixbug
+
 ---
 
 ## **🌟 Key Features**
@@ -47,8 +51,7 @@ Fixbug
 16. [**EntityManager**]: Manages game entities and their lifecycle.  
 17. [**BlackboardManager**]: Facilitates shared data storage for AI and gameplay logic.  
 18. [**ProcedureManager**]: Manages game procedures and workflows for structured gameplay logic.  
- 
-
+19. [**SheetDataManager**]: Manages game load sheet SO from Resource game.  
 
 ---
 

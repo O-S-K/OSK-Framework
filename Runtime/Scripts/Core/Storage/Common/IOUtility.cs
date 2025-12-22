@@ -91,7 +91,7 @@ namespace OSK
             if (File.Exists(path))
             {
                 File.Delete(path);
-                OSKLogger.Log("Storage", $"🗑 Deleted file: {path}");
+                MyLogger.Log($"🗑 Deleted file: {path}");
             }
         }
 
@@ -122,7 +122,7 @@ namespace OSK
                 return fullPath.Substring(resourcesIndex + "Resources/".Length);
             }
 
-            OSKLogger.LogWarning("Asset not found in resources");
+            MyLogger.LogWarning("Asset not found in resources");
             return fullPath;
         }
 #endif

@@ -27,11 +27,11 @@ namespace OSK
                 {
                     string details = string.Join(", ", _data.Select(d =>
                         d == null ? "null" : $"{d.GetType().Name}({d})"));
-                    OSKLogger.Log("UI", $"[DebugData] {GetType().Name} received data: [{details}]");
+                    MyLogger.Log( $"[DebugData] {GetType().Name} received data: [{details}]");
                 }
                 else
                 {
-                    OSKLogger.Log("UI", $"[DebugData] {GetType().Name} received empty data");
+                    MyLogger.Log( $"[DebugData] {GetType().Name} received empty data");
                 }
 #endif
             }
@@ -98,13 +98,13 @@ namespace OSK
             
             if (dataSO == null)
             {
-                OSKLogger.LogError("UI", "[AddViewToDataSO] Cannot find ViewDataSO in Resources folder.");
+                MyLogger.LogError( "[AddViewToDataSO] Cannot find ViewDataSO in Resources folder.");
                 return;
             }
 
             if (dataSO.Views.Any(v => v.view == this))
             {
-                OSKLogger.LogWarning("UI", $"[AddViewToDataSO] {name} already exists in ViewDataSO.");
+                MyLogger.LogWarning( $"[AddViewToDataSO] {name} already exists in ViewDataSO.");
                 return;
             }
 
@@ -120,7 +120,7 @@ namespace OSK
                 view = this
             };
             dataSO.Views.Add(newData);
-            OSKLogger.Log("UI", $"[AddViewToDataSO] Added {name} to ViewDataSO.");
+            MyLogger.Log( $"[AddViewToDataSO] Added {name} to ViewDataSO.");
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(dataSO);
             UnityEditor.AssetDatabase.SaveAssets();
@@ -141,7 +141,7 @@ namespace OSK
 
             if (_rootUI == null)
             {
-                OSKLogger.LogError("UI", "[View] RootUI is still null after initialization.");
+                MyLogger.LogError( "[View] RootUI is still null after initialization.");
             }
 
             SetDepth();
@@ -186,7 +186,7 @@ namespace OSK
         {
             if (data == null || data.Length == 0)
             {
-                OSKLogger.Log("UI", $"[SetData] No data passed to {GetType().Name}");
+                MyLogger.Log( $"[SetData] No data passed to {GetType().Name}");
                 return;
             }
 
@@ -252,7 +252,7 @@ namespace OSK
             if (!_isShowing) return;
 
             _isShowing = false;
-            OSKLogger.Log("UI", $"[View] Hide {gameObject.name} is showing {_isShowing}");
+            MyLogger.Log( $"[View] Hide {gameObject.name} is showing {_isShowing}");
 
             if (_uiTransition != null)
                 _uiTransition.CloseTrans(FinalizeHide);
@@ -271,8 +271,8 @@ namespace OSK
         {
             if (_rootUI == null)
             {
-                OSKLogger.LogError(
-                    "UI",
+                MyLogger.LogError(
+                    
                     "[View] View Manager is null. Ensure that the View has been initialized before calling Open.");
                 return false;
             }
@@ -283,7 +283,7 @@ namespace OSK
         protected bool IsAlreadyShowing()
         {
             if (!_isShowing) return false;
-            OSKLogger.LogWarning("UI", "[View] View is already showing");
+            MyLogger.LogWarning( "[View] View is already showing");
             return true;
         }
 

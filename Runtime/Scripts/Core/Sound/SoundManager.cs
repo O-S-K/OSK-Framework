@@ -44,14 +44,14 @@ namespace OSK
             var soundList = Main.Instance.configInit.data.listSoundSo;
             if (soundList == null)
             {
-                OSKLogger.LogError("SoundSO is missing in ConfigInit.");
+                MyLogger.LogError("SoundSO is missing in ConfigInit.");
                 return;
             }
 
             _listSoundData = soundList.ListSoundInfos ?? new List<SoundData>();
             if (_listSoundData.Count == 0)
             {
-                OSKLogger.LogWarning("Sound data list is empty.");
+                MyLogger.LogWarning("Sound data list is empty.");
             }
 
             _templateSource = new GameObject("AudioSource_Template").AddComponent<AudioSource>();
@@ -95,7 +95,7 @@ namespace OSK
             var data = GetSoundInfo(id);
             if (data == null)
             {
-                OSKLogger.LogError($"[Sound] No sound info with id: {id}");
+                MyLogger.LogError($"[Sound] No sound info with id: {id}");
                 return null;
             }
 
@@ -117,7 +117,7 @@ namespace OSK
         {
             if (clip == null)
             {
-                OSKLogger.LogError("[Sound] Missing AudioClip.");
+                MyLogger.LogError("[Sound] Missing AudioClip.");
                 return null;
             }
 

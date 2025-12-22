@@ -82,13 +82,13 @@ namespace OSK
 
             if (instance == null)
             {
-                OSKLogger.LogError("Pool", $"Object from pool is null. Group: {groupName}, Prefab: {prefab.name}");
+                MyLogger.LogError( $"Object from pool is null. Group: {groupName}, Prefab: {prefab.name}");
                 return null;
             }
             SetupInstance(instance, parent, true);
             if (!InstanceLookup.TryAdd(instance, poolInfo))
             {
-                OSKLogger.LogWarning("Pool", $"Instance lookup already contains: {instance}");
+                MyLogger.LogWarning( $"Instance lookup already contains: {instance}");
             }
             poolInfo.UpdateStats(); 
             TriggerInterface(instance, true);
@@ -113,7 +113,7 @@ namespace OSK
             }
             else
             {
-                OSKLogger.LogWarning("Pool", $"{instance} not found in any pool lookup.");
+                MyLogger.LogWarning( $"{instance} not found in any pool lookup.");
                 SetupInstance(instance, null, false);
             }
         }

@@ -74,7 +74,7 @@ namespace OSK
 
             if (container == null)
             {
-                OSKLogger.LogWarning("Pool",$"[Pool] No available item found in pool of type {typeof(T).Name}. Creating a new one.");
+                MyLogger.LogWarning($"[Pool] No available item found in pool of type {typeof(T).Name}. Creating a new one.");
                 container = CreateContainer();
             }
 
@@ -82,7 +82,7 @@ namespace OSK
 
             if (container.Item == null)
             {
-                OSKLogger.LogWarning("Pool",$"[Pool] Created item is null in pool of type {typeof(T).Name}. Returning default value.");
+                MyLogger.LogWarning($"[Pool] Created item is null in pool of type {typeof(T).Name}. Returning default value.");
                 return default;
             }
 
@@ -108,7 +108,7 @@ namespace OSK
                 _listPool.Add(container);
             }
 
-            OSKLogger.Log("Pool",$"[Pool] Refilled {amount} item(s) to pool of type {typeof(T).Name}.");
+            MyLogger.Log($"[Pool] Refilled {amount} item(s) to pool of type {typeof(T).Name}.");
         }
 
         public List<T> GetAllItems()
@@ -132,7 +132,7 @@ namespace OSK
             }
             else
             {
-                OSKLogger.LogWarning("This object pool does not contain the item provided: " + item);
+                MyLogger.LogWarning("This object pool does not contain the item provided: " + item);
             }
         }
 
@@ -163,7 +163,7 @@ namespace OSK
                 _lookupDic.Remove(key);
             }
 
-            OSKLogger.Log("Pool",$"[Pool] Cleaned and destroyed unused items. Remaining: {_listPool.Count}");
+            MyLogger.Log($"[Pool] Cleaned and destroyed unused items. Remaining: {_listPool.Count}");
         }
 
         public void Clear()

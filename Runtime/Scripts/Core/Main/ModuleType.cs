@@ -22,6 +22,7 @@ namespace OSK
         EntityManager = 1 << 13,
         BlackboardManager = 1 << 14,
         ProcedureManager = 1 << 15,
-        GameInit = 1 << 16
+        DataSheetManager = 1 << 16,
+        GameInit = 1 << 17
     }
 }

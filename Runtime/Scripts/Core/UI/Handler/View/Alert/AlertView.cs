@@ -21,7 +21,7 @@ namespace OSK
             var setup = data[0] as AlertSetup;
             if(setup == null)
             {
-                OSKLogger.LogError("AlertView: setup is null. if override this method, remove base.SetData(setup).");
+                MyLogger.LogError("AlertView: setup is null. if override this method, remove base.SetData(setup).");
                 return;
             }
             SetTile(setup.title);
@@ -49,7 +49,7 @@ namespace OSK
             }
             else
             {
-                OSKLogger.LogError("UI",$"[AlertView] {errorContext}: No Text or TMP_Text component found.");
+                MyLogger.LogError($"[AlertView] {errorContext}: No Text or TMP_Text component found.");
             }
         }
 
@@ -105,7 +105,7 @@ namespace OSK
 
         public virtual void OnClose()
         {
-            OSKLogger.Log("UI","AlertView: OnClose called. Time hide left " + timeHide);
+            MyLogger.Log("AlertView: OnClose called. Time hide left " + timeHide);
             Destroy(gameObject);
         }
     }

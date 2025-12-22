@@ -37,7 +37,7 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Save JSON Error: {Path.GetFileName(path)} → {ex.Message}");
+                MyLogger.LogError($"❌ Save JSON Error: {Path.GetFileName(path)} → {ex.Message}");
             }
         }
 
@@ -47,7 +47,7 @@ namespace OSK
 
             if (!File.Exists(path))
             {
-                OSKLogger.LogWarning("Storage", $"File not found: {path}");
+                MyLogger.LogWarning($"File not found: {path}");
                 return default(T);
             }
 
@@ -63,7 +63,7 @@ namespace OSK
             }
             catch (Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Load JSON Error: {path}\n{ex.Message}");
+                MyLogger.LogError($"❌ Load JSON Error: {path}\n{ex.Message}");
                 return default(T);
             }
         }
@@ -80,7 +80,7 @@ namespace OSK
 
         public void WriteAllLines(string fileName, string[] lines)
         {
-            OSKLogger.LogError("Storage", $"❌ WriteAllLines only SaveType.File");
+            MyLogger.LogError($"❌ WriteAllLines only SaveType.File");
         }
 
         private static void RefreshEditor()

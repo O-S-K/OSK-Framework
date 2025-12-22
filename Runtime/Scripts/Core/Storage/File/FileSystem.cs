@@ -43,11 +43,11 @@ namespace OSK
                 }
 
                 RefreshEditor();
-                OSKLogger.Log("Storage", $"✅ Saved: {path}");
+                MyLogger.Log($"✅ Saved: {path}");
             }
             catch (Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Save Error: {Path.GetFileName(path)} → {ex.Message}");
+                MyLogger.LogError($"❌ Save Error: {Path.GetFileName(path)} → {ex.Message}");
             }
         }
 
@@ -56,7 +56,7 @@ namespace OSK
             string path = ResolvePath(fileName);
             if (!File.Exists(path))
             {
-                OSKLogger.LogError("Storage", $"❌ File not found: {path}");
+                MyLogger.LogError($"❌ File not found: {path}");
                 return default;
             }
 
@@ -70,12 +70,12 @@ namespace OSK
                 int len = reader.ReadInt32();
                 string json = Encoding.UTF8.GetString(reader.ReadBytes(len));
 
-                OSKLogger.Log("Storage", $"✅ Loaded: {path}");
+                MyLogger.Log($"✅ Loaded: {path}");
                 return JsonConvert.DeserializeObject<T>(json);
             }
             catch (Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Load Error: {Path.GetFileName(path)} → {ex.Message}");
+                MyLogger.LogError($"❌ Load Error: {Path.GetFileName(path)} → {ex.Message}");
                 return default;
             }
         }
@@ -88,7 +88,7 @@ namespace OSK
         {
             string path = IOUtility.GetPath(EnsureExtension(fileName, ".txt"));
             File.WriteAllLines(path, lines);
-            OSKLogger.Log("Storage", $"📝 Wrote lines to: {path}");
+            MyLogger.Log($"📝 Wrote lines to: {path}");
             RefreshEditor();
         }
 

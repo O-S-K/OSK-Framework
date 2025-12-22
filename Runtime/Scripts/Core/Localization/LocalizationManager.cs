@@ -34,7 +34,7 @@ namespace OSK
             _isSetDefaultLanguage = true;
             LoadLocalizationData(languageCode);
             _currentLanguage = languageCode;
-            OSKLogger.Log("Localization", $"Set language to: {languageCode}");
+            MyLogger.Log($"Set language to: {languageCode}");
         }
 
         public void SwitchLanguage(SystemLanguage language)
@@ -54,7 +54,7 @@ namespace OSK
         {
             if (!_isSetDefaultLanguage)
             {
-                OSKLogger.LogError("Localization", "Please set default language first. Key: " + key);
+                MyLogger.LogError("Please set default language first. Key: " + key);
                 return "";
             }
 
@@ -63,7 +63,7 @@ namespace OSK
                 return value ?? "";
             }
 
-            OSKLogger.LogError("Localization", $"Key '{key}' not found in localization data.");
+            MyLogger.LogError($"Key '{key}' not found in localization data.");
             return "";
         }
 
@@ -87,7 +87,7 @@ namespace OSK
                 }
                 else
                 {
-                    OSKLogger.LogWarning("Localization", $"Sprite at Resources path '{path}' for key '{key}' not found.");
+                    MyLogger.LogWarning($"Sprite at Resources path '{path}' for key '{key}' not found.");
                 }
             }
 
@@ -114,7 +114,7 @@ namespace OSK
                 }
                 else
                 {
-                    OSKLogger.LogWarning("Localization", $"AudioClip at Resources path '{path}' for key '{key}' not found.");
+                    MyLogger.LogWarning($"AudioClip at Resources path '{path}' for key '{key}' not found.");
                 }
             }
 
@@ -157,7 +157,7 @@ namespace OSK
             TextAsset textFile = Resources.Load<TextAsset>(path);
             if (textFile == null)
             {
-                OSKLogger.LogError("Localization", "Not found localization file: " + path);
+                MyLogger.LogError("Not found localization file: " + path);
                 return;
             }
 
@@ -174,7 +174,7 @@ namespace OSK
 
             if (lines.Length == 0)
             {
-                OSKLogger.LogWarning("Localization", "Localization file is empty: " + path);
+                MyLogger.LogWarning("Localization file is empty: " + path);
                 return;
             }
 
@@ -195,7 +195,7 @@ namespace OSK
             // If language text column not found, log and return
             if (languageColumnIndex == -1)
             {
-                OSKLogger.LogError("Localization", $"Language '{languageCode}' not found in localization file headers.");
+                MyLogger.LogError($"Language '{languageCode}' not found in localization file headers.");
                 return;
             }
 
@@ -208,7 +208,7 @@ namespace OSK
                 // First column expected to be key
                 if (columns.Length == 0 || string.IsNullOrWhiteSpace(columns[0]))
                 {
-                    OSKLogger.LogWarning("Localization", $"Invalid or missing key at CSV line {i + 1}.");
+                    MyLogger.LogWarning($"Invalid or missing key at CSV line {i + 1}.");
                     continue;
                 }
 
@@ -250,7 +250,7 @@ namespace OSK
             // populate detected languages list from header (once)
             GetListLanguageCsv(headers);
 
-            OSKLogger.Log("Localization", $"Load localization data for language: {languageCode}. Keys: {k_LocalizedText.Count}, Sprites: {spritePaths.Count}, Audios: {audioPaths.Count}");
+            MyLogger.Log($"Load localization data for language: {languageCode}. Keys: {k_LocalizedText.Count}, Sprites: {spritePaths.Count}, Audios: {audioPaths.Count}");
         }
 
         private void GetListLanguageCsv(string[] headers)

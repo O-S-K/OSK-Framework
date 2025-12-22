@@ -113,7 +113,7 @@ namespace OSK
             foreach (var view in listViewSO.Views)
             {
                 if (views.Contains(view))
-                    OSK.OSKLogger.LogError("UI",$"Popup Type {view} exists in the list. Please remove it.");
+                    OSK.MyLogger.LogError($"Popup Type {view} exists in the list. Please remove it.");
                 else
                     views.Add(view);
             }
@@ -175,7 +175,7 @@ namespace OSK
             listViews = Resources.LoadAll<View>("").ToList().FindAll(x => x.isAddToViewManager);
             if (listViews.Count == 0)
             {
-                OSK.OSKLogger.LogWarning("No views found in Resources folder");
+                OSK.MyLogger.LogWarning("No views found in Resources folder");
                 return;
             }
 

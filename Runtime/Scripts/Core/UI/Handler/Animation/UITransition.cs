@@ -35,7 +35,7 @@ namespace OSK
             _rectTransform = GetComponent<RectTransform>();
 
             if (contentUI == null)
-                OSKLogger.Log("UI", $"contentUI not set, using RectTransform instead => {gameObject.name}");
+                MyLogger.Log( $"contentUI not set, using RectTransform instead => {gameObject.name}");
         }
 
         public UniTask OpenTrans() => PlayTransition(_openingTweenSettings, true);

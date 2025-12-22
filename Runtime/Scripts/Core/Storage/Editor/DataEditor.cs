@@ -17,7 +17,7 @@ public class DataEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.PersistentData);
         if (string.IsNullOrEmpty(path))
         {
-            OSKLogger.LogWarning("Path is null or empty");
+            MyLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);
@@ -29,7 +29,7 @@ public class DataEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.StreamingAssets);
         if (string.IsNullOrEmpty(path))
         {
-            OSKLogger.LogWarning("Path is null or empty");
+            MyLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);
@@ -41,7 +41,7 @@ public class DataEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.DataPath);
         if (string.IsNullOrEmpty(path))
         {
-            OSKLogger.LogWarning("Path is null or empty");
+            MyLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);
@@ -53,7 +53,7 @@ public class DataEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.TemporaryCache);
         if (string.IsNullOrEmpty(path))
         {
-            OSKLogger.LogWarning("Path is null or empty");
+            MyLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);
@@ -65,7 +65,7 @@ public class DataEditor : Editor
         string path = IOUtility.GetDirectoryPath(IOUtility.StorageDirectory.Custom);
         if (string.IsNullOrEmpty(path))
         {
-            OSKLogger.LogWarning("Path is null or empty");
+            MyLogger.LogWarning("Path is null or empty");
             return;
         }
         Application.OpenURL(path);

@@ -47,14 +47,14 @@ namespace OSK
             {
                 if (existingValue.isReadOnly)
                 {
-                    OSKLogger.LogWarning("Blackboard",$"Cannot modify read-only value for key: {key}");
+                    MyLogger.LogWarning($"Cannot modify read-only value for key: {key}");
                     return;
                 }
 
                 // Only update if new priority is higher or equal
                 if (priority < existingValue.priority)
                 {
-                    OSKLogger.LogWarning("Blackboard",$"Cannot override value for key: {key} with lower priority");
+                    MyLogger.LogWarning($"Cannot override value for key: {key} with lower priority");
                     return;
                 }
             }
@@ -79,10 +79,10 @@ namespace OSK
                     return typedValue;
                 }
 
-                OSKLogger.LogError("Blackboard",$"Value for key '{key}' cannot be cast to type {typeof(T)}");
+                MyLogger.LogError($"Value for key '{key}' cannot be cast to type {typeof(T)}");
             }
 
-            OSKLogger.LogError("Blackboard",$"Key '{key}' not found in blackboard");
+            MyLogger.LogError($"Key '{key}' not found in blackboard");
             return default;
         }
 
@@ -160,7 +160,7 @@ namespace OSK
         {
             if (k_DataBlackboard.TryGetValue(key, out var value) && value.isReadOnly)
             {
-                OSKLogger.LogWarning("Blackboard",$"Cannot remove read-only key: {key}");
+                MyLogger.LogWarning($"Cannot remove read-only key: {key}");
                 return;
             }
 

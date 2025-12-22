@@ -26,10 +26,14 @@ namespace OSK
         public static BlackboardManager Blackboard { get; private set; }
         public static ProcedureManager Procedure { get; private set; }
         public static GameInit GameInit { get; private set; }
+        public static DataSheetManager DataSheet { get; private set; }
 
-        [HideLabel, InlineProperty] public ConfigInit configInit;
 
-        [HideLabel, InlineProperty] public MainModules mainModules;
+        [HideLabel, InlineProperty]
+        public ConfigInit configInit;
+
+        [HideLabel, InlineProperty]
+        public MainModules mainModules;
 
         public bool isDestroyingOnLoad = false;
 
@@ -61,11 +65,11 @@ namespace OSK
                 {
                     var module = newObject.AddComponent(componentType) as GameFrameworkComponent;
                     AssignModuleInstance(module);
-                    OSKLogger.Log("Main", $"Module {moduleType} initialized.");
+                    MyLogger.Log($"Module {moduleType} initialized.");
                 }
                 else
                 {
-                    OSKLogger.LogError("Main", $"Module {moduleType} not found in MainModules.");
+                    MyLogger.LogError($"Module {moduleType} not found in MainModules.");
                 }
             }
         }
@@ -88,8 +92,10 @@ namespace OSK
             else if (module is EntityManager entity) Entity = entity;
             else if (module is BlackboardManager blackboard) Blackboard = blackboard;
             else if (module is ProcedureManager procedure) Procedure = procedure;
+            else if (module is DataSheetManager dataSheet) DataSheet = dataSheet;
             else if (module is GameInit gameInit) GameInit = gameInit;
-            else OSKLogger.LogError("Main", $"[AssignModuleToField] Unknown module type: {module}");
+
+            else MyLogger.LogError($"[AssignModuleToField] Unknown module type: {module}");
         }
 
         private void InitDataComponents()
@@ -102,7 +108,7 @@ namespace OSK
                 {
                     if (current.Value == null)
                     {
-                        OSKLogger.LogError("Main", $"[InitData] Component '{componentName}' is NULL.");
+                        MyLogger.LogError($"[InitData] Component '{componentName}' is NULL.");
                     }
                     else
                     {
@@ -111,21 +117,21 @@ namespace OSK
                 }
                 catch (Exception e)
                 {
-                    OSKLogger.LogError("Main",
+                    MyLogger.LogError(
                         $"[InitData] Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
                 }
 
                 current = current.Next;
             }
 
-            OSKLogger.Log("[InitData] Init Data Components Done!");
+            MyLogger.Log("[InitData] Init Data Components Done!");
         }
 
         private void InitConfigs()
         {
             if (configInit == null)
             {
-                OSKLogger.LogError("[InitConfigs] ConfigInit is not set.");
+                MyLogger.LogError("[InitConfigs] ConfigInit is not set.");
                 return;
             }
 
@@ -136,19 +142,19 @@ namespace OSK
                 Time.timeScale = configInit.GameSpeed;
                 QualitySettings.vSyncCount = configInit.VSyncCount;
                 Screen.sleepTimeout = configInit.NeverSleep ? SleepTimeout.NeverSleep : SleepTimeout.SystemSetting;
-                OSKLogger.SetLogEnabled(configInit.IsEnableLogg);
+                MyLogger.IsLogEnabled = configInit.IsEnableLogg;
 
                 if (Data)
                 {
                     Data.isEncrypt = configInit.IsEncryptStorage;
                     PrefData.IsEncrypt = configInit.IsEncryptStorage;
                 }
+
                 if (Configs) Configs.CheckVersion(() => { Debug.Log("New version"); });
                 IOUtility.directorySave = configInit.directoryPathSave;
                 IOUtility.customPath = configInit.CustomPathSave;
-                OSKLogger.Log("[InitConfigs] Configs initialized successfully.");
+                MyLogger.Log("[InitConfigs] Configs initialized successfully.");
             }
-
         }
 
         private void OnDestroy()

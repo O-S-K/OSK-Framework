@@ -616,8 +616,7 @@ namespace OSK
 
         private void SaveAsCsv()
         {
-            string outPath =
-                EditorUtility.SaveFilePanel("Save localization CSV", Application.dataPath, "localization", "csv");
+            string outPath =  EditorUtility.SaveFilePanel("Save localization CSV", Application.dataPath, "localization", "csv");         
             if (string.IsNullOrEmpty(outPath)) return;
             WriteCsvToFile(outPath);
             loadedPath = outPath;

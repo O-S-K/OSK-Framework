@@ -40,7 +40,7 @@ namespace OSK
 #else
             Application.OpenURL(path.Replace("\\", "/"));
 #endif
-            OSKLogger.Log("Storage", $"[Open Folder] {path}");
+            MyLogger.Log($"[Open Folder] {path}");
         }
 
         [FoldoutGroup("🎮 Game Settings/Save Path")]

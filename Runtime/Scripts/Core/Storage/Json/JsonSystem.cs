@@ -39,11 +39,11 @@ namespace OSK
                 else File.WriteAllText(path, json);
 
                 RefreshEditor();
-                OSKLogger.Log("Storage", $"✅ Saved: {path}");
+                MyLogger.Log($"✅ Saved: {path}");
             }
             catch (System.Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Save Error: {Path.GetFileName(path)} → {ex.Message}");
+                MyLogger.LogError($"❌ Save Error: {Path.GetFileName(path)} → {ex.Message}");
             }
         }
 
@@ -52,7 +52,7 @@ namespace OSK
             string path = ResolvePath(fileName);
             if (!File.Exists(path))
             {
-                OSKLogger.LogError("Storage", $"❌ File not found: {path}");
+                MyLogger.LogError($"❌ File not found: {path}");
                 return default;
             }
 
@@ -68,12 +68,12 @@ namespace OSK
                 T data = JsonConvert.DeserializeObject<T>(json);
                 if (data == null) throw new IOException("Deserialize returned null");
 
-                OSKLogger.Log("Storage", $"✅ Loaded: {path}");
+                MyLogger.Log($"✅ Loaded: {path}");
                 return data;
             }
             catch (System.Exception ex)
             {
-                OSKLogger.LogError("Storage", $"❌ Load Error: {Path.GetFileName(path)} → {ex.Message}");
+                MyLogger.LogError($"❌ Load Error: {Path.GetFileName(path)} → {ex.Message}");
                 return default;
             }
         }
@@ -90,7 +90,7 @@ namespace OSK
 
         public void WriteAllLines(string fileName, string[] lines)
         {
-            OSKLogger.LogError("Storage", $"❌ WriteAllLines only SaveType.File");
+            MyLogger.LogError($"❌ WriteAllLines only SaveType.File");
         }
 
         private string FormatJsonDecimals(string json, int places)

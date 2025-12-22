@@ -259,7 +259,7 @@ namespace OSK
                 if (entryKey == key)
 
                 {
-                    OSKLogger.LogWarning("Blackboard",$"Key '{key}' already exists in the blackboard.");
+                    MyLogger.LogWarning($"Key '{key}' already exists in the blackboard.");
                     return false;
                 }
             }

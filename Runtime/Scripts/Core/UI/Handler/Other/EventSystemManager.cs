@@ -20,7 +20,7 @@ namespace OSK
                 {
                     Destroy(eventSystems[i].gameObject);
                 }
-                OSKLogger.LogWarning("UI","There are more than one EventSystem in the scene. Destroying all except the first one.");
+                MyLogger.LogWarning("There are more than one EventSystem in the scene. Destroying all except the first one.");
             }
             else if (eventSystems.Length == 0)
             {

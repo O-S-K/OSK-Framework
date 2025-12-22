@@ -87,7 +87,7 @@ namespace OSK
                     }
                     else
                     {
-                        OSKLogger.LogError("Please select a folder inside the Assets folder.");
+                        MyLogger.LogError("Please select a folder inside the Assets folder.");
                     }
                 }
             }
@@ -129,7 +129,7 @@ namespace OSK
             string scriptPath = Path.Combine(folderPath, scriptName + ".cs");
             if (File.Exists(scriptPath))
             {
-                OSKLogger.LogWarning("Script already exists.");
+                MyLogger.LogWarning("Script already exists.");
                 return;
             }
 
@@ -161,7 +161,7 @@ public class {scriptName} : {viewType}
             AssetDatabase.ImportAsset(scriptPath);
             AssetDatabase.Refresh();
 
-            OSKLogger.Log("UI",$"Created script at: {scriptPath}");
+            MyLogger.Log($"Created script at: {scriptPath}");
         }
 
         private void CreateViewPrefabOnly()
@@ -177,14 +177,14 @@ public class {scriptName} : {viewType}
 
             Selection.activeGameObject = createdView;
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-            OSKLogger.Log("UI","Created view GameObject in scene.");
+            MyLogger.Log("Created view GameObject in scene.");
         }
 
         private void TryAttachScript()
         {
             if (createdView == null)
             {
-                OSKLogger.LogError("View GameObject not created yet.");
+                MyLogger.LogError("View GameObject not created yet.");
                 return;
             }
 
@@ -192,14 +192,14 @@ public class {scriptName} : {viewType}
             MonoScript monoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(scriptAssetPath);
             if (monoScript == null)
             {
-                OSKLogger.LogError("Script not found. Try refreshing or check path.");
+                MyLogger.LogError("Script not found. Try refreshing or check path.");
                 return;
             }
 
             Type scriptType = monoScript.GetClass();
             if (scriptType == null)
             {
-                OSKLogger.LogWarning("Script not compiled yet. Will retry after compile.");
+                MyLogger.LogWarning("Script not compiled yet. Will retry after compile.");
                 EditorApplication.update += WaitForCompilation;
                 return;
             }
@@ -218,14 +218,14 @@ public class {scriptName} : {viewType}
             MonoScript monoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath);
             if (monoScript == null)
             {
-                OSKLogger.LogError($"Failed to load script at {scriptPath}");
+                MyLogger.LogError($"Failed to load script at {scriptPath}");
                 return;
             }
 
             Type scriptType = monoScript.GetClass();
             if (scriptType == null)
             {
-                OSKLogger.LogError("Failed to get script class after compilation.");
+                MyLogger.LogError("Failed to get script class after compilation.");
                 return;
             }
 
@@ -236,7 +236,7 @@ public class {scriptName} : {viewType}
         {
             if (createdView == null)
             {
-                OSKLogger.LogError("No view to attach script to.");
+                MyLogger.LogError("No view to attach script to.");
                 return;
             }
 
@@ -245,11 +245,11 @@ public class {scriptName} : {viewType}
                 createdView.AddComponent(type);
                 createdView.GetComponent<View>().viewType = viewType;
                 createdView.GetComponent<View>().depthEdit = depth;
-                OSKLogger.Log("UI","Script attached to view.");
+                MyLogger.Log("Script attached to view.");
             }
             else
             {
-                OSKLogger.Log("UI","Script already attached.");
+                MyLogger.Log("Script already attached.");
             }
         }
 
