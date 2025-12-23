@@ -25,8 +25,10 @@ namespace OSK
         public static EntityManager Entity { get; private set; }
         public static BlackboardManager Blackboard { get; private set; }
         public static ProcedureManager Procedure { get; private set; }
-        public static GameInit GameInit { get; private set; }
         public static DataSheetManager DataSheet { get; private set; }
+        public static InputDeviceManager InputDevice { get; private set; }
+        public static GameInit GameInit { get; private set; }
+        
 
 
         [HideLabel, InlineProperty]
@@ -93,6 +95,7 @@ namespace OSK
             else if (module is BlackboardManager blackboard) Blackboard = blackboard;
             else if (module is ProcedureManager procedure) Procedure = procedure;
             else if (module is DataSheetManager dataSheet) DataSheet = dataSheet;
+            else if (module is InputDeviceManager input) InputDevice = input;
             else if (module is GameInit gameInit) GameInit = gameInit;
 
             else MyLogger.LogError($"[AssignModuleToField] Unknown module type: {module}");
@@ -108,7 +111,7 @@ namespace OSK
                 {
                     if (current.Value == null)
                     {
-                        MyLogger.LogError($"[InitData] Component '{componentName}' is NULL.");
+                        MyLogger.LogError($"Component '{componentName}' is NULL.");
                     }
                     else
                     {
@@ -117,21 +120,20 @@ namespace OSK
                 }
                 catch (Exception e)
                 {
-                    MyLogger.LogError(
-                        $"[InitData] Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
+                    MyLogger.LogError("Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
                 }
 
                 current = current.Next;
             }
 
-            MyLogger.Log("[InitData] Init Data Components Done!");
+            MyLogger.Log("Init Data Components Done!");
         }
 
         private void InitConfigs()
         {
             if (configInit == null)
             {
-                MyLogger.LogError("[InitConfigs] ConfigInit is not set.");
+                MyLogger.LogError("ConfigInit is not set.");
                 return;
             }
 
@@ -150,10 +152,10 @@ namespace OSK
                     PrefData.IsEncrypt = configInit.IsEncryptStorage;
                 }
 
-                if (Configs) Configs.CheckVersion(() => { Debug.Log("New version"); });
+                if (Configs) Configs.CheckVersion(() => { MyLogger.Log("New version"); });
                 IOUtility.directorySave = configInit.directoryPathSave;
                 IOUtility.customPath = configInit.CustomPathSave;
-                MyLogger.Log("[InitConfigs] Configs initialized successfully.");
+                MyLogger.Log("Configs initialized successfully.");
             }
         }
 

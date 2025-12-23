@@ -23,6 +23,7 @@ namespace OSK
         BlackboardManager = 1 << 14,
         ProcedureManager = 1 << 15,
         DataSheetManager = 1 << 16,
-        GameInit = 1 << 17
+        InputDeviceManager = 1 << 17,
+        GameInit = 1 << 18
     }
 }
