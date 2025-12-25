@@ -13,13 +13,13 @@ namespace OSK
         [SerializeField, ReadOnly]
         private InputConfigSO config;
         [SerializeField, ReadOnly]
-        private string configPath = "InputConfigs/InputConfigSO";
 
         private readonly Dictionary<string, InputActionRuntime> runtime = new();
         private bool isInit = false;
 
         public override void OnInit()
         {
+            string configPath = Main.Instance.configInit.path.pathConfigInput;
             config = config != null ? config : Resources.Load<InputConfigSO>(configPath);
             if(config == null)
             {

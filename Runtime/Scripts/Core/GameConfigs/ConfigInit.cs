@@ -184,5 +184,7 @@ namespace OSK
     {
         [FolderPath]
         public string pathLoadFileCsv = "Localization/Localization";
+        public string pathDataSheets = "DataSheets";
+        public string pathConfigInput = "InputConfigs/InputConfigSO";
     }
 }

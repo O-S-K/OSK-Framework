@@ -121,12 +121,7 @@ namespace OSK
         private void DrawRightPanel()
         {
             EditorGUILayout.Space(10);
-
-            // 1. CHUẨN BỊ DỮ LIỆU: Lọc và Sắp xếp trước khi hiển thị
-            // Phải ToList() để tránh việc dữ liệu bị thay đổi thứ tự ngay khi đang gõ số
-            List<DataViewUI> displayList = listViewSO.Views
-                .Where(v => selectedType == null || (v.view != null && v.view.viewType == selectedType))
-                .ToList();
+            List<DataViewUI> displayList = listViewSO.Views.Where(v => selectedType == null || (v.view != null && v.view.viewType == selectedType)).ToList();
 
             // HEADER
             EditorGUILayout.BeginHorizontal();
@@ -147,16 +142,19 @@ namespace OSK
 
                 EditorGUILayout.BeginHorizontal();
 
-                // Ô nhập Depth - Dùng DelayedIntField để chỉ cập nhật khi nhấn Enter hoặc bỏ focus
-                // Giúp tránh việc đang gõ số thì dòng bị nhảy lung tung do sắp xếp
                 data.depth = EditorGUILayout.DelayedIntField(data.depth, GUILayout.Width(50));
 
-                // Type Display
-                string typeLabel = data.view != null ? data.view.viewType.ToString() : "N/A";
-                GUILayout.Label(typeLabel, GUILayout.Width(100));
-
+                if (data.view != null)
+                {
+                    data.view.viewType = (EViewType)EditorGUILayout.EnumPopup(data.view.viewType, GUILayout.Width(100));
+                }
+                else
+                {
+                    GUILayout.Label("N/A", GUILayout.Width(100));
+                }
+                
                 // View Object Field
-                data.view = (View)EditorGUILayout.ObjectField(data.view, typeof(View), false, GUILayout.Width(240));
+                data.view = (View)EditorGUILayout.ObjectField(data.view, typeof(View), false, GUILayout.Width(350));
 
                 // Nút xóa
                 if (GUILayout.Button("X", GUILayout.Width(60)))
@@ -192,38 +190,7 @@ namespace OSK
             EditorGUILayout.Space(50);
             DrawBottomTools();
         }
-
-        private void DrawViewRow(DataViewUI data, int index)
-        {
-            EditorGUILayout.BeginHorizontal();
-
-            int newDepth = EditorGUILayout.IntField(data.depth, GUILayout.Width(50));
-            if (newDepth != data.depth)
-            {
-                data.depth = newDepth;
-            }
-
-            if (data.view != null)
-            {
-                data.view.viewType =
-                    (EViewType)EditorGUILayout.EnumPopup(data.view.viewType, GUILayout.Width(100));
-            }
-            else
-            {
-                GUILayout.Label("N/A", GUILayout.Width(100));
-            }
-
-            data.view = (View)EditorGUILayout.ObjectField(data.view, typeof(View), false, GUILayout.Width(240));
-
-            if (GUILayout.Button("X", GUILayout.Width(60)))
-            {
-                listViewSO.Views.Remove(data);
-                EditorUtility.SetDirty(listViewSO);
-                return;
-            }
-
-            EditorGUILayout.EndHorizontal();
-        }
+ 
 
         // ----------------------------------------
         // ADD NEW VIEW
@@ -233,7 +200,7 @@ namespace OSK
             if (newViewDraft == null)
             {
                 GUI.color = Color.green;
-                if (GUILayout.Button("➕ Add New View", GUILayout.Width(200), GUILayout.Height(32)))
+                if (GUILayout.Button("Add New View", GUILayout.Width(200), GUILayout.Height(32)))
                     newViewDraft = new DataViewUI();
                 GUI.color = Color.white;
             }
@@ -249,9 +216,9 @@ namespace OSK
 
             GUILayout.Label("New View Draft", EditorStyles.boldLabel);
 
-            newViewDraft.view = (View)EditorGUILayout.ObjectField("View", newViewDraft.view, typeof(View), false);
-            newViewDraft.depth = EditorGUILayout.IntField("Depth", newViewDraft.depth);
-            newViewDraft.viewType = (EViewType)EditorGUILayout.EnumPopup("View Type", newViewDraft.viewType);
+            newViewDraft.view = (View)EditorGUILayout.ObjectField("View", newViewDraft.view, typeof(View), false, GUILayout.Width(500));
+            newViewDraft.depth = EditorGUILayout.IntField("Depth", newViewDraft.depth, GUILayout.Width(500));
+            newViewDraft.viewType = (EViewType)EditorGUILayout.EnumPopup("View Type", newViewDraft.viewType, GUILayout.Width(500));
 
             if (newViewDraft.view != null)
             {
@@ -265,7 +232,7 @@ namespace OSK
             if (newViewDraft.view != null)
             {
                 GUI.color = Color.green;
-                if (GUILayout.Button("Confirm Add", GUILayout.Width(120)))
+                if (GUILayout.Button("Confirm Add", GUILayout.Width(120), GUILayout.Height(30)))
                 {
                     newViewDraft.view.viewType = newViewDraft.viewType;
                     listViewSO.Views.Add(newViewDraft);
@@ -276,7 +243,7 @@ namespace OSK
                 GUI.color = Color.white;
             }
 
-            if (GUILayout.Button("Cancel", GUILayout.Width(80)))
+            if (GUILayout.Button("Cancel", GUILayout.Width(80), GUILayout.Height(30)))
                 newViewDraft = null;
 
             EditorGUILayout.EndHorizontal();
@@ -290,7 +257,7 @@ namespace OSK
         {
             DrawLine();
 
-            if (GUILayout.Button("Set Depth To Prefab", GUILayout.Width(500), GUILayout.Height(25)))
+            if (GUILayout.Button("Set Data To Prefab", GUILayout.Width(500), GUILayout.Height(25)))
             {
                 for (int i = 0; i < listViewSO.Views.Count; i++)
                 {
@@ -306,21 +273,26 @@ namespace OSK
                     int d = a.depth.CompareTo(b.depth);
                     return d != 0 ? d : a.view.viewType.CompareTo(b.view.viewType);
                 });
+                UnityEditor.EditorUtility.SetDirty(listViewSO);
             }
 
-            if (GUILayout.Button("Refresh Depth From Prefab", GUILayout.Width(500), GUILayout.Height(25)))
+            if (GUILayout.Button("Refresh Data From Prefab", GUILayout.Width(500), GUILayout.Height(25)))
             {
                 foreach (var v in listViewSO.Views)
                 {
                     if (v.view != null)
+                    {
                         v.depth = v.view.depthEdit;
+                    } 
                 }
+                UnityEditor.EditorUtility.SetDirty(listViewSO);
             }
 
             if (GUILayout.Button("Clear All", GUILayout.Width(500), GUILayout.Height(25)))
             {
                 if (EditorUtility.DisplayDialog("Clear All?", "Remove all views?", "OK", "Cancel"))
                     listViewSO.Views.Clear();
+                UnityEditor.EditorUtility.SetDirty(listViewSO);
             }
         }
 

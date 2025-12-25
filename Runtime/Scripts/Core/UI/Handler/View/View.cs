@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Sirenix.OdinInspector;
@@ -9,7 +10,8 @@ namespace OSK
     {
         public event Action<object[]> OnDataChanged;
 
-        [SerializeField] private object[] _data;
+        [SerializeField]
+        private object[] _data;
 
         public object[] Data
         {
@@ -27,17 +29,18 @@ namespace OSK
                 {
                     string details = string.Join(", ", _data.Select(d =>
                         d == null ? "null" : $"{d.GetType().Name}({d})"));
-                    MyLogger.Log( $"[DebugData] {GetType().Name} received data: [{details}]");
+                    MyLogger.Log($"[DebugData] {GetType().Name} received data: [{details}]");
                 }
                 else
                 {
-                    MyLogger.Log( $"[DebugData] {GetType().Name} received empty data");
+                    MyLogger.Log($"[DebugData] {GetType().Name} received empty data");
                 }
 #endif
             }
         }
 
-        [Header("Settings")] [EnumToggleButtons]
+        [Header("Settings")]
+        [EnumToggleButtons]
         public EViewType viewType = EViewType.Popup;
 
         /// Depth is used to determine the order of views in the stack
@@ -64,25 +67,41 @@ namespace OSK
 
 
         /// used for sorting views, higher value means higher priority in the stack
-        [SerializeField] private int _priority;
+        [SerializeField]
+        private int _priority;
 
         public int Priority => _priority;
 
-        [Space] [ToggleLeft] public bool isAddToViewManager = true;
-        [ToggleLeft] public bool isPreloadSpawn = true;
-        [ToggleLeft] public bool isRemoveOnHide = false;
-        [ReadOnly] [ToggleLeft] public bool isInitOnScene;
+        [Space]
+        [ToggleLeft]
+        public bool isAddToViewManager = true;
+
+        [ToggleLeft]
+        public bool isPreloadSpawn = true;
+
+        [ToggleLeft]
+        public bool isRemoveOnHide = false;
+
+        [ReadOnly]
+        [ToggleLeft]
+        public bool isInitOnScene;
 
 
-        [ShowInInspector, ReadOnly] [ToggleLeft]
+        [ShowInInspector, ReadOnly]
+        [ToggleLeft]
         private bool _isShowing;
 
-        [SerializeReference] public Action OnOpened;
-        [SerializeReference] public Action OnClosed;
+        [SerializeReference]
+        public Action OnOpened;
+
+        [SerializeReference]
+        public Action OnClosed;
 
         public bool IsShowing => _isShowing;
 
-        [ReadOnly, SerializeField] private UITransition _uiTransition;
+        [ReadOnly, SerializeField]
+        private UITransition _uiTransition;
+
         public UITransition UITransition => _uiTransition ??= GetComponent<UITransition>();
 
         private RootUI _rootUI;
@@ -95,16 +114,16 @@ namespace OSK
         {
             var allSO = Resources.LoadAll<ListViewSO>("");
             var dataSO = allSO.FirstOrDefault();
-            
+
             if (dataSO == null)
             {
-                MyLogger.LogError( "[AddViewToDataSO] Cannot find ViewDataSO in Resources folder.");
+                MyLogger.LogError("[AddViewToDataSO] Cannot find ViewDataSO in Resources folder.");
                 return;
             }
 
             if (dataSO.Views.Any(v => v.view == this))
             {
-                MyLogger.LogWarning( $"[AddViewToDataSO] {name} already exists in ViewDataSO.");
+                MyLogger.LogWarning($"[AddViewToDataSO] {name} already exists in ViewDataSO.");
                 return;
             }
 
@@ -120,7 +139,7 @@ namespace OSK
                 view = this
             };
             dataSO.Views.Add(newData);
-            MyLogger.Log( $"[AddViewToDataSO] Added {name} to ViewDataSO.");
+            MyLogger.Log($"[AddViewToDataSO] Added {name} to ViewDataSO.");
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(dataSO);
             UnityEditor.AssetDatabase.SaveAssets();
@@ -141,10 +160,9 @@ namespace OSK
 
             if (_rootUI == null)
             {
-                MyLogger.LogError( "[View] RootUI is still null after initialization.");
+                MyLogger.LogError("[View] RootUI is still null after initialization.");
             }
-
-            SetDepth();
+            SortHierarchyByDepth();
         }
 
         public virtual void Open(object[] data = null)
@@ -160,7 +178,7 @@ namespace OSK
             _isShowing = true;
             gameObject.SetActive(true);
 
-            SetDepth();
+            SortHierarchyByDepth();
             Opened();
         }
 
@@ -186,7 +204,7 @@ namespace OSK
         {
             if (data == null || data.Length == 0)
             {
-                MyLogger.Log( $"[SetData] No data passed to {GetType().Name}");
+                MyLogger.Log($"[SetData] No data passed to {GetType().Name}");
                 return;
             }
 
@@ -208,29 +226,28 @@ namespace OSK
         {
             this.viewType = viewType;
             this.depthEdit = depth;
-            SetDepth();
+            SortHierarchyByDepth();
         }
 
-        private void SetDepth()
+        public void SortHierarchyByDepth()
         {
-            /*var canvas = GetComponent<Canvas>();
-            if (canvas != null)
+            var container = _rootUI.ViewContainer; 
+            List<View> viewsInContainer = new List<View>();
+            for (int i = 0; i < container.childCount; i++)
             {
-                canvas.sortingOrder = viewType switch
-                {
-                    EViewType.None => (0 + canvas.sortingOrder),
-                    EViewType.Popup => (1000 + canvas.sortingOrder),
-                    EViewType.Overlay => (10000 + canvas.sortingOrder),
-                    EViewType.Screen => (-1000 + canvas.sortingOrder),
-                    _ => canvas.sortingOrder
-                };
+                var v = container.GetChild(i).GetComponent<View>();
+                if (v != null) viewsInContainer.Add(v);
             }
-            else*/
-            {
-                var sortedChildPages = _rootUI.GetSortedChildPages(_rootUI.ViewContainer);
-                var targetIndex = _rootUI.FindInsertIndex(sortedChildPages, _depth);
-                MyLogger.Log( $"[View] SetDepth {gameObject.name} to index {targetIndex} with depth {_depth}");
-                transform.SetSiblingIndex(targetIndex);
+ 
+            var sortedViews = viewsInContainer
+                .OrderBy(v => (int)v.viewType)
+                .ThenBy(v => v.depthEdit) 
+                .ToList();
+
+            // 3. Thực thi SetSiblingIndex
+            for (int i = 0; i < sortedViews.Count; i++)
+            { 
+                sortedViews[i].transform.SetSiblingIndex(i);
             }
         }
 
@@ -239,7 +256,7 @@ namespace OSK
             if (!_isShowing) return;
 
             _isShowing = false;
-            MyLogger.Log( $"[View] Hide {gameObject.name} is showing {_isShowing}");
+            MyLogger.Log($"[View] Hide {gameObject.name} is showing {_isShowing}");
 
             if (_uiTransition != null)
                 _uiTransition.CloseTrans(FinalizeHide);
@@ -259,7 +276,6 @@ namespace OSK
             if (_rootUI == null)
             {
                 MyLogger.LogError(
-                    
                     "[View] View Manager is null. Ensure that the View has been initialized before calling Open.");
                 return false;
             }
@@ -270,7 +286,7 @@ namespace OSK
         protected bool IsAlreadyShowing()
         {
             if (!_isShowing) return false;
-            MyLogger.LogWarning( "[View] View is already showing");
+            MyLogger.LogWarning("[View] View is already showing");
             return true;
         }
 

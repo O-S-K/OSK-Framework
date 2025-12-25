@@ -20,8 +20,7 @@ namespace OSK
             _sheetMap.Clear();
             _nameToSheetMap.Clear();
 
-            var loadedSheets = Resources.LoadAll<BaseSheet>("DataSheets");
-
+            var loadedSheets = Resources.LoadAll<BaseSheet>(Main.Instance.configInit.path.pathDataSheets);
             foreach (var sheet in loadedSheets)
             {
                 if (sheet == null) continue;
