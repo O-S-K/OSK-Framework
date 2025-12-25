@@ -164,7 +164,7 @@ namespace OSK
             Opened();
         }
 
-        protected async void Opened()
+        private void Opened()
         {
             if (_uiTransition)
             {
@@ -227,23 +227,10 @@ namespace OSK
             }
             else*/
             {
-                var childPages = _rootUI.GetSortedChildPages(_rootUI.ViewContainer);
-                if (childPages.Count == 0)
-                    return;
-
-                var insertIndex = _rootUI.FindInsertIndex(childPages, _depth);
-                if (insertIndex <= 0)
-                {
-                    transform.SetAsFirstSibling();
-                }
-                else if (insertIndex >= childPages.Count)
-                {
-                    transform.SetAsLastSibling();
-                }
-                else
-                {
-                    transform.SetSiblingIndex(insertIndex);
-                }
+                var sortedChildPages = _rootUI.GetSortedChildPages(_rootUI.ViewContainer);
+                var targetIndex = _rootUI.FindInsertIndex(sortedChildPages, _depth);
+                MyLogger.Log( $"[View] SetDepth {gameObject.name} to index {targetIndex} with depth {_depth}");
+                transform.SetSiblingIndex(targetIndex);
             }
         }
 

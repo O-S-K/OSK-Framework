@@ -667,30 +667,21 @@ namespace OSK
             return childPages;
         }
 
-        public int FindInsertIndex(List<View> childPages, int depth)
+        public int FindInsertIndex(List<View> childPages, int targetDepth)
         {
-            if (childPages == null || childPages.Count == 0)
-                return 0;
-            
-            childPages = childPages.OrderBy(v => v.Depth).ToList();
-            int left = 0, right = childPages.Count - 1;
-            int insertIndex = childPages.Count;
+            var sortedPages = childPages.OrderByDescending(v => v.Depth).ToList();
+            int left = 0;
+            int right = sortedPages.Count - 1;
 
             while (left <= right)
             {
-                int mid = (left + right) / 2;
-                if (depth < childPages[mid].Depth)
-                {
-                    insertIndex = mid;
-                    right = mid - 1;
-                }
-                else
-                {
+                int mid = left + (right - left) / 2;
+                if (sortedPages[mid].Depth <= targetDepth)
                     left = mid + 1;
-                }
+                else
+                    right = mid - 1;
             }
-
-            return insertIndex;
+            return left;
         }
 
         #endregion

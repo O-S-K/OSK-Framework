@@ -102,19 +102,18 @@ namespace OSK
             EditorGUILayout.Space(10);
             if (GUILayout.Button("Show All", GUILayout.Height(26)))
                 selectedType = null;
-            
+
             EditorGUILayout.Space(10);
             if (GUILayout.Button("Show SO UI", GUILayout.Height(26)))
             {
                 Selection.activeObject = listViewSO;
-                EditorGUIUtility.PingObject(listViewSO); 
+                EditorGUIUtility.PingObject(listViewSO);
             }
 
             EditorGUILayout.EndScrollView();
             GUILayout.EndVertical();
         }
-        
-         
+
 
         // ----------------------------------------
         // RIGHT PANEL
@@ -123,28 +122,68 @@ namespace OSK
         {
             EditorGUILayout.Space(10);
 
-            // LIST BY CATEGORY
-            IEnumerable<DataViewUI> list = listViewSO.Views;
+            // 1. CHUẨN BỊ DỮ LIỆU: Lọc và Sắp xếp trước khi hiển thị
+            // Phải ToList() để tránh việc dữ liệu bị thay đổi thứ tự ngay khi đang gõ số
+            List<DataViewUI> displayList = listViewSO.Views
+                .Where(v => selectedType == null || (v.view != null && v.view.viewType == selectedType))
+                .ToList();
 
-            if (selectedType != null)
-                list = list.Where(v => v.view != null && v.view.viewType == selectedType);
-
-            list = list.OrderBy(v => v.depth).ToList();
-
+            // HEADER
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("Depth", GUILayout.Width(50));
-            GUILayout.Label("Type", GUILayout.Width(100));
-            GUILayout.Label("View Prefab", GUILayout.Width(240));
-            GUILayout.Label("Remove", GUILayout.Width(60));
+            GUILayout.Label("Depth", EditorStyles.boldLabel, GUILayout.Width(50));
+            GUILayout.Label("Type", EditorStyles.boldLabel, GUILayout.Width(100));
+            GUILayout.Label("View Prefab", EditorStyles.boldLabel, GUILayout.Width(240));
+            GUILayout.Label("Action", EditorStyles.boldLabel, GUILayout.Width(60));
             EditorGUILayout.EndHorizontal();
 
             DrawLine();
 
-            int index = 0;
-            foreach (var data in list.ToList())
+            // 2. VÒNG LẶP HIỂN THỊ: Chạy trên danh sách đã được lọc/sắp xếp
+            DataViewUI itemToRemove = null;
+
+            foreach (var data in displayList)
             {
-                DrawViewRow(data, index);
-                index++;
+                EditorGUI.BeginChangeCheck();
+
+                EditorGUILayout.BeginHorizontal();
+
+                // Ô nhập Depth - Dùng DelayedIntField để chỉ cập nhật khi nhấn Enter hoặc bỏ focus
+                // Giúp tránh việc đang gõ số thì dòng bị nhảy lung tung do sắp xếp
+                data.depth = EditorGUILayout.DelayedIntField(data.depth, GUILayout.Width(50));
+
+                // Type Display
+                string typeLabel = data.view != null ? data.view.viewType.ToString() : "N/A";
+                GUILayout.Label(typeLabel, GUILayout.Width(100));
+
+                // View Object Field
+                data.view = (View)EditorGUILayout.ObjectField(data.view, typeof(View), false, GUILayout.Width(240));
+
+                // Nút xóa
+                if (GUILayout.Button("X", GUILayout.Width(60)))
+                {
+                    itemToRemove = data;
+                }
+
+                EditorGUILayout.EndHorizontal();
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Đồng bộ depth vào Component thực tế
+                    if (data.view != null)
+                    {
+                        data.view.depthEdit = data.depth;
+                        EditorUtility.SetDirty(data.view);
+                    }
+
+                    EditorUtility.SetDirty(listViewSO);
+                }
+            }
+
+            // 3. XỬ LÝ XÓA (Nằm ngoài vòng lặp để tránh lỗi danh sách thay đổi khi đang chạy)
+            if (itemToRemove != null)
+            {
+                listViewSO.Views.Remove(itemToRemove);
+                EditorUtility.SetDirty(listViewSO);
             }
 
             EditorGUILayout.Space(20);
@@ -158,7 +197,11 @@ namespace OSK
         {
             EditorGUILayout.BeginHorizontal();
 
-            data.depth = EditorGUILayout.IntField(data.depth, GUILayout.Width(50));
+            int newDepth = EditorGUILayout.IntField(data.depth, GUILayout.Width(50));
+            if (newDepth != data.depth)
+            {
+                data.depth = newDepth;
+            }
 
             if (data.view != null)
             {
@@ -170,8 +213,7 @@ namespace OSK
                 GUILayout.Label("N/A", GUILayout.Width(100));
             }
 
-            data.view = (View)EditorGUILayout.ObjectField(
-                data.view, typeof(View), false, GUILayout.Width(240));
+            data.view = (View)EditorGUILayout.ObjectField(data.view, typeof(View), false, GUILayout.Width(240));
 
             if (GUILayout.Button("X", GUILayout.Width(60)))
             {
@@ -210,7 +252,7 @@ namespace OSK
             newViewDraft.view = (View)EditorGUILayout.ObjectField("View", newViewDraft.view, typeof(View), false);
             newViewDraft.depth = EditorGUILayout.IntField("Depth", newViewDraft.depth);
             newViewDraft.viewType = (EViewType)EditorGUILayout.EnumPopup("View Type", newViewDraft.viewType);
-        
+
             if (newViewDraft.view != null)
             {
                 newViewDraft.path = IOUtility.GetPathAfterResources(newViewDraft.view);
@@ -230,6 +272,7 @@ namespace OSK
                     newViewDraft = null;
                     EditorUtility.SetDirty(listViewSO);
                 }
+
                 GUI.color = Color.white;
             }
 
@@ -246,6 +289,15 @@ namespace OSK
         private void DrawBottomTools()
         {
             DrawLine();
+
+            if (GUILayout.Button("Set Depth To Prefab", GUILayout.Width(500), GUILayout.Height(25)))
+            {
+                for (int i = 0; i < listViewSO.Views.Count; i++)
+                {
+                    listViewSO.Views[i].view.depthEdit = listViewSO.Views[i].depth;
+                    UnityEditor.EditorUtility.SetDirty(listViewSO.Views[i].view);
+                }
+            }
 
             if (GUILayout.Button("Sort By Depth + ViewType", GUILayout.Width(500), GUILayout.Height(25)))
             {
