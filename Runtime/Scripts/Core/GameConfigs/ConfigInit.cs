@@ -137,8 +137,6 @@ namespace OSK
 #endif
         }
 
-
-
         // ======================================================================
         // 📦 GAME CONFIG REFERENCES
         // ======================================================================
@@ -149,18 +147,8 @@ namespace OSK
 
         //[TitleGroup("📦 Game Configs")]
         //[HideLabel, InlineProperty]
-        //public SettingConfigs setting;
-
-        [FoldoutGroup("📦 Game Configs/Path References")]
-        [HideLabel, InlineProperty]
-        public PathConfigs path;
+        //public SettingConfigs setting; 
     }
-
-
-
-    // ======================================================================
-    // SUPPORT CLASSES
-    // ======================================================================
 
     [System.Serializable]
     public class SettingConfigs
@@ -177,14 +165,8 @@ namespace OSK
     {
         public ListViewSO listViewS0;
         public ListSoundSO listSoundSo;
-    }
-
-    [System.Serializable]
-    public class PathConfigs
-    {
-        [FolderPath]
-        public string pathLoadFileCsv = "Localization/Localization";
-        public string pathDataSheets = "DataSheets";
-        public string pathConfigInput = "InputConfigs/InputConfigSO";
-    }
+        public InputConfigSO inputConfigSO;
+        public TextAsset localizationCSV;
+        public BaseSheet[] listSheetSO;
+    } 
 }

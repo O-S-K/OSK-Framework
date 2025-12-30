@@ -20,7 +20,13 @@ namespace OSK
             _sheetMap.Clear();
             _nameToSheetMap.Clear();
 
-            var loadedSheets = Resources.LoadAll<BaseSheet>(Main.Instance.configInit.path.pathDataSheets);
+            if (Main.Instance.configInit.data == null || Main.Instance.configInit.data.listSheetSO == null)
+            {
+                MyLogger.LogWarning("No sheets loaded from config.");
+                return;
+            }
+
+            var loadedSheets = Main.Instance.configInit.data.listSheetSO;
             foreach (var sheet in loadedSheets)
             {
                 if (sheet == null) continue;
@@ -102,7 +108,7 @@ namespace OSK
         public void RemoveSheet<T>() where T : BaseSheet
         {
             var type = typeof(T);
-    
+
             if (_sheetMap.TryGetValue(type, out object sheetObj))
             {
                 var sheet = sheetObj as BaseSheet;
@@ -113,7 +119,7 @@ namespace OSK
                     _sheetMap.Remove(type);
                     _nameToSheetMap.Remove(sheet.name);
                     _dataTypeToSheet.Remove(sheet.GetDataType());
-            
+
                     MyLogger.Log($"[DataSheetManager] Removed sheet: {sheet.name}");
                 }
             }
@@ -137,13 +143,13 @@ namespace OSK
                 .ToList();
 #endif
         }
-        
+
         [Button(ButtonSizes.Medium), GUIColor(0, 1, 0)]
         private void ValidateAllSheets()
         {
             foreach (var sheet in sheets)
             {
-                sheet.Initialize(); 
+                sheet.Initialize();
                 MyLogger.Log($"Sheet {sheet.name} is OK!");
             }
         }

@@ -8,23 +8,32 @@ namespace OSK
 {
     public class LocalizationManager : GameFrameworkComponent
     {
-        [SerializeReference] private Dictionary<string, string> k_LocalizedText = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        [SerializeReference]
+        private Dictionary<string, string> k_LocalizedText = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // asset path maps (key -> resources path)
-        [SerializeReference, ReadOnly] private Dictionary<string, string> spritePaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        [SerializeReference, ReadOnly] private Dictionary<string, string> audioPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        [SerializeReference, ReadOnly]
+        private Dictionary<string, string> spritePaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        [SerializeReference, ReadOnly]
+        private Dictionary<string, string> audioPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // caches for loaded assets
         private Dictionary<string, Sprite> spriteCache = new Dictionary<string, Sprite>(StringComparer.OrdinalIgnoreCase);
         private Dictionary<string, AudioClip> audioCache = new Dictionary<string, AudioClip>(StringComparer.OrdinalIgnoreCase);
 
-        [ReadOnly, SerializeField] private List<SystemLanguage> _listLanguagesCvs = new List<SystemLanguage>();
+        [ReadOnly, SerializeField]
+        private List<SystemLanguage> _listLanguagesCvs = new List<SystemLanguage>();
+
         private SystemLanguage _currentLanguage = SystemLanguage.English;
 
         public bool IsSetDefaultLanguage => _isSetDefaultLanguage;
         private bool _isSetDefaultLanguage = false;
 
-        public override void OnInit() { /* keep as-is */ }
+        public override void OnInit()
+        {
+            /* keep as-is */
+        }
 
         #region Public API
 
@@ -152,16 +161,14 @@ namespace OSK
 
         private void LoadLocalizationData(SystemLanguage languageCode)
         {
-            // path from your config
-            var path = Main.Instance.configInit.path.pathLoadFileCsv; 
-            TextAsset textFile = Resources.Load<TextAsset>(path);
-            if (textFile == null)
+            if (Main.Instance.configInit.data == null || Main.Instance.configInit.data.localizationCSV == null)
             {
-                MyLogger.LogError("Not found localization file: " + path);
+                MyLogger.LogError("Localization CSV file is not assigned in ConfigInit.");
                 return;
             }
 
-            // Parse CSV lines while removing empty lines
+
+            TextAsset textFile = Main.Instance.configInit.data.localizationCSV;
             string[] lines = textFile.text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             // Clear previous data
@@ -174,7 +181,7 @@ namespace OSK
 
             if (lines.Length == 0)
             {
-                MyLogger.LogWarning("Localization file is empty: " + path);
+                MyLogger.LogWarning("Localization file is empty: " + textFile.name);
                 return;
             }
 
@@ -220,6 +227,7 @@ namespace OSK
                 {
                     textVal = columns[languageColumnIndex].Trim();
                 }
+
                 k_LocalizedText[key] = textVal;
 
                 // --- Sprite path: prefer language-specific, otherwise generic ---
@@ -306,7 +314,7 @@ namespace OSK
             result.Add(currentColumn.ToString());
             return result.ToArray();
         }
- 
+
         #endregion
     }
 }

@@ -19,13 +19,13 @@ namespace OSK
 
         public override void OnInit()
         {
-            string configPath = Main.Instance.configInit.path.pathConfigInput;
-            config = config != null ? config : Resources.Load<InputConfigSO>(configPath);
-            if(config == null)
+            if(Main.Instance.configInit.data == null || Main.Instance.configInit.data.inputConfigSO == null)
             {
-                MyLogger.LogError($"No input config found at path: {configPath}");
+                MyLogger.LogWarning("InputDeviceManager: InputConfigSO is not assigned in Main config.");
                 return;
             }
+            
+            config = Main.Instance.configInit.data.inputConfigSO;
             Input.multiTouchEnabled = config.enableMultiTouch;
             foreach (var def in config.Actions)
                 if (!string.IsNullOrEmpty(def.id))
