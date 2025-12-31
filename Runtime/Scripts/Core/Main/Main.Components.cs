@@ -112,6 +112,7 @@ namespace OSK
                     if (current.Value == null)
                     {
                         MyLogger.LogError($"Component '{componentName}' is NULL.");
+						return;
                     }
                     else
                     {
@@ -120,12 +121,11 @@ namespace OSK
                 }
                 catch (Exception e)
                 {
-                    MyLogger.LogError("Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
+                    MyLogger.LogError($"Failed to initialize component '{componentName}': {e.Message}\n{e.StackTrace}");
                 }
 
                 current = current.Next;
             }
-
             MyLogger.Log("Init Data Components Done!");
         }
 
@@ -152,7 +152,7 @@ namespace OSK
                     PrefData.IsEncrypt = configInit.IsEncryptStorage;
                 }
 
-                if (Configs) Configs.CheckVersion(() => { MyLogger.Log("New version"); });
+                if (Configs) Configs.CheckVersion(() => { MyLogger.Log("New version " + Application.version + " detected!"); });
                 IOUtility.directorySave = configInit.directoryPathSave;
                 IOUtility.customPath = configInit.CustomPathSave;
                 MyLogger.Log("Configs initialized successfully.");
