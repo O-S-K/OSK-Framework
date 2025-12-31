@@ -16,7 +16,7 @@ namespace OSK
         private List<View> listViews = null;
         private DataViewUI newViewDraft = null;
 
-        private void OnEnable() => listViewSO = (ListViewSO)target;
+        protected override void OnEnable() => listViewSO = (ListViewSO)target;
 
         public override void OnInspectorGUI()
         {

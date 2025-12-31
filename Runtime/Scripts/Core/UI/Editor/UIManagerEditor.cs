@@ -11,7 +11,7 @@ namespace OSK
     public class UIManagerEditor : OdinEditor
     {
         private RootUI uiManager;
-        private void OnEnable() => uiManager = (RootUI)target;
+        protected override void OnEnable() => uiManager = (RootUI)target;
 
         public override void OnInspectorGUI()
         {

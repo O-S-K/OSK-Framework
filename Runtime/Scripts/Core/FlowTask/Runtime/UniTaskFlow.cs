@@ -17,7 +17,6 @@ namespace OSK
         private CancellationToken _token;
         private MonoBehaviour _owner;
         private BreakState _breakState;
-        private bool _breakRequested;
         private bool _ignoreTimeScale;
 
         public string OwnerName => _owner ? _owner.name : "null";
@@ -34,7 +33,6 @@ namespace OSK
         { 
             _queue.Clear();
             _owner = null;
-            _breakRequested = false;
         }
 
         // ================= API =================

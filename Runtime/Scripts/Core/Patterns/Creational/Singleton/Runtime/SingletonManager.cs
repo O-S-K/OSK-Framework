@@ -8,6 +8,7 @@ namespace OSK
     // Global singletons persist across scene loads, while scene singletons are tied to the current scene.
     // The manager ensures only one instance of each type exists, destroying duplicates as needed.
     [DisallowMultipleComponent]
+    [DefaultExecutionOrder(-1111)] // Ensure it initializes early
     public class SingletonManager : MonoBehaviour
     {
         private static SingletonManager _instance;
@@ -44,7 +45,7 @@ namespace OSK
                 DontDestroyOnLoad(go);
             }
         }
-        
+
         // Example usage: Awake ()
         // { 
         //      SingletonManager.Instance.RegisterScene(this); or SingletonManager.Instance.RegisterGlobal(this);

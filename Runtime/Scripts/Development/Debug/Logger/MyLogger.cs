@@ -151,12 +151,12 @@ namespace OSK
                 if (level == "Error" || level == "Fatal")
                 {
                     finalMsg = $"<b><color=#FF5555><size=13>[{className}] -> {message}</size></color></b>";
-                    Debug.LogError(finalMsg, context);
+                    Debug.Log(finalMsg, context);
                 }
                 else if (level == "Warning")
                 {
                     finalMsg = $"<b><color=#FFD600><size=12>[{className}] -> {message}</size></color></b>";
-                    Debug.LogWarning(finalMsg, context);
+                    Debug.Log(finalMsg, context);
                 }
                 else
                 {

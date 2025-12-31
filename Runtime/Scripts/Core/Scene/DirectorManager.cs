@@ -30,7 +30,6 @@ namespace OSK
     public class DirectorManager : GameFrameworkComponent
     {
         [SerializeField, ReadOnly] private string[] _currentScenesName;
-        [SerializeField, ReadOnly] private bool _isLoading = false;
         [SerializeField, ReadOnly] private float _loadingProgress = 0f;
         [SerializeField, ReadOnly]  private float _timer;
         public HashSet<string> LoadedScenes { get; private set; } = new HashSet<string>();
@@ -83,7 +82,7 @@ namespace OSK
         private IEnumerator LoadScenesCoroutine(DataScene[] scenes, bool async,
             float minLoadTime, bool fakeLoading, Action onStart, Action onComplete)
         {
-            _isLoading = true;
+            //_isLoading = true;
             _loadingProgress = 0f;
             onStart?.Invoke();
 
@@ -94,7 +93,7 @@ namespace OSK
                 yield return HandleAsyncLoading(ops, fakeLoading, minLoadTime,
                     Array.ConvertAll(scenes, s => s.sceneName));
 
-            _isLoading = false;
+            //_isLoading = false;
             _loadingProgress = 1f;
             MyLogger.Log($"[DirectorManager] Scenes loaded:" +
                                 $" {string.Join(", ", Array.ConvertAll(scenes, s => s.sceneName))}");

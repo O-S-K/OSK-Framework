@@ -16,7 +16,6 @@ namespace OSK
         private SoundData newSoundDraft = null;
 
         private bool showTable = true;
-        private bool showGroupNames = true;
 
         private Dictionary<string, Dictionary<SoundType, bool>> soundTypeFoldoutsPerGroup =
             new Dictionary<string, Dictionary<SoundType, bool>>();

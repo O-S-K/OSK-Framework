@@ -5,8 +5,7 @@ using UnityEditor;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CustomPlayerPref.PlayerPrefsEditor;
-
+ 
 namespace OSK
 {
     public class DataManagerWindow : EditorWindow
@@ -298,7 +297,7 @@ namespace OSK
             }
         }
 
-        private void SaveChanges()
+        public override void SaveChanges()
         {
             try
             {
@@ -342,7 +341,7 @@ namespace OSK
             if (GUILayout.Button("Open PlayerPrefs"))
             {
 #if CustomPlayerPref
-                PlayerPrefsEditor.Init();
+                CustomPlayerPref.PlayerPrefsEditor.PlayerPrefsEditor.Init();
 #else
                Application.OpenURL("https://github.com/O-S-K/EditorTools/tree/main/Editor/Packages/PlayerPrefEditor");
 #endif
