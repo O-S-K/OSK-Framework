@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
@@ -86,7 +87,7 @@ namespace OSK
                 if (!groupFoldouts[group]) continue;
 
                 EditorGUI.indentLevel++;
-                foreach (SoundType type in System.Enum.GetValues(typeof(SoundType)))
+                foreach (SoundType type in Enum.GetValues(typeof(SoundType)))
                 {
                     if (!listSoundSo.ListSoundInfos.Any(x => x.type == type && x.group == group))
                         continue;
@@ -109,7 +110,6 @@ namespace OSK
 
                     DrawRowBorder();
                 }
-
                 EditorGUI.indentLevel--;
             }
 
@@ -375,33 +375,28 @@ namespace OSK
 
             EditorGUILayout.BeginHorizontal();
 
-            // Chọn file trong project (Open existing .cs file)
-            if (GUILayout.Button("Open File", GUILayout.Width(120)))
+            if (GUILayout.Button("Select Output File", GUILayout.Width(150)))
             {
-                string absPath = EditorUtility.OpenFilePanel("Select File (in Project)", Application.dataPath, "cs");
+                string absPath = EditorUtility.SaveFilePanel(
+                    "Choose Location or Existing File", // Title
+                    Application.dataPath,               // Folder mặc định
+                    "SoundID",                          // Tên file mặc định (nếu tạo mới)
+                    "cs"                                // Đuôi file
+                );
+
                 if (!string.IsNullOrEmpty(absPath))
                 {
-                    // convert absolute path to relative project path "Assets/..."
                     if (absPath.StartsWith(Application.dataPath))
                     {
-                        string relPath = "Assets" + absPath.Replace(Application.dataPath, "");
+                        string relPath = "Assets" + absPath.Substring(Application.dataPath.Length);
+            
                         listSoundSo.filePathSoundID = relPath;
                         EditorUtility.SetDirty(listSoundSo);
+                        UnityEngine.Debug.Log("Selected Path: " + relPath);
                     }
                     else
                     {
-                        // nếu chọn file ngoài project, hỏi lưu vào project
-                        string savePath = EditorUtility.SaveFilePanel("Save SoundID.cs to Project",
-                            Application.dataPath, "SoundID", "cs");
-                        if (!string.IsNullOrEmpty(savePath))
-                        {
-                            if (savePath.StartsWith(Application.dataPath))
-                            {
-                                string relSave = "Assets" + savePath.Replace(Application.dataPath, "");
-                                listSoundSo.filePathSoundID = relSave;
-                                EditorUtility.SetDirty(listSoundSo);
-                            }
-                        }
+                        EditorUtility.DisplayDialog("Error", "Please select a path within the Assets folder of the project.", "OK");
                     }
                 }
             }
@@ -500,7 +495,6 @@ namespace OSK
             }
         }
 
-// helper to convert arbitrary name to safe C# enum identifier
         private static string MakeSafeEnumName(string s)
         {
             if (string.IsNullOrEmpty(s)) return "_UNKNOWN";

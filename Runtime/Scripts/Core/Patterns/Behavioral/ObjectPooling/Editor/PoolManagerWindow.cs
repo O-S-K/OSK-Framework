@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace OSK
 {
@@ -26,6 +27,21 @@ namespace OSK
         public static void ShowWindow()
         {
             GetWindow<PoolManagerWindow>("Debug Window").minSize = new Vector2(950, 550);
+        }
+        
+        [MenuItem("OSK-Framework/Pool/Add Pool Config to Scene")]
+        public static void AddPoolConfigToScene()
+        {
+            if (FindObjectOfType<PoolManager>() != null)
+            {
+                EditorUtility.DisplayDialog("Info", "A PoolManager already exists in the scene.", "OK");
+                return;
+            }
+
+            GameObject go = new GameObject("PoolConfigManager");
+            go.AddComponent<PoolManager>();
+            EditorUtility.DisplayDialog("Info", "PoolManager has been added to the scene.", "OK");
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         }
 
         private void InitStyles()
@@ -228,8 +244,8 @@ namespace OSK
             GUI.backgroundColor = Color.white;
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("+5", EditorStyles.miniButtonLeft)) poolManager.ExpandPool(groupName, prefab, 5);
-            if (GUILayout.Button("Trim", EditorStyles.miniButtonRight)) poolManager.TrimPool(groupName, prefab);
+            if (GUILayout.Button("+10", EditorStyles.miniButtonLeft)) poolManager.ExpandPool(groupName, prefab, 10);
+            if (GUILayout.Button("Destroy", EditorStyles.miniButtonRight)) poolManager.DestroyByObject(groupName, prefab);
             EditorGUILayout.EndHorizontal();
             
             EditorGUILayout.EndVertical();

@@ -74,7 +74,7 @@ namespace OSK
 
             if (container == null)
             {
-                MyLogger.LogWarning($"[Pool] No available item found in pool of type {typeof(T).Name}. Creating a new one.");
+                MyLogger.LogWarning($"No available item found in pool of type {typeof(T).Name}. Creating a new one.");
                 container = CreateContainer();
             }
 
@@ -82,7 +82,7 @@ namespace OSK
 
             if (container.Item == null)
             {
-                MyLogger.LogWarning($"[Pool] Created item is null in pool of type {typeof(T).Name}. Returning default value.");
+                MyLogger.LogWarning($"Created item is null in pool of type {typeof(T).Name}. Returning default value.");
                 return default;
             }
 

@@ -37,23 +37,31 @@ namespace OSK
             return tree;
         }
 
-        // Vẽ thêm Toolbar phía trên để Save/Refresh nhanh
         protected override void OnBeginDrawEditors()
         {
             SirenixEditorGUI.BeginHorizontalToolbar();
             {
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button("Refresh Assets", EditorStyles.miniButtonLeft))
+                if (GUILayout.Button("Refresh Assets", EditorStyles.miniButtonLeft, GUILayout.Width(100) ))
                 {
                     AssetDatabase.Refresh();
                     this.ForceMenuTreeRebuild();
                 }
 
-                if (GUILayout.Button("Save Project", EditorStyles.miniButtonRight))
+                if (GUILayout.Button("Save Project", EditorStyles.miniButtonRight, GUILayout.Width(100) ))
                 {
                     AssetDatabase.SaveAssets();
                     Debug.Log("Saved all data sheets.");
+                }
+                
+                if (GUILayout.Button("Ping sheet", EditorStyles.miniButtonRight, GUILayout.Width(100) ))
+                {
+                    var selected = this.MenuTree.Selection.SelectedValue as BaseSheet;
+                    if (selected != null)
+                    {
+                        EditorGUIUtility.PingObject(selected);
+                    }
                 }
             }
             SirenixEditorGUI.EndHorizontalToolbar();
