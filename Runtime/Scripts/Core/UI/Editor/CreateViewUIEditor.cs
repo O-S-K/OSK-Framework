@@ -166,7 +166,7 @@ public class {scriptName} : {viewType}
 
         private void CreateViewPrefabOnly()
         {
-            Transform parent = FindObjectOfType<RootUI>()?.ViewContainer?.transform;
+            Transform parent = FindObjectOfType<RootUI>()?.transform;
             createdView = CreateGORectTransform(scriptName, parent);
             if (createShield)
             {

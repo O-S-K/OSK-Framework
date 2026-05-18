@@ -12,6 +12,7 @@ namespace OSK
     public class RootUI : MonoBehaviour
     {
         #region Queued View
+
         private class QueuedView
         {
             public View view;
@@ -19,20 +20,22 @@ namespace OSK
             public bool hidePrevView;
             public Action<View> onOpened;
         }
+
         #endregion
 
         #region Lists & Cache
 
-        [BoxGroup("🔍 Views")] [ShowInInspector, ReadOnly]
+        [BoxGroup("🔍 Views")]
+        [ShowInInspector, ReadOnly]
         public List<View> ListViewInit { get; set; } = new();
 
-        [BoxGroup("🔍 Views")] [ShowInInspector, ReadOnly]
+        [BoxGroup("🔍 Views")]
+        [ShowInInspector, ReadOnly]
         public List<View> ListCacheView { get; set; } = new();
 
         public Stack<View> ListViewHistory { get; set; } = new();
 
-        [ShowInInspector, ReadOnly]
-        private List<QueuedView> _queuedViews = new();
+        [ShowInInspector, ReadOnly] private List<QueuedView> _queuedViews = new();
 
         private bool _isProcessingQueue = false;
 
@@ -43,36 +46,37 @@ namespace OSK
 
         #region References
 
-        [Title("📌 References")]
+        [Title("📌 References")] 
         [Required, SerializeField] private Camera _uiCamera;
-        [SerializeField] private Transform _viewContainer;
 
-        [Title("🏗️ Containers (Multi-Canvas)")]
-        [SerializeField] private Canvas _screenCanvas;
-        [SerializeField] private Canvas _popupCanvas;
-        [SerializeField] private Canvas _overlayCanvas;
-        [SerializeField] private Canvas _lockCanvas;
-
-        [SerializeField] private CanvasScaler _screenScaler;
-        [SerializeField] private CanvasScaler _popupScaler;
-        [SerializeField] private CanvasScaler _overlayScaler;
-        [SerializeField] private CanvasScaler _lockScaler;
-
-        [Title("🏗️ Container Transforms")]
+        [Title("🏗️ Container Transforms")] 
         [SerializeField] private Transform _screenContainer;
         [SerializeField] private Transform _popupContainer;
+        [SerializeField] private Transform _notifContainer;
         [SerializeField] private Transform _overlayContainer;
         [SerializeField] private Transform _lockContainer;
+        
+        private Canvas _screenCanvas;
+        private Canvas _popupCanvas;
+        private Canvas _notifCanvas;
+        private Canvas _overlayCanvas;
+        private Canvas _lockCanvas;
 
+        private CanvasScaler _screenScaler;
+        private CanvasScaler _popupScaler;
+        private CanvasScaler _notifScaler;
+        private CanvasScaler _overlayScaler;
+        private CanvasScaler _lockScaler;
         #endregion
 
         #region Settings
 
-        [Title("⚙️ Settings")]
-        [SerializeField] private bool isPortrait = true;
+        [Title("⚙️ Settings")] [SerializeField]
+        private bool isPortrait = true;
+
         [SerializeField] private bool dontDestroyOnLoad = true;
         [SerializeField] private bool isUpdateRatioScaler = true;
- 
+
         #endregion
 
         #region Properties
@@ -80,10 +84,10 @@ namespace OSK
         public Canvas ScreenCanvas => _screenCanvas;
         public Canvas PopupCanvas => _popupCanvas;
         public Canvas OverlayCanvas => _overlayCanvas;
+        public Canvas NotifCanvas => _notifCanvas;
         public Canvas LockCanvas => _lockCanvas;
-        
+
         public Camera UICamera => _uiCamera;
-        public Transform ViewContainer => _viewContainer;
         public Transform ScreenContainer => _screenContainer;
         public Transform PopupContainer => _popupContainer;
         public Transform OverlayContainer => _overlayContainer;
@@ -97,6 +101,7 @@ namespace OSK
             {
                 yield return _screenCanvas;
                 yield return _popupCanvas;
+                yield return _notifCanvas;
                 yield return _overlayCanvas;
                 yield return _lockCanvas;
             }
@@ -108,10 +113,12 @@ namespace OSK
             {
                 yield return _screenScaler;
                 yield return _popupScaler;
+                yield return _notifScaler;
                 yield return _overlayScaler;
                 yield return _lockScaler;
             }
         }
+
         #endregion
 
         public void Initialize()
@@ -127,6 +134,7 @@ namespace OSK
             {
                 Preload();
             }
+
             if (isUpdateRatioScaler)
             {
                 // check if the screen is in portrait mode
@@ -178,6 +186,7 @@ namespace OSK
         {
             SetupSingleCanvas(_screenCanvas, _screenScaler);
             SetupSingleCanvas(_popupCanvas, _popupScaler);
+            SetupSingleCanvas(_notifCanvas, _notifScaler);
             SetupSingleCanvas(_overlayCanvas, _overlayScaler);
             SetupSingleCanvas(_lockCanvas, _lockScaler);
 
@@ -197,7 +206,7 @@ namespace OSK
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.worldCamera = _uiCamera;
             canvas.referencePixelsPerUnit = 100;
-            
+
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
 
@@ -224,7 +233,7 @@ namespace OSK
                 MyLogger.LogError("[View] is null");
                 return;
             }
- 
+
             ListViewInit.Clear();
             _initByType.Clear();
 
@@ -291,13 +300,16 @@ namespace OSK
                 _cacheByType[_view.GetType()] = _view;
                 IsDirtySort = true;
             }
+
             return _view;
         }
 
         public T SpawnAlert<T>(T view, bool usePool) where T : View
         {
             var container = GetContainer(view.viewType);
-            T _view = usePool ? Main.Pool.Spawn<T>(KEY_POOL.KEY_UI_ALERT, view, container) : Instantiate(view, container, false);
+            T _view = usePool
+                ? Main.Pool.Spawn<T>(KEY_POOL.KEY_UI_ALERT, view, container)
+                : Instantiate(view, container, false);
             _view.gameObject.SetActive(true);
             _view.Initialize(this);
 
@@ -389,7 +401,7 @@ namespace OSK
         {
             return Open<T>(data, hidePrevView, false);
         }
-        
+
         public void EnqueueView(View view, object[] data = null, bool hidePrevView = false)
         {
             _queuedViews.Add(new QueuedView { view = view, data = data, hidePrevView = hidePrevView });
@@ -403,12 +415,14 @@ namespace OSK
         /// <summary>
         /// Mở view bất đồng bộ từ Resources. Tự động khóa Input trong lúc chờ.
         /// </summary>
-        public void OpenAsync<T>(string path, object[] data = null, bool hidePrev = false, Action<T> onComplete = null) where T : View
+        public void OpenAsync<T>(string path, object[] data = null, bool hidePrev = false, Action<T> onComplete = null)
+            where T : View
         {
             StartCoroutine(OpenAsyncRoutine<T>(path, data, hidePrev, onComplete));
         }
 
-        private IEnumerator OpenAsyncRoutine<T>(string path, object[] data = null, bool hidePrev = false, Action<T> onComplete = null) where T : View
+        private IEnumerator OpenAsyncRoutine<T>(string path, object[] data = null, bool hidePrev = false,
+            Action<T> onComplete = null) where T : View
         {
             // Check cache
             var cached = Get<T>(true);
@@ -439,8 +453,9 @@ namespace OSK
         }
 
         #endregion
-        
-        public void EnqueueView<T>(object[] data = null, bool hidePrev = false, Action<T> onOpened = null) where T : View
+
+        public void EnqueueView<T>(object[] data = null, bool hidePrev = false, Action<T> onOpened = null)
+            where T : View
         {
             // O(1) cached lookup
             _cacheByType.TryGetValue(typeof(T), out var cached);
@@ -452,7 +467,8 @@ namespace OSK
                 var prefab = initPrefab as T;
                 if (prefab == null)
                 {
-                    MyLogger.LogError($"[EnqueueView<{typeof(T).Name}>] Not found view prefab for type: {typeof(T).Name}");
+                    MyLogger.LogError(
+                        $"[EnqueueView<{typeof(T).Name}>] Not found view prefab for type: {typeof(T).Name}");
                     return;
                 }
 
@@ -474,7 +490,7 @@ namespace OSK
                 StartCoroutine(ProcessQueue());
         }
 
-        
+
         private IEnumerator ProcessQueue()
         {
             _isProcessingQueue = true;
@@ -498,7 +514,7 @@ namespace OSK
                     yield return null;
                     continue;
                 }
-                 
+
                 var openedView = Open(next.view, next.data, next.hidePrevView);
                 next.onOpened?.Invoke(openedView);
 
@@ -509,7 +525,7 @@ namespace OSK
 
             _isProcessingQueue = false;
         }
-        
+
         /// <summary>
         /// Open previous view in history
         /// </summary>
@@ -700,7 +716,7 @@ namespace OSK
 
         public void HideIgnore<T>(T[] viewsToKeep) where T : View
         {
-            HashSet<T> keepSet = viewsToKeep != null  ? new HashSet<T>(viewsToKeep) : null;
+            HashSet<T> keepSet = viewsToKeep != null ? new HashSet<T>(viewsToKeep) : null;
 
             for (int i = ListCacheView.Count - 1; i >= 0; i--)
             {
@@ -742,6 +758,7 @@ namespace OSK
                     ListCacheView.RemoveAt(i);
                     continue;
                 }
+
                 if (!view.IsShowing) continue;
                 try
                 {
@@ -753,7 +770,7 @@ namespace OSK
                 }
             }
         }
-        
+
         public void CleanNull()
         {
             for (int i = ListCacheView.Count - 1; i >= 0; i--)
@@ -803,8 +820,8 @@ namespace OSK
                     MyLogger.LogWarning($"[View] {nameof(curView)} null view");
                     continue;
                 }
-                
-                if (!curView.IsShowing) 
+
+                if (!curView.IsShowing)
                     continue;
 
                 try
@@ -863,11 +880,14 @@ namespace OSK
 
         private void EnsureContainers()
         {
-            if (_viewContainer == null) _viewContainer = transform;
-
-            _screenContainer = EnsureCanvasContainer("ScreenCanvas", _screenCanvas, out _screenCanvas, out _screenScaler, 0);
-            _popupContainer = EnsureCanvasContainer("PopupCanvas", _popupCanvas, out _popupCanvas, out _popupScaler, 10);
-            _overlayContainer = EnsureCanvasContainer("OverlayCanvas", _overlayCanvas, out _overlayCanvas, out _overlayScaler, 20);
+            _screenContainer =
+                EnsureCanvasContainer("ScreenCanvas", _screenCanvas, out _screenCanvas, out _screenScaler, 0);
+            _popupContainer =
+                EnsureCanvasContainer("PopupCanvas", _popupCanvas, out _popupCanvas, out _popupScaler, 10);
+            _notifContainer =
+                EnsureCanvasContainer("NotifCanvas", _notifCanvas, out _notifCanvas, out _notifScaler, 15);
+            _overlayContainer = EnsureCanvasContainer("OverlayCanvas", _overlayCanvas, out _overlayCanvas,
+                out _overlayScaler, 20);
             _lockContainer = EnsureCanvasContainer("LockCanvas", _lockCanvas, out _lockCanvas, out _lockScaler, 100);
 
             if (_lockContainer != null && _lockContainer.GetComponent<Image>() == null)
@@ -879,7 +899,8 @@ namespace OSK
             }
         }
 
-        private Transform EnsureCanvasContainer(string name, Canvas existingCanvas, out Canvas canvas, out CanvasScaler scaler, int sortOrder)
+        private Transform EnsureCanvasContainer(string name, Canvas existingCanvas, out Canvas canvas,
+            out CanvasScaler scaler, int sortOrder)
         {
             Transform t;
             if (existingCanvas != null)
@@ -890,46 +911,21 @@ namespace OSK
             }
             else
             {
-                var go = new GameObject(name, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-                go.transform.SetParent(_viewContainer, false);
-                canvas = go.GetComponent<Canvas>();
-                scaler = go.GetComponent<CanvasScaler>();
+                var go = new GameObject(name, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler),
+                    typeof(GraphicRaycaster));
+                go.transform.SetParent(transform, false);
+                canvas = go.GetOrAdd<Canvas>();
+                scaler = go.GetOrAdd<CanvasScaler>();
                 t = go.transform;
             }
 
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.worldCamera = _uiCamera;
             canvas.sortingOrder = sortOrder;
-            
+
             return t;
         }
 
-        private Transform GetOrCreateContainer(string name, Transform current)
-        {
-            if (current != null) return current;
-            var t = _viewContainer.Find(name);
-            if (t == null)
-            {
-                var go = new GameObject(name, typeof(RectTransform));
-                t = go.transform;
-                t.SetParent(_viewContainer, false);
-
-                var rt = t as RectTransform;
-                rt.anchorMin = Vector2.zero;
-                rt.anchorMax = Vector2.one;
-                rt.sizeDelta = Vector2.zero;
-                rt.anchoredPosition = Vector2.zero;
-
-                if (name == "LockContainer")
-                {
-                    var img = go.AddComponent<UnityEngine.UI.Image>();
-                    img.color = new Color(0, 0, 0, 0);
-                    img.raycastTarget = true;
-                    go.SetActive(false);
-                }
-            }
-            return t;
-        }
 
         public Transform GetContainer(EViewType type)
         {
@@ -937,8 +933,9 @@ namespace OSK
             {
                 EViewType.Screen => _screenContainer,
                 EViewType.Popup => _popupContainer,
+                EViewType.Alert => _notifContainer,
                 EViewType.Overlay => _overlayContainer,
-                _ => _viewContainer
+                _ => transform
             };
         }
 

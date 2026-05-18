@@ -9,11 +9,7 @@ namespace OSK
     public class AlertView : View
     {
         public GameObject title;
-
-        /// Title of the alert (require text in component).
         public GameObject message;
-
-        /// Message of the alert (require text in component).
         public Button okButton;
 
         public Button cancelButton;
@@ -23,6 +19,7 @@ namespace OSK
 
         protected override void OnInit()
         {
+            viewType = EViewType.Alert;
         }
 
         protected override void SetData(object[] data)
@@ -31,8 +28,7 @@ namespace OSK
             alertSetup = data[0] as AlertSetup;
             if (alertSetup == null)
             {
-                MyLogger.LogError(
-                    "AlertView: AlertSetup is null. if override this method, remove base.SetData(setup).");
+                MyLogger.LogError("AlertView: AlertSetup is null. if override this method, remove base.SetData(setup).");
                 return;
             }
 

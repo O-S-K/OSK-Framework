@@ -6,7 +6,8 @@ namespace OSK
     public enum EViewType
     {
         None, // 0
-        Popup, // 1000
+        Popup, // 1000 
+        Alert, // 5000
         Overlay, // 10000
         Screen // -1000
     }

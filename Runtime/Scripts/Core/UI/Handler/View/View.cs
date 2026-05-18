@@ -55,6 +55,7 @@ namespace OSK
                 {
                     EViewType.None => 0,
                     EViewType.Popup => 1000,
+                    EViewType.Alert => 5000,
                     EViewType.Overlay => 10000,
                     EViewType.Screen => -1000,
                     _ => 0
