@@ -65,10 +65,10 @@ namespace OSK
             _isFirstOpen = true;
         }
 
-        protected override void SetData(object[] data = null)
+        protected override void SetData(object data = null)
         {
-            if (data == null || data.Length == 0) return;
-            if (data[0] is HoleViewData holeData) ApplyData(holeData);
+            if (data == null || false) return;
+            if (data is HoleViewData holeData) ApplyData(holeData);
         }
 
         private void Update()

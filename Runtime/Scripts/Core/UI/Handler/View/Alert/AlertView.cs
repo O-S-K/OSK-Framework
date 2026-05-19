@@ -22,10 +22,10 @@ namespace OSK
             viewType = EViewType.Alert;
         }
 
-        protected override void SetData(object[] data)
+        protected override void SetData(object data)
         {
             base.SetData(data);
-            alertSetup = data[0] as AlertSetup;
+            alertSetup = data as AlertSetup;
             if (alertSetup == null)
             {
                 MyLogger.LogError("AlertView: AlertSetup is null. if override this method, remove base.SetData(setup).");

@@ -29,10 +29,11 @@ namespace OSK
         {
         }
 
-        public override void Open(object[] data = null)
+        public override bool Open(object data = null)
         {
-            base.Open(data);
+            if (!base.Open(data)) return false;
             StartTransition();
+            return true;
         }
 
         private void StartTransition()

@@ -25,7 +25,7 @@ namespace OSK
         [TextArea(1, 3), ReadOnly] [SerializeField]
         private string tooltip = "All list of views in the project. You can add remove edit info views in here.";
         [TableList, SerializeField] private List<DataViewUI> _listView = new List<DataViewUI>();
-        public List<DataViewUI> Views => _listView;
+        public List<DataViewUI> ListView => _listView;
 
         public void CheckNullView()
         {

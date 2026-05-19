@@ -21,7 +21,7 @@ namespace OSK
             _closeButton.BindButton(Hide);
         }
 
-        protected override void SetData(object[] data = null)
+        protected override void SetData(object data = null)
         {
             base.SetData(data);
             RefreshButtons();

@@ -37,7 +37,7 @@ namespace OSK
         /// <summary>
         /// Spawn view từ Resources path. Nếu đã tồn tại thì Open thay vì spawn lại.
         /// </summary>
-        public T Spawn<T>(string path, object[] data = null, bool cache = true, bool hidePrev = false)
+        public T Spawn<T>(string path, object data = null, bool cache = true, bool hidePrev = false)
             where T : View
         {
             return RootUI.Spawn<T>(path, data, cache, hidePrev);
@@ -46,7 +46,7 @@ namespace OSK
         /// <summary>
         /// Spawn view từ prefab reference. Nếu đã tồn tại thì Open.
         /// </summary>
-        public T Spawn<T>(T prefab, object[] data = null, bool hidePrev = false) where T : View
+        public T Spawn<T>(T prefab, object data = null, bool hidePrev = false) where T : View
         {
             return RootUI.Spawn(prefab, data, hidePrev);
         }
@@ -58,7 +58,7 @@ namespace OSK
         /// <summary>
         /// Mở view theo type. Auto-spawn nếu chưa có trong cache.
         /// </summary>
-        public T Open<T>(object[] data = null, bool hidePrev = false) where T : View
+        public T Open<T>(object data = null, bool hidePrev = false) where T : View
         {
             return RootUI.Open<T>(data, hidePrev);
         }
@@ -66,7 +66,7 @@ namespace OSK
         /// <summary>
         /// Mở view bất đồng bộ từ Resources path.
         /// </summary>
-        public void OpenAsync<T>(string path, object[] data = null, bool hidePrev = false, Action<T> onComplete = null) where T : View
+        public void OpenAsync<T>(string path, object data = null, bool hidePrev = false, Action<T> onComplete = null) where T : View
         {
             RootUI.OpenAsync<T>(path, data, hidePrev, onComplete);
         }
@@ -74,7 +74,7 @@ namespace OSK
         /// <summary>
         /// Mở view theo instance reference.
         /// </summary>
-        public void Open(View view, object[] data = null, bool hidePrev = false)
+        public void Open(View view, object data = null, bool hidePrev = false)
         {
             RootUI.Open(view, data, hidePrev);
         }
@@ -82,7 +82,7 @@ namespace OSK
         /// <summary>
         /// Mở view, cho phép mở lại nếu đang showing (không skip).
         /// </summary>
-        public T TryOpen<T>(object[] data = null, bool hidePrev = false) where T : View
+        public T TryOpen<T>(object data = null, bool hidePrev = false) where T : View
         {
             return RootUI.TryOpen<T>(data, hidePrev);
         }
@@ -141,7 +141,7 @@ namespace OSK
         /// <summary>
         /// Xếp hàng view để mở tuần tự. View tiếp theo mở khi view hiện tại đóng.
         /// </summary>
-        public void EnqueueView<T>(object[] data = null, bool hidePrev = false, Action<T> onOpened = null) where T : View
+        public void EnqueueView<T>(object data = null, bool hidePrev = false, Action<T> onOpened = null) where T : View
         {
             RootUI.EnqueueView<T>(data, hidePrev, onOpened);
         }
@@ -149,7 +149,7 @@ namespace OSK
         /// <summary>
         /// Xếp hàng view instance để mở tuần tự.
         /// </summary>
-        public void EnqueueView(View view, object[] data = null, bool hidePrev = false)
+        public void EnqueueView(View view, object data = null, bool hidePrev = false)
         {
             RootUI.EnqueueView(view, data, hidePrev);
         }

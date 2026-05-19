@@ -97,7 +97,7 @@ namespace OSK
 
             if (GUILayout.Button("Clear All"))
             {
-                listViewSO.Views.Clear();
+                listViewSO.ListView.Clear();
                 EditorUtility.SetDirty(target);
             }
 
@@ -110,7 +110,7 @@ namespace OSK
         private void CheckUniqueUI()
         {
             var views = new List<DataViewUI>();
-            foreach (var view in listViewSO.Views)
+            foreach (var view in listViewSO.ListView)
             {
                 if (views.Contains(view))
                     OSK.MyLogger.LogError($"Popup Type {view} exists in the list. Please remove it.");
@@ -148,7 +148,7 @@ namespace OSK
                 if (newViewDraft.view != null)
                 {
                     newViewDraft.view.viewType = newViewDraft.viewType;
-                    listViewSO.Views.Add(newViewDraft);
+                    listViewSO.ListView.Add(newViewDraft);
                     newViewDraft = null;
                     EditorUtility.SetDirty(listViewSO);
                 }
@@ -181,7 +181,7 @@ namespace OSK
 
             foreach (var popup in listViews)
             {
-                if (listViewSO.Views.Any(x => x.view == popup))
+                if (listViewSO.ListView.Any(x => x.view == popup))
                     continue;
 
                 var data = new DataViewUI
@@ -190,7 +190,7 @@ namespace OSK
                     path = IOUtility.GetPathAfterResources(popup)
                 };
                 data.depth = popup.depthEdit;
-                listViewSO.Views.Add(data);
+                listViewSO.ListView.Add(data);
             }
 
             SortViews(listViewSO);
@@ -204,7 +204,7 @@ namespace OSK
 
         private void SetDepthFromRes()
         {
-            foreach (var viewData in listViewSO.Views)
+            foreach (var viewData in listViewSO.ListView)
             {
                 if (viewData.view == null) continue;
 
@@ -219,7 +219,7 @@ namespace OSK
 
         private void SetDepthSOToRrefab()
         {
-            foreach (var viewData in listViewSO.Views)
+            foreach (var viewData in listViewSO.ListView)
             {
                 if (viewData.view == null) continue;
 
@@ -253,7 +253,7 @@ namespace OSK
 
         private void SortViews(ListViewSO listViewSO)
         {
-            listViewSO.Views.Sort((x, y) =>
+            listViewSO.ListView.Sort((x, y) =>
             {
                 int depthComparison = x.depth.CompareTo(y.depth);
                 if (depthComparison != 0)
@@ -272,9 +272,9 @@ namespace OSK
         {
             EViewType? currentViewType = null;
 
-            for (int i = 0; i < listViewSO.Views.Count; i++)
+            for (int i = 0; i < listViewSO.ListView.Count; i++)
             {
-                var dataView = listViewSO.Views[i];
+                var dataView = listViewSO.ListView[i];
 
                 if (dataView.view != null)
                 {
@@ -305,7 +305,7 @@ namespace OSK
 
                     if (GUILayout.Button("Remove", GUILayout.Width(60)))
                     {
-                        listViewSO.Views.Remove(dataView);
+                        listViewSO.ListView.Remove(dataView);
                         EditorUtility.SetDirty(target);
                         return;
                     }
@@ -333,7 +333,7 @@ namespace OSK
 
             if (dataView.view != null)
             {
-                bool isDuplicate = listViewSO.Views.Count(v => v.view == dataView.view) > 1;
+                bool isDuplicate = listViewSO.ListView.Count(v => v.view == dataView.view) > 1;
 
                 if (isDuplicate)
                 {
@@ -343,7 +343,7 @@ namespace OSK
 
             if (GUILayout.Button("Remove", GUILayout.Width(60)))
             {
-                listViewSO.Views.RemoveAt(index);
+                listViewSO.ListView.RemoveAt(index);
                 EditorUtility.SetDirty(target);
                 return;
             }

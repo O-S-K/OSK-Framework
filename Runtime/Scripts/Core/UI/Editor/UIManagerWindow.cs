@@ -121,7 +121,7 @@ namespace OSK
         private void DrawRightPanel()
         {
             EditorGUILayout.Space(10);
-            List<DataViewUI> displayList = listViewSO.Views
+            List<DataViewUI> displayList = listViewSO.ListView
                 .Where(v => selectedType == null || (v.view != null && v.view.viewType == selectedType)).ToList();
 
             // HEADER
@@ -181,7 +181,7 @@ namespace OSK
             // 3. XỬ LÝ XÓA (Nằm ngoài vòng lặp để tránh lỗi danh sách thay đổi khi đang chạy)
             if (itemToRemove != null)
             {
-                listViewSO.Views.Remove(itemToRemove);
+                listViewSO.ListView.Remove(itemToRemove);
                 EditorUtility.SetDirty(listViewSO);
             }
 
@@ -238,7 +238,7 @@ namespace OSK
                 if (GUILayout.Button("Confirm Add", GUILayout.Width(120), GUILayout.Height(30)))
                 {
                     newViewDraft.view.viewType = newViewDraft.viewType;
-                    listViewSO.Views.Add(newViewDraft);
+                    listViewSO.ListView.Add(newViewDraft);
                     newViewDraft = null;
                     EditorUtility.SetDirty(listViewSO);
                 }
@@ -271,7 +271,7 @@ namespace OSK
 
                 foreach (var popup in listViews)
                 {
-                    if (listViewSO.Views.Any(x => x.view == popup))
+                    if (listViewSO.ListView.Any(x => x.view == popup))
                         continue;
 
                     var data = new DataViewUI
@@ -280,9 +280,9 @@ namespace OSK
                         path = IOUtility.GetPathAfterResources(popup)
                     };
                     data.depth = popup.depthEdit;
-                    listViewSO.Views.Add(data);
+                    listViewSO.ListView.Add(data);
                 }
-                listViewSO.Views.Sort((a, b) =>
+                listViewSO.ListView.Sort((a, b) =>
                 {
                     int d = a.depth.CompareTo(b.depth);
                     return d != 0 ? d : a.view.viewType.CompareTo(b.view.viewType);
@@ -293,16 +293,16 @@ namespace OSK
 
             if (GUILayout.Button("Set Data To Prefab", GUILayout.Width(500), GUILayout.Height(25)))
             {
-                for (int i = 0; i < listViewSO.Views.Count; i++)
+                for (int i = 0; i < listViewSO.ListView.Count; i++)
                 {
-                    listViewSO.Views[i].view.depthEdit = listViewSO.Views[i].depth;
-                    UnityEditor.EditorUtility.SetDirty(listViewSO.Views[i].view);
+                    listViewSO.ListView[i].view.depthEdit = listViewSO.ListView[i].depth;
+                    UnityEditor.EditorUtility.SetDirty(listViewSO.ListView[i].view);
                 }
             }
 
             if (GUILayout.Button("Sort By Depth + ViewType", GUILayout.Width(500), GUILayout.Height(25)))
             {
-                listViewSO.Views.Sort((a, b) =>
+                listViewSO.ListView.Sort((a, b) =>
                 {
                     int d = a.depth.CompareTo(b.depth);
                     return d != 0 ? d : a.view.viewType.CompareTo(b.view.viewType);
@@ -312,7 +312,7 @@ namespace OSK
 
             if (GUILayout.Button("Refresh Data From Prefab", GUILayout.Width(500), GUILayout.Height(25)))
             {
-                foreach (var v in listViewSO.Views)
+                foreach (var v in listViewSO.ListView)
                 {
                     if (v.view != null)
                     {
@@ -326,7 +326,7 @@ namespace OSK
             if (GUILayout.Button("Clear All", GUILayout.Width(500), GUILayout.Height(25)))
             {
                 if (EditorUtility.DisplayDialog("Clear All?", "Remove all views?", "OK", "Cancel"))
-                    listViewSO.Views.Clear();
+                    listViewSO.ListView.Clear();
                 UnityEditor.EditorUtility.SetDirty(listViewSO);
             }
         }

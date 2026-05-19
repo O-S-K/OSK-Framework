@@ -8,12 +8,12 @@ namespace OSK
 {
     public abstract class View : MonoBehaviour
     {
-        public event Action<object[]> OnDataChanged;
+        public event Action<object> OnDataChanged;
 
         [SerializeField]
-        private object[] _data;
+        private object _data;
 
-        public object[] Data
+        public object data
         {
             get => _data;
             private set
@@ -25,11 +25,9 @@ namespace OSK
                 }
 
 #if UNITY_EDITOR
-                if (_data != null && _data.Length > 0)
+                if (_data != null)
                 {
-                    string details = string.Join(", ", _data.Select(d =>
-                        d == null ? "null" : $"{d.GetType().Name}({d})"));
-                    MyLogger.Log($"[DebugData] {GetType().Name} received data: [{details}]");
+                    MyLogger.Log($"[DebugData] {GetType().Name} received data: {_data}");
                 }
                 else
                 {
@@ -131,7 +129,7 @@ namespace OSK
                 return;
             }
 
-            if (dataSO.Views.Any(v => v.view == this))
+            if (dataSO.ListView.Any(v => v.view == this))
             {
                 MyLogger.LogWarning($"[AddViewToDataSO] {name} already exists in ViewDataSO.");
                 return;
@@ -148,7 +146,7 @@ namespace OSK
                 depth = depthEdit,
                 view = this
             };
-            dataSO.Views.Add(newData);
+            dataSO.ListView.Add(newData);
             MyLogger.Log($"[AddViewToDataSO] Added {name} to ViewDataSO.");
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(dataSO);
@@ -177,16 +175,21 @@ namespace OSK
         protected virtual void Awake() => OnInit();
         protected abstract void OnInit(); // setting, get set component data ..... 
 
-        public virtual void Open(object[] data = null)
+        public virtual bool Open(object data = null)
         {
-            if (!IsViewContainerInitialized()) return;
-            if (IsAlreadyShowing())
+            if (!IsViewContainerInitialized()) return false;
+            
+            if (!SetupData(data))
             {
-                SetData(data);
-                return;
+                MyLogger.LogError($"[View] {GetType().Name} failed data validation. Aborting Open.");
+                return false;
             }
 
-            SetData(data);
+            if (IsAlreadyShowing())
+            {
+                return true;
+            }
+
             _isShowing = true;
             IsClosing = false;
             gameObject.SetActive(true);
@@ -198,6 +201,7 @@ namespace OSK
             }
 
             Opened();
+            return true;
         }
 
         private void Opened()
@@ -217,17 +221,27 @@ namespace OSK
             }
         }
 
-        // example: SetData(new object[]{1,2,3,4,5});
-        protected virtual void SetData(object[] data = null)
+        protected virtual bool SetupData(object data = null)
         {
-            if (data == null || data.Length == 0)
+            if (!OnValidateData(data)) return false;
+            SetData(data);
+            return true;
+        }
+
+        protected virtual void SetData(object data = null)
+        {
+            if (data == null)
             {
-                //MyLogger.Log($"[SetData] No data passed to {GetType().Name}");
                 return;
             }
 
-            this.Data = data;
-            MyLogger.Log($"[SetData] {GetType().Name} received data: [{string.Join(", ", data.Select(d => d == null ? "null" : $"{d.GetType().Name}({d})"))}]");
+            this.data = data;
+            MyLogger.Log($"[SetData] {GetType().Name} received data: {data}");
+        }
+
+        protected virtual bool OnValidateData(object data)
+        {
+            return true;
         }
 
         public void SetTweenUIOpen(TweenSettings settings)

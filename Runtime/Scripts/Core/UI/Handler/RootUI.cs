@@ -16,7 +16,7 @@ namespace OSK
         private class QueuedView
         {
             public View view;
-            public object[] data;
+            public object data;
             public bool hidePrevView;
             public Action<View> onOpened;
         }
@@ -141,10 +141,10 @@ namespace OSK
                 Main.UI.SetupCanvasScaleForRatio();
             }
         }
+#if OSK_DEBUG || UNITY_EDITOR
 
         private void Update()
         {
-#if OSK_DEBUG || UNITY_EDITOR
             // Shortcut to open Debug View: BackQuote (~) on PC
             if (Input.GetKeyDown(KeyCode.BackQuote))
             {
@@ -166,7 +166,6 @@ namespace OSK
                     ToggleDebugView();
                 }
             }
-#endif
         }
 
         private void ToggleDebugView()
@@ -181,6 +180,7 @@ namespace OSK
                 Main.UI.Open<DebugView>();
             }
         }
+#endif
 
         public void SetupCanvas()
         {
@@ -227,7 +227,7 @@ namespace OSK
 
         private void Preload()
         {
-            var listUIPopupSo = Main.Instance.configInit.data.listViewS0.Views;
+            var listUIPopupSo = Main.Instance.configInit.data.listViewS0.ListView;
             if (listUIPopupSo == null)
             {
                 MyLogger.LogError("[View] is null");
@@ -261,12 +261,12 @@ namespace OSK
 
         #region Spawn
 
-        public T Spawn<T>(T view, object[] data, bool hidePrevView) where T : View
+        public T Spawn<T>(T view, object data, bool hidePrevView) where T : View
         {
             return IsExist<T>() ? Open<T>(data, hidePrevView) : SpawnViewCache(view);
         }
 
-        public T Spawn<T>(string path, object[] data, bool cache, bool hidePrevView) where T : View
+        public T Spawn<T>(string path, object data, bool cache, bool hidePrevView) where T : View
         {
             if (IsExist<T>())
             {
@@ -275,8 +275,7 @@ namespace OSK
 
             var view = SpawnFromResource<T>(path);
             if (!cache) return view;
-
-            // FIX: was inverted (only added when already contained)
+  
             if (!ListCacheView.Contains(view))
             {
                 ListCacheView.Add(view);
@@ -287,8 +286,7 @@ namespace OSK
         }
 
         public T SpawnViewCache<T>(T view) where T : View
-        {
-            // Instantiate với tham số thứ 3 = false để giữ nguyên Anchor, Position, Scale gốc của Prefab
+        { 
             var _view = Instantiate(view, GetContainer(view.viewType), false);
             _view.gameObject.SetActive(false);
             _view.Initialize(this);
@@ -321,11 +319,9 @@ namespace OSK
 
         #region Open
 
-        public View Open(View view, object[] data = null, bool hidePrevView = false, bool checkShowing = true)
+        public View Open(View view, object data = null, bool hidePrevView = false, bool checkShowing = true)
         {
-            var viewType = view.GetType();
-
-            // O(1) cached lookup instead of LINQ FirstOrDefault
+            var viewType = view.GetType(); 
             _cacheByType.TryGetValue(viewType, out var _view);
 
             if (hidePrevView && ListViewHistory.Count > 0)
@@ -358,11 +354,9 @@ namespace OSK
             return _view;
         }
 
-        public T Open<T>(object[] data = null, bool hidePrevView = false, bool checkShowing = true) where T : View
+        public T Open<T>(object data = null, bool hidePrevView = false, bool checkShowing = true) where T : View
         {
-            var viewType = typeof(T);
-
-            // O(1) cached lookup instead of LINQ FirstOrDefault
+            var viewType = typeof(T); 
             _cacheByType.TryGetValue(viewType, out var cached);
             var _view = cached as T;
 
@@ -397,12 +391,12 @@ namespace OSK
             return _view;
         }
 
-        public T TryOpen<T>(object[] data = null, bool hidePrevView = false) where T : View
+        public T TryOpen<T>(object data = null, bool hidePrevView = false) where T : View
         {
             return Open<T>(data, hidePrevView, false);
         }
 
-        public void EnqueueView(View view, object[] data = null, bool hidePrevView = false)
+        public void EnqueueView(View view, object data = null, bool hidePrevView = false)
         {
             _queuedViews.Add(new QueuedView { view = view, data = data, hidePrevView = hidePrevView });
             _queuedViews.Sort((a, b) => b.view.Priority.CompareTo(a.view.Priority));
@@ -411,17 +405,13 @@ namespace OSK
         }
 
         #region Async Loading (Resources Flow)
-
-        /// <summary>
-        /// Mở view bất đồng bộ từ Resources. Tự động khóa Input trong lúc chờ.
-        /// </summary>
-        public void OpenAsync<T>(string path, object[] data = null, bool hidePrev = false, Action<T> onComplete = null)
+        public void OpenAsync<T>(string path, object data = null, bool hidePrev = false, Action<T> onComplete = null)
             where T : View
         {
             StartCoroutine(OpenAsyncRoutine<T>(path, data, hidePrev, onComplete));
         }
 
-        private IEnumerator OpenAsyncRoutine<T>(string path, object[] data = null, bool hidePrev = false,
+        private IEnumerator OpenAsyncRoutine<T>(string path, object data = null, bool hidePrev = false,
             Action<T> onComplete = null) where T : View
         {
             // Check cache
@@ -454,7 +444,7 @@ namespace OSK
 
         #endregion
 
-        public void EnqueueView<T>(object[] data = null, bool hidePrev = false, Action<T> onOpened = null)
+        public void EnqueueView<T>(object data = null, bool hidePrev = false, Action<T> onOpened = null)
             where T : View
         {
             // O(1) cached lookup
@@ -508,7 +498,6 @@ namespace OSK
                         break;
                     }
                 }
-
                 if (next == null)
                 {
                     yield return null;
@@ -529,7 +518,7 @@ namespace OSK
         /// <summary>
         /// Open previous view in history
         /// </summary>
-        public View OpenPrevious(object[] data = null, bool isHidePrevPopup = false)
+        public View OpenPrevious(object data = null, bool isHidePrevPopup = false)
         {
             if (ListViewHistory.Count <= 1)
             {
@@ -570,7 +559,6 @@ namespace OSK
         /// </summary>
         public AlertView OpenAlert<T>(AlertSetup setup) where T : AlertView
         {
-            // O(1) cached lookup
             _initByType.TryGetValue(typeof(T), out var initPrefab);
             var viewPrefab = initPrefab as T;
             if (viewPrefab == null)
@@ -580,7 +568,7 @@ namespace OSK
             }
 
             var view = SpawnAlert(viewPrefab, setup.usePool);
-            view.Open(new object[] { setup });
+            view.Open(setup);
             MyLogger.Log($"[View] Opened view: {view.name}");
             return view;
         }
@@ -648,7 +636,7 @@ namespace OSK
 
         public List<View> GetAll(bool isInitOnScene)
         {
-            if (isInitOnScene) // check if the view is already initialized
+            if (isInitOnScene) 
                 return ListCacheView;
 
             var views = ListViewInit.FindAll(x => x.isInitOnScene);
@@ -849,8 +837,6 @@ namespace OSK
             _cacheByType.Remove(view.GetType());
             IsDirtySort = true;
             action?.Invoke();
-
-            // Nếu từ Pool thì trả về Pool, ngược lại mới Destroy
             if (Main.Pool.IsFromPool(view))
             {
                 Main.Pool.Despawn(view);
@@ -922,10 +908,9 @@ namespace OSK
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.worldCamera = _uiCamera;
             canvas.sortingOrder = sortOrder;
-
+            canvas.gameObject.layer = LayerMask.NameToLayer("UI");
             return t;
         }
-
 
         public Transform GetContainer(EViewType type)
         {

@@ -62,7 +62,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewType: 3
-  depthEdit: 5
+  depthEdit: 999
   _priority: 0
   isAddToViewManager: 0
   isPreloadSpawn: 0

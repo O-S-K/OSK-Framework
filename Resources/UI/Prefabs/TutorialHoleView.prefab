@@ -63,8 +63,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0346edfa96746ec42940566c00d3a401, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  viewType: 2
-  depthEdit: 0
+  viewType: 1
+  depthEdit: 999
   _priority: 0
   isAddToViewManager: 1
   isPreloadSpawn: 1
