@@ -111,7 +111,7 @@ namespace OSK
 
             // Model -> View
             Action<float> updateView = (val) => {
-                // Kiểm tra bằng toán học xấp xỉ để tránh vòng lặp vô tận do float
+                // Use mathematical approximations to avoid infinite loops caused by floats.
                 if (UnityEngine.Mathf.Abs(slider.value - val) > 0.0001f) slider.value = val;
             };
             property.Bind(updateView, true);

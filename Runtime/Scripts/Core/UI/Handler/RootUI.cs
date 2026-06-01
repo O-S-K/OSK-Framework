@@ -50,11 +50,11 @@ namespace OSK
         [Required, SerializeField] private Camera _uiCamera;
 
         [Title("🏗️ Container Transforms")] 
-        [SerializeField] private Transform _screenContainer;
-        [SerializeField] private Transform _popupContainer;
-        [SerializeField] private Transform _notifContainer;
-        [SerializeField] private Transform _overlayContainer;
-        [SerializeField] private Transform _lockContainer;
+        [Required, SerializeField] private Transform _screenContainer;
+        [Required, SerializeField] private Transform _popupContainer;
+        [Required, SerializeField] private Transform _notifContainer;
+        [Required, SerializeField] private Transform _overlayContainer;
+        [Required, SerializeField] private Transform _lockContainer;
         
         private Canvas _screenCanvas;
         private Canvas _popupCanvas;
@@ -141,18 +141,18 @@ namespace OSK
                 Main.UI.SetupCanvasScaleForRatio();
             }
         }
-#if OSK_DEBUG || UNITY_EDITOR
+#if OSK_DEBUG
 
         private void Update()
         {
-            // Shortcut to open Debug View: BackQuote (~) on PC
-            if (Input.GetKeyDown(KeyCode.BackQuote))
+            // Shortcut to open Debug View: F2 on PC
+            if (Input.GetKeyDown(KeyCode.F2))
             {
                 ToggleDebugView();
             }
 
             // Shortcut on Mobile: 3 fingers long press (0.5s)
-            if (Input.touchCount == 3)
+            if (Input.touchCount == 5)
             {
                 bool allHeld = true;
                 foreach (var touch in Input.touches)

@@ -6,7 +6,7 @@ using Sirenix.OdinInspector;
 
 namespace OSK
 {
-    public class DebugView : View
+    public class DebugConsoleView : View
     {
         [Title("Debug Components")]
         [SerializeField] private Text _infoText;
@@ -50,7 +50,7 @@ namespace OSK
             _infoText.text = sb.ToString();
         }
 
-        private void RefreshButtons()
+        protected virtual void RefreshButtons()
         {
             if (_buttonContainer == null || _buttonPrefab == null) return;
 

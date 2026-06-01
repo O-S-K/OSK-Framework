@@ -25,5 +25,19 @@ namespace OSK
 
         public HoleViewData(params RectTransform[] targets) { this.uiTargets = targets; }
         public HoleViewData(params Transform[] worldTargets) { this.worldTargets = worldTargets; }
+        
+                public HoleViewData(RectTransform[] uiTargets = default, Transform[] worldTargets = default, int pointerTargetIndex = 0,
+                    Vector2 pointerOffset = default, bool showPointer = true, EHoleViewEase easeType = EHoleViewEase.SmoothDamp,
+                    float duration = 0.3f, bool freezeSize = true)
+                {
+                    this.uiTargets = uiTargets;
+                    this.worldTargets = worldTargets;
+                    this.pointerTargetIndex = pointerTargetIndex;
+                    this.pointerOffset = pointerOffset == default ? new Vector2(50, -50) : pointerOffset;
+                    this.showPointer = showPointer;
+                    this.easeType = easeType;
+                    this.duration = duration;
+                    this.freezeSize = freezeSize;
+                }
     }
 }

@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace OSK
 {
@@ -109,6 +111,181 @@ namespace OSK
         public T Spawn<T>(string groupName, T prefab, Transform parent, int size, int maxSize = -1, LimitMode limit = LimitMode.RecycleOldest) where T : Object
         {
             return SpawnInternal(groupName, prefab, parent, size, maxSize, limit);
+        }
+
+        #endregion
+
+        #region Spawn Builder
+
+        /// <summary>
+        /// Bắt đầu quá trình Spawn bằng Builder Pattern cho đối tượng cụ thể (Prefab).
+        /// Sử dụng: Main.Pool.Build(prefab, "GroupName").SetPosition(pos).SetParent(parent).Spawn();
+        /// </summary>
+        public PoolBuilder<T> Build<T>(T prefab, string groupName = "Default") where T : Object
+        {
+            return new PoolBuilder<T>(this, prefab, groupName);
+        }
+
+        /// <summary>
+        /// Bắt đầu quá trình Spawn bằng Builder Pattern thông qua Key string.
+        /// Sử dụng: Main.Pool.BuildByKey<GameObject>("Bullet_Key").SetPosition(pos).Spawn();
+        /// </summary>
+        public PoolBuilder<T> BuildByKey<T>(string key) where T : Object
+        {
+            return new PoolBuilder<T>(this, key);
+        }
+
+        public class PoolBuilder<T> where T : Object
+        {
+            private readonly PoolManager _poolManager;
+            
+            private readonly T _prefab;
+            private readonly string _groupName;
+            private readonly string _key;
+            private readonly bool _isSpawnByKey;
+
+            private Transform _parent;
+            private Vector3? _position;
+            private Quaternion? _rotation;
+            private Vector3? _localPosition;
+            private Quaternion? _localRotation;
+            private Vector3? _localScale;
+            
+            private int _maxSize = -1;
+            private LimitMode _limitMode = LimitMode.RecycleOldest;
+            
+            private Action<T> _onSetup;
+            private float _autoDespawnDelay = -1f;
+
+            public PoolBuilder(PoolManager poolManager, T prefab, string groupName)
+            {
+                _poolManager = poolManager;
+                _prefab = prefab;
+                _groupName = groupName;
+                _isSpawnByKey = false;
+            }
+
+            public PoolBuilder(PoolManager poolManager, string key)
+            {
+                _poolManager = poolManager;
+                _key = key;
+                _isSpawnByKey = true;
+            }
+
+            public PoolBuilder<T> SetParent(Transform parent)
+            {
+                _parent = parent;
+                return this;
+            }
+
+            public PoolBuilder<T> SetPosition(Vector3 position)
+            {
+                _position = position;
+                return this;
+            }
+
+            public PoolBuilder<T> SetRotation(Quaternion rotation)
+            {
+                _rotation = rotation;
+                return this;
+            }
+
+            public PoolBuilder<T> SetPositionAndRotation(Vector3 position, Quaternion rotation)
+            {
+                _position = position;
+                _rotation = rotation;
+                return this;
+            }
+
+            public PoolBuilder<T> SetLocalPosition(Vector3 localPosition)
+            {
+                _localPosition = localPosition;
+                return this;
+            }
+
+            public PoolBuilder<T> SetLocalRotation(Quaternion localRotation)
+            {
+                _localRotation = localRotation;
+                return this;
+            }
+
+            public PoolBuilder<T> SetScale(Vector3 scale)
+            {
+                _localScale = scale;
+                return this;
+            }
+
+            public PoolBuilder<T> SetLimit(int maxSize, LimitMode limitMode = LimitMode.RecycleOldest)
+            {
+                _maxSize = maxSize;
+                _limitMode = limitMode;
+                return this;
+            }
+
+            /// <summary>
+            /// Gọi hàm này để cấu hình object ngay khi nó vừa được spawn ra (trước khi trả về).
+            /// Hỗ trợ gọi nhiều lần để nối các thiết lập (chaining).
+            /// </summary>
+            public PoolBuilder<T> Configure(Action<T> onSetup)
+            {
+                _onSetup += onSetup;
+                return this;
+            }
+
+            /// <summary>
+            /// Hẹn giờ tự động thu hồi (Despawn) object sau một khoảng thời gian delay.
+            /// </summary>
+            public PoolBuilder<T> AutoDespawn(float delaySeconds)
+            {
+                _autoDespawnDelay = delaySeconds;
+                return this;
+            }
+
+            /// <summary>
+            /// Thực thi lệnh Spawn từ Pool với các cấu hình đã được thiết lập.
+            /// </summary>
+            public T Spawn()
+            {
+                T instance = null;
+
+                if (_isSpawnByKey)
+                {
+                    instance = _poolManager.SpawnByKey<T>(_key, _parent);
+                }
+                else
+                {
+                    instance = _poolManager.SpawnInternal<T>(_groupName, _prefab, _parent, 1, _maxSize, _limitMode);
+                }
+
+                if (instance == null) return null;
+
+                // Áp dụng Transform nếu có cài đặt
+                if (_position.HasValue || _rotation.HasValue || _localPosition.HasValue || _localRotation.HasValue || _localScale.HasValue)
+                {
+                    Transform t = (instance as Component)?.transform ?? (instance as GameObject)?.transform;
+                    if (t != null)
+                    {
+                        if (_position.HasValue && _rotation.HasValue) t.SetPositionAndRotation(_position.Value, _rotation.Value);
+                        else if (_position.HasValue) t.position = _position.Value;
+                        else if (_rotation.HasValue) t.rotation = _rotation.Value;
+
+                        if (_localPosition.HasValue) t.localPosition = _localPosition.Value;
+                        if (_localRotation.HasValue) t.localRotation = _localRotation.Value;
+                        if (_localScale.HasValue) t.localScale = _localScale.Value;
+                    }
+                }
+
+                // Gọi callback thiết lập tùy chỉnh
+                _onSetup?.Invoke(instance);
+
+                // Kích hoạt auto despawn nếu có
+                if (_autoDespawnDelay > 0)
+                {
+                    _poolManager.Despawn(instance, _autoDespawnDelay);
+                }
+
+                return instance;
+            }
         }
 
         #endregion

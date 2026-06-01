@@ -30,7 +30,7 @@ namespace OSK
         private Action<IList<T>> _onListChanged;
         
         /// <summary>
-        /// Sự kiện bắn ra chính xác phần tử nào bị thêm/xóa/sửa, rất quan trọng để tối ưu UI (không cần Instantiate lại toàn bộ list)
+        /// The event triggers to pinpoint exactly which element was added/deleted/modified, which is crucial for UI optimization (avoiding the need to instantiate the entire list).
         /// </summary>
         private Action<CollectionChangedEventArgs<T>> _onItemChanged;
 

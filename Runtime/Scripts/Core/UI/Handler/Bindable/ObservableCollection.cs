@@ -6,7 +6,7 @@ namespace OSK
 {
     /// <summary>
     /// ObservableCollection<T>
-    /// Sự kiện: OnAdd(index, item), OnRemove(index, item), OnReplace(index, old, new), OnReset()
+    /// Event: OnAdd(index, item), OnRemove(index, item), OnReplace(index, old, new), OnReset()
     /// Thread-affine: designed to be used on Unity main thread.
     /// </summary>
     public class ObservableCollection<T> : IList<T>, IReadOnlyList<T>

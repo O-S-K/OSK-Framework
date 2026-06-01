@@ -1,86 +1,36 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+using System;
 
 namespace OSK
 {
-    public class Entity : MonoBehaviour, IEntity, IUpdate, IFixedUpdate, ILateUpdate
+    /// <summary>
+    /// Pure ECS Entity. Trọng lượng siêu nhẹ (chỉ là 1 số nguyên).
+    /// </summary>
+    public struct Entity : IEquatable<Entity>
     {
-        public int ID { get; set; }
-        public bool IsActive { get; set; }
+        public readonly int ID;
+        public readonly int Version; // Dùng để chống lỗi truy cập vào Entity cũ đã bị huỷ
 
-        private readonly Dictionary<System.Type, EComponent> _components = new();
-
-        #region Components
-        public T Add<T>() where T : EComponent
+        public Entity(int id, int version)
         {
-            var type = typeof(T);
-            if (_components.ContainsKey(type))
-            {
-                MyLogger.LogError($"Component {type} already exists");
-                return null;
-            }
-
-            var component = gameObject.AddComponent<T>();
-            _components[type] = component;
-            return component;
+            ID = id;
+            Version = version;
         }
 
-        public T Get<T>() where T : EComponent
-        {
-            var type = typeof(T);
-            return _components.TryGetValue(type, out var comp) ? (T)comp : null;
-        }
+        public static readonly Entity Null = new Entity(-1, 0);
 
-        public void Remove<T>() where T : EComponent
-        {
-            var type = typeof(T);
-            if (_components.TryGetValue(type, out var comp))
-            {
-                _components.Remove(type);
-                Destroy(comp);
-            }
-        }
+        public bool Equals(Entity other) => ID == other.ID && Version == other.Version;
+        public override bool Equals(object obj) => obj is Entity other && Equals(other);
+        public override int GetHashCode() => ID.GetHashCode();
 
-        #endregion
-        
-        
-        public virtual void Show()
-        {
-            Main.Mono.Register(this);
-            gameObject.SetActive(true);
-            IsActive = true;
-        }
+        public static bool operator ==(Entity left, Entity right) => left.Equals(right);
+        public static bool operator !=(Entity left, Entity right) => !left.Equals(right);
+    }
 
-        public virtual void Hide()
-        {
-            Main.Mono.UnRegister(this);
-            gameObject.SetActive(false);
-            IsActive = false;
-        }
-        
-        public virtual void Delete()
-        {
-            Main.Mono.UnRegister(this);
-            Main.Entity.Destroy(this);
-            //_components.Values.ToList().ForEach(Destroy);
-            //_components.Clear();
-            Destroy(gameObject);
-        }
-
-        public void SetParent(Transform parent)
-        {
-            transform.SetParent(parent);
-        }
-
-        public void SetParentNull()
-        {
-            transform.SetParent(null);
-        }
-
-        public virtual void Tick(float deltaTime){}
-        public virtual void FixedTick(float fixedDeltaTime){}
-        public virtual void LateTick(float deltaTime) {}
+    /// <summary>
+    /// Interface cho các Component thuần dữ liệu (Data-Oriented).
+    /// Bắt buộc phải là struct.
+    /// </summary>
+    public interface IComponentData
+    {
     }
 }

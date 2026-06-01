@@ -64,7 +64,7 @@ MonoBehaviour:
   viewType: 3
   depthEdit: 999
   _priority: 0
-  isAddToViewManager: 0
+  isAddToViewManager: 1
   isPreloadSpawn: 0
   isRemoveOnHide: 1
   isInitOnScene: 0

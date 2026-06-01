@@ -5,8 +5,7 @@ using UnityEngine;
 namespace OSK
 {
     /// <summary>
-    /// Base class cho các thành phần UI nhỏ (không phải là 1 màn hình/View hoàn chỉnh).
-    /// Rất lý tưởng cho các Item trong ScrollView/List/Grid hoặc các cụm UI con dùng chung.
+    /// Base class for small UI elements (not a complete screen/View).
     /// </summary>
     public abstract class BaseBinder<TModel> : MonoBehaviour
     {
@@ -14,19 +13,17 @@ namespace OSK
         private List<Action> _unbindActions = new List<Action>();
 
         /// <summary>
-        /// Gọi hàm này để truyền Data vào và tự động cập nhật UI.
+        /// Call this function to pass data in and automatically update the UI.
         /// </summary>
         public virtual void SetModel(TModel data)
         {
-            // Xóa các Binding cũ trước khi nạp Data mới (rất quan trọng khi xài Object Pool)
             ClearBindings();
-
             Model = data;
             RefreshUI();
         }
 
         /// <summary>
-        /// Ràng buộc dữ liệu từ BindableProperty vào UI. Tự động gỡ khi Item bị Destroy hoặc SetModel mới.
+        /// Bind data from BindableProperty to the UI. Automatically unbind when an item is destroyed or a new SetModel is created.
         /// </summary>
         protected void Bind<T>(BindableProperty<T> property, Action<T> onValueChanged, bool triggerImmediately = true)
         {
@@ -36,8 +33,8 @@ namespace OSK
         }
 
         /// <summary>
-        /// Nơi thực hiện gán dữ liệu từ Model lên giao diện (Text, Image...)
-        /// </summary>
+        /// Two-way binding between UI Input and BindableProperty. When the UI changes, the Model will be updated, and vice versa.
+        /// /// </summary>
         protected abstract void RefreshUI();
 
         protected virtual void ClearBindings()

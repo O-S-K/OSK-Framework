@@ -12,7 +12,7 @@ namespace OSK
         Fade      = 1 << 0,
         Scale     = 1 << 1,
         Animation = 1 << 2,
-        Slide     = 1 << 3, // flag chung để bật chế độ Slide
+        Slide     = 1 << 3, // flag to indicate slide transition, actual direction determined by SlideType
     }
 
     public enum SlideType

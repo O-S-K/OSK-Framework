@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5599148635738714075}
   - component: {fileID: 6950495994208596016}
   m_Layer: 0
-  m_Name: TutorialHoleView
+  m_Name: TutorialHoleUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67,7 +67,7 @@ MonoBehaviour:
   depthEdit: 999
   _priority: 0
   isAddToViewManager: 1
-  isPreloadSpawn: 1
+  isPreloadSpawn: 0
   isRemoveOnHide: 0
   isInitOnScene: 0
   _uiTransition: {fileID: 0}

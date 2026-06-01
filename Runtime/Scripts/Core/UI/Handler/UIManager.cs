@@ -109,6 +109,11 @@ namespace OSK
         {
             ShowTutorial(new HoleViewData(targets));
         }
+        
+        public void ShowTutorial(params Transform[] targets)
+        {
+            ShowTutorial(new HoleViewData(targets));
+        }
 
         public void ShowTutorial(HoleViewData data)
         {
@@ -242,6 +247,203 @@ namespace OSK
         public List<View> GetAll()
         {
             return RootUI.GetAll(true);
+        }
+
+        #endregion
+
+        #region Builder
+
+        /// <summary>
+        /// example usage of builder pattern for opening views with fluent interface:
+        /// ex: UIManager.Build<MainScreenView>().Open();
+        /// ex: UIManager.Build<InventoryView>().SetData(inventoryData).HidePrevious().OnComplete(view => view.PlayOpenAnimation()).Open();
+        /// ex: UIManager.Build<SettingsView>().SetPath("UI/SettingsView").Async().OnComplete(view => view.Init(settingsData)).Open();
+        /// ex: UIManager.Build<DialogView, DialogModel>().SetModel(dialogModel).HidePrevious().Open();
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public UIBuilder<T> Build<T>() where T : View
+        {
+            return new UIBuilder<T>(this);
+        }
+
+        public class UIBuilder<T> where T : View
+        {
+            private readonly UIManager _manager;
+            private object _data;
+            private bool _hidePrev;
+            private string _path;
+            private Action<T> _onComplete;
+            private bool _isAsync;
+            private bool _isEnqueue;
+            private bool _isTryOpen;
+
+            public UIBuilder(UIManager manager)
+            {
+                _manager = manager;
+            }
+
+            public UIBuilder<T> SetData(object data)
+            {
+                _data = data;
+                return this;
+            }
+
+            public UIBuilder<T> HidePrevious(bool hide = true)
+            {
+                _hidePrev = hide;
+                return this;
+            }
+
+            public UIBuilder<T> SetPath(string path)
+            {
+                _path = path;
+                return this;
+            }
+
+            public UIBuilder<T> OnComplete(Action<T> onComplete)
+            {
+                _onComplete = onComplete;
+                return this;
+            }
+
+            public UIBuilder<T> Async()
+            {
+                _isAsync = true;
+                return this;
+            }
+
+            public UIBuilder<T> Enqueue()
+            {
+                _isEnqueue = true;
+                return this;
+            }
+
+            public UIBuilder<T> TryOpen()
+            {
+                _isTryOpen = true;
+                return this;
+            }
+
+            public T Open()
+            {
+                if (_isEnqueue)
+                {
+                    _manager.EnqueueView<T>(_data, _hidePrev, _onComplete);
+                    return null;
+                }
+                
+                if (_isAsync)
+                {
+                    _manager.OpenAsync<T>(_path, _data, _hidePrev, _onComplete);
+                    return null;
+                }
+
+                T view;
+                if (_isTryOpen)
+                {
+                    view = _manager.TryOpen<T>(_data, _hidePrev);
+                }
+                else
+                {
+                    view = _manager.Open<T>(_data, _hidePrev);
+                }
+
+                _onComplete?.Invoke(view);
+                return view;
+            }
+        }
+
+        public UIBuilder<TView, TModel> Build<TView, TModel>() where TView : View<TModel>
+        {
+            return new UIBuilder<TView, TModel>(this);
+        }
+
+        public class UIBuilder<TView, TModel> where TView : View<TModel>
+        {
+            private readonly UIManager _manager;
+            private TModel _model;
+            private bool _hidePrev;
+            private string _path;
+            private Action<TView> _onComplete;
+            private bool _isAsync;
+            private bool _isEnqueue;
+            private bool _isTryOpen;
+
+            public UIBuilder(UIManager manager)
+            {
+                _manager = manager;
+            }
+
+            public UIBuilder<TView, TModel> SetModel(TModel model)
+            {
+                _model = model;
+                return this;
+            }
+
+            public UIBuilder<TView, TModel> HidePrevious(bool hide = true)
+            {
+                _hidePrev = hide;
+                return this;
+            }
+
+            public UIBuilder<TView, TModel> SetPath(string path)
+            {
+                _path = path;
+                return this;
+            }
+
+            public UIBuilder<TView, TModel> OnComplete(Action<TView> onComplete)
+            {
+                _onComplete = onComplete;
+                return this;
+            }
+
+            public UIBuilder<TView, TModel> Async()
+            {
+                _isAsync = true;
+                return this;
+            }
+
+            public UIBuilder<TView, TModel> Enqueue()
+            {
+                _isEnqueue = true;
+                return this;
+            }
+
+            public UIBuilder<TView, TModel> TryOpen()
+            {
+                _isTryOpen = true;
+                return this;
+            }
+
+            public TView Open()
+            {
+                if (_isEnqueue)
+                {
+                    _manager.EnqueueView<TView>(_model, _hidePrev, _onComplete);
+                    return null;
+                }
+                
+                if (_isAsync)
+                {
+                    _manager.OpenAsync<TView>(_path, _model, _hidePrev, _onComplete);
+                    return null;
+                }
+
+                TView view;
+                if (_isTryOpen)
+                {
+                    view = _manager.TryOpen<TView>(_model, _hidePrev);
+                }
+                else
+                {
+                    view = _manager.Open<TView>(_model, _hidePrev);
+                }
+
+                _onComplete?.Invoke(view);
+                return view;
+            }
         }
 
         #endregion

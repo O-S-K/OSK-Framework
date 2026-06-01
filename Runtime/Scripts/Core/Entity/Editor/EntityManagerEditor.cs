@@ -1,7 +1,8 @@
 #if UNITY_EDITOR
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace OSK
 {
@@ -11,58 +12,38 @@ namespace OSK
         public override void OnInspectorGUI()
         {
             var manager = (EntityManager)target;
-            List<Entity> entities = manager.GetAll();
 
             // Draw default inspector fields
             DrawDefaultInspector();
 
-            if (entities != null && entities.Count > 0)
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Pure ECS Info", EditorStyles.boldLabel);
+
+            if (!Application.isPlaying)
             {
-                for (int i = 0; i < entities.Count; i++)
-                {
-                    Entity entity = entities[i];
-                    EditorGUILayout.BeginHorizontal();
-
-                    // Show entity name
-                    EditorGUILayout.LabelField(entity.gameObject.name);
-
-                    // Enable the "Show" button if the entity is inactive
-                    GUI.enabled = !entity.gameObject.activeSelf;
-                    if (GUILayout.Button("Show"))
-                    {
-                        entity.gameObject.SetActive(true);
-                    }
-
-                    // Enable the "Hide" button if the entity is active
-                    GUI.enabled = entity.gameObject.activeSelf;
-                    if (GUILayout.Button("Hide"))
-                    {
-                        entity.gameObject.SetActive(false);
-                    }
-
-                    // Re-enable buttons for delete functionality
-                    GUI.enabled = true;
-
-                    // Delete button
-                    if (GUILayout.Button("Delete"))
-                    {
-                        manager.Destroy(entity);
-                        break;
-                    }
-
-                    EditorGUILayout.EndHorizontal();
-                }
+                EditorGUILayout.HelpBox("Enter Play Mode to see ECS data.", MessageType.Info);
+                return;
             }
-            else
+
+            // Dùng Reflection lấy private field để hiển thị thông tin
+            var fieldId = typeof(EntityManager).GetField("_nextEntityId", BindingFlags.NonPublic | BindingFlags.Instance);
+            int nextId = (int)(fieldId?.GetValue(manager) ?? 0);
+            EditorGUILayout.LabelField($"Total Entities Created: {nextId}");
+
+            var systemsField = typeof(EntityManager).GetField("_systems", BindingFlags.NonPublic | BindingFlags.Instance);
+            var systems = systemsField?.GetValue(manager) as List<EntitySystem>;
+            
+            if (systems != null)
             {
-                EditorGUILayout.LabelField("No active entities.");
+                EditorGUILayout.LabelField($"Active Systems: {systems.Count}");
+                foreach (var sys in systems)
+                {
+                    EditorGUILayout.LabelField($"- {sys.GetType().Name} (Entities: {sys.Entities.Count})");
+                }
             }
 
             // Repaint the editor for live updates
-            if (GUI.changed)
-            {
-                Repaint();
-            }
+            Repaint();
         }
     }
 }

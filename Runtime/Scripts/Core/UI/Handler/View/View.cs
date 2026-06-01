@@ -1,15 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Sirenix.OdinInspector;
+using System.Collections.Generic;
 
 namespace OSK
 {
     public abstract class View : MonoBehaviour
     {
-        public event Action<object> OnDataChanged;
-
         [SerializeField]
         private object _data;
 
@@ -18,21 +16,11 @@ namespace OSK
             get => _data;
             private set
             {
-                if (!Equals(_data, value))
-                {
-                    _data = value;
-                    OnDataChanged?.Invoke(_data);
-                }
-
+                if (!Equals(_data, value)) _data = value;
 #if UNITY_EDITOR
-                if (_data != null)
-                {
-                    MyLogger.Log($"[DebugData] {GetType().Name} received data: {_data}");
-                }
-                else
-                {
-                    MyLogger.Log($"[DebugData] {GetType().Name} received empty data");
-                }
+                MyLogger.Log(_data != null
+                    ? $"[DebugData] {GetType().Name} received data: {_data}"
+                    : $"[DebugData] {GetType().Name} received empty data");
 #endif
             }
         }
@@ -64,7 +52,6 @@ namespace OSK
 
         public int Depth => _depth;
 
-
         /// used for sorting views, higher value means higher priority in the stack
         [SerializeField]
         private int _priority;
@@ -88,7 +75,6 @@ namespace OSK
         [ToggleLeft]
         public bool isInitOnScene; 
 
-
         [ShowInInspector, ReadOnly]
         [ToggleLeft]
         private bool _isShowing;
@@ -100,11 +86,6 @@ namespace OSK
         public Action OnClosed;
 
         public bool IsShowing => _isShowing;
-
-        /// <summary>
-        /// True khi view đang trong quá trình close transition (chưa SetActive false).
-        /// Subclass dùng để skip Update logic trong thời gian này.
-        /// </summary>
         public bool IsClosing { get; private set; }
 
         [ReadOnly, SerializeField]
@@ -253,7 +234,6 @@ namespace OSK
         {
             _uiTransition.SetCloseSettings(settings);
         }
-
 
         public void SetDepth(EViewType viewType, int depth)
         {

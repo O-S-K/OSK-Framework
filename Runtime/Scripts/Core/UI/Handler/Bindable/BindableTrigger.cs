@@ -3,9 +3,9 @@ using System;
 namespace OSK
 {
     /// <summary>
-    /// Giống như BindableProperty nhưng không lưu trữ trạng thái (State).
-    /// Dùng cho các sự kiện xảy ra 1 lần (Signals) như: PlaySound, SpawnParticle, ShowError...
-    /// Giúp View nhận biết được các hành động từ Model mà không cần biến boolean bật tắt.
+    /// Similar to BindableProperty but does not store state.
+    /// Used for one-time events (Signals) such as: PlaySound, SpawnParticle, ShowError...
+    /// Helps the View recognize actions from the Model without needing a toggle boolean variable.
     /// </summary>
     public class BindableTrigger
     {
@@ -33,7 +33,7 @@ namespace OSK
     }
 
     /// <summary>
-    /// BindableTrigger có truyền kèm theo dữ liệu (Payload)
+    /// triggers transmit data (payload) along with the trigger.
     /// </summary>
     public class BindableTrigger<T>
     {
