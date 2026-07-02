@@ -228,7 +228,7 @@ namespace OSK
         /// <summary>
         /// Gán màu cho UI Image từ hex string
         /// </summary>
-        public static void SetImageColor(Image img, string hex)
+        public static void SetImageColor(this Image img, string hex)
         {
             if (img == null) return;
 
@@ -239,7 +239,7 @@ namespace OSK
         /// <summary>
         /// Gán màu cho SpriteRenderer từ hex string
         /// </summary>
-        public static void SetSpriteColor(SpriteRenderer sr, string hex)
+        public static void SetSpriteColor(this SpriteRenderer sr, string hex)
         {
             if (sr == null) return;
 
@@ -250,7 +250,7 @@ namespace OSK
         /// <summary>
         /// Gán màu cho Material từ hex string
         /// </summary>
-        public static void SetMaterialColor(Material mat, string hex, string propertyName = "_Color")
+        public static void SetMaterialColor(this Material mat, string hex, string propertyName = "_Color")
         {
             if (mat == null) return;
 
