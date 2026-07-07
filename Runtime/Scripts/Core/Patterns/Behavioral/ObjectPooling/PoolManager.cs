@@ -135,6 +135,73 @@ namespace OSK
             return new PoolBuilder<T>(this, key);
         }
 
+        /// <summary>
+        /// Register a runtime-created prefab/template with a pool key.
+        /// Useful for generated effects or demo objects that should still use Main.Pool.
+        /// </summary>
+        public bool RegisterFactory<T>(
+            string key,
+            Func<T> factory,
+            string groupName = "Default",
+            Transform parent = null,
+            int initialSize = 0,
+            int maxSize = -1,
+            LimitMode limitMode = LimitMode.RecycleOldest) where T : Object
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                MyLogger.LogError("[Pool] RegisterFactory failed. Key is null or empty.");
+                return false;
+            }
+
+            if (factory == null)
+            {
+                MyLogger.LogError($"[Pool] RegisterFactory failed. Factory is null: {key}");
+                return false;
+            }
+
+            if (PoolKeyLookup.ContainsKey(key))
+                return true;
+
+            T prefab = factory();
+            if (prefab == null)
+            {
+                MyLogger.LogError($"[Pool] RegisterFactory failed. Factory returned null: {key}");
+                return false;
+            }
+
+            if (prefab is GameObject go) go.name = $"[Pool Template] {key}";
+            else if (prefab is Component component) component.gameObject.name = $"[Pool Template] {key}";
+
+            SetupInstance(prefab, parent, false);
+            var info = GetOrCreatePoolInfo(groupName, prefab, parent, initialSize, maxSize, limitMode);
+            if (info == null) return false;
+
+            PoolKeyLookup[key] = info;
+            return true;
+        }
+
+        /// <summary>
+        /// Register a runtime-created prefab/template if needed, then build from its key.
+        /// </summary>
+        public PoolBuilder<T> BuildOrCreate<T>(
+            string key,
+            Func<T> factory,
+            string groupName = "Default",
+            Transform parent = null,
+            int initialSize = 0,
+            int maxSize = -1,
+            LimitMode limitMode = LimitMode.RecycleOldest) where T : Object
+        {
+            RegisterFactory(key, factory, groupName, parent, initialSize, maxSize, limitMode);
+            return BuildByKey<T>(key);
+        }
+
+        public bool HasKey(string key)
+        {
+            return !string.IsNullOrEmpty(key) && PoolKeyLookup.ContainsKey(key);
+        }
+
         public class PoolBuilder<T> where T : Object
         {
             private readonly PoolManager _poolManager;

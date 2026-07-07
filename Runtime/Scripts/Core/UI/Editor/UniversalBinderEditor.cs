@@ -1,13 +1,16 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
+using Object = UnityEngine.Object;
 
 namespace OSK
 {
     [CustomEditor(typeof(UniversalBinder))]
-    public class UniversalBinderEditor : UnityEditor.Editor
+    public class UniversalBinderEditor : Editor
     {
         private UniversalBinder _binder;
 
@@ -170,7 +173,7 @@ namespace OSK
                     foreach (var method in methods)
                     {
                         Type declType = method.DeclaringType;
-                        if (declType == typeof(object) || declType == typeof(UnityEngine.Object) || 
+                        if (declType == typeof(object) || declType == typeof(Object) || 
                             declType == typeof(MonoBehaviour) || declType == typeof(Component) || 
                             declType == typeof(Behaviour))
                         {
@@ -335,7 +338,7 @@ namespace OSK
                     PropertyInfo[] targetProps = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
                     foreach (var prop in targetProps)
                     {
-                        if (typeof(UnityEngine.Events.UnityEventBase).IsAssignableFrom(prop.PropertyType))
+                        if (typeof(UnityEventBase).IsAssignableFrom(prop.PropertyType))
                         {
                             targetPropNames.Add(prop.Name);
                         }
@@ -344,7 +347,7 @@ namespace OSK
                     FieldInfo[] targetFields = targetType.GetFields(BindingFlags.Public | BindingFlags.Instance);
                     foreach (var field in targetFields)
                     {
-                        if (typeof(UnityEngine.Events.UnityEventBase).IsAssignableFrom(field.FieldType))
+                        if (typeof(UnityEventBase).IsAssignableFrom(field.FieldType))
                         {
                             targetPropNames.Add(field.Name);
                         }
@@ -371,7 +374,7 @@ namespace OSK
                     foreach (var method in methods)
                     {
                         Type declType = method.DeclaringType;
-                        if (declType == typeof(object) || declType == typeof(UnityEngine.Object) || 
+                        if (declType == typeof(object) || declType == typeof(Object) || 
                             declType == typeof(MonoBehaviour) || declType == typeof(Component) || 
                             declType == typeof(Behaviour))
                         {
@@ -477,3 +480,5 @@ namespace OSK
         }
     }
 }
+
+#endif

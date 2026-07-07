@@ -117,8 +117,7 @@ namespace OSK
 
         public void ShowTutorial(HoleViewData data)
         {
-            var view = RootUI.Get<HoleView>(true);
-            if (view == null || !view.IsShowing)
+            if (!RootUI.TryGet<HoleView>(out var view) || !view.IsShowing)
             {
                 RootUI.Open<HoleView>(new object[] { data });
             }
@@ -130,8 +129,7 @@ namespace OSK
 
         public void HideTutorial()
         {
-            var view = RootUI.Get<HoleView>(true);
-            if (view != null && view.IsShowing)
+            if (RootUI.TryGet<HoleView>(out var view) && view.IsShowing)
             {
                 view.Hide();
             }
@@ -224,6 +222,11 @@ namespace OSK
             return RootUI.Get<T>(true);
         }
 
+        public bool TryGet<T>(out T view) where T : View
+        {
+            return RootUI.TryGet<T>(out view);
+        }
+
         /// <summary>
         /// Kiểm tra view có đang hiển thị không.
         /// </summary>
@@ -237,8 +240,7 @@ namespace OSK
         /// </summary>
         public bool IsShowing<T>() where T : View
         {
-            var view = RootUI.Get<T>(true);
-            return view != null && view.IsShowing;
+            return RootUI.TryGet<T>(out var view) && view.IsShowing;
         }
 
         /// <summary>

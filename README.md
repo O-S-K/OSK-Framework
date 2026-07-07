@@ -31,9 +31,21 @@ Ensure the following packages/assets are installed:
 * **UniTask** ([High-performance async helper](https://github.com/Cysharp/UniTask))
 
 ### **2. Setup Framework**
-1. In the Unity Editor top menu, go to: **Window ➔ OSK-Framework ➔ CreateFramework**.
-2. Select the `Main` singleton in the hierarchy.
-3. In the Inspector, navigate to **Main Modules**, select the managers you require, and click **"Sync Modules (Hierarchy)"** to automatically generate the module tree in your scene.
+Recommended first-time setup:
+1. In the Unity Editor top menu, go to: **OSK-Framework -> Setup -> Quick Setup**.
+2. Choose a preset:
+   - `CoreOnly`: core loop, event, data, resource, config, procedure.
+   - `UIBasedGame`: common game setup with UI, sound, pool, input, localization.
+   - `FullFramework`: all OSK modules.
+3. Click **Setup Current Scene**.
+4. Select the generated `Main` object, review modules/config references, then press Play.
+5. Use the **Generators** foldout to create first UI View, Save Data, Game Event, Procedure, Pool config entry, and Sound ID.
+6. Open [Quick Use Guide](Docs/QuickUse.md) when you need the shortest module-by-module usage map.
+
+Manual setup is still available:
+1. Go to **OSK-Framework -> Create -> Framework**.
+2. Select `Main` in the hierarchy.
+3. Choose modules in **Main Modules** and click **Sync Modules (Hierarchy)**.
 
 ---
 

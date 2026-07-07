@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
@@ -42,7 +42,8 @@ namespace OSK
             }
 
             throw new Exception(
-                $"[OSK Framework] ❌ Module '{typeof(T).Name}' chưa được khởi tạo hoặc chưa được bật trong Main Modules Selection!");
+                $"[OSK Framework] Module '{typeof(T).Name}' is not ready. " +
+                "Fix: open OSK-Framework -> Setup -> Quick Setup, choose a preset that includes this module, then click Sync Selected Modules or Setup Current Scene.");
         }
 
 
@@ -50,7 +51,7 @@ namespace OSK
 
         [HideLabel, InlineProperty] public MainModules mainModules;
 
-        [Title("🚀 Entry Point")] [TypeFilter("GetProcedureTypes")] [SerializeField]
+        [Title("ðŸš€ Entry Point")] [TypeFilter("GetProcedureTypes")] [SerializeField]
         private Type _entranceProcedure;
 
         public bool isDestroyingOnLoad = false;
@@ -82,10 +83,7 @@ namespace OSK
             InitConfigs();
         }
 
-        [Title("🛠️ Editor Tools")]
-        [Button(ButtonSizes.Large, Name = "Sync Modules (Hierarchy)")]
-        [InfoBox("Bấm để tự động tạo/cập nhật các Module dựa trên lựa chọn bên dưới vào Hierarchy.",
-            InfoMessageType.None)]
+        
         public void SyncModules()
         {
 #if UNITY_EDITOR
@@ -121,7 +119,7 @@ namespace OSK
             }
 
             UnityEditor.EditorUtility.SetDirty(this);
-            Debug.Log("✅ [Main] Modules synchronized successfully in hierarchy.");
+            Debug.Log("[Main] Modules synchronized successfully in hierarchy.");
 #endif
         }
 
@@ -163,7 +161,9 @@ namespace OSK
                 }
                 else
                 {
-                    MyLogger.LogError($"[Main] Implementation for {moduleName} not found!");
+                    MyLogger.LogError(
+                        $"[Main] Implementation for module '{moduleName}' was not found. " +
+                        "Fix: make sure the module enum name matches an OSK component class name, then open OSK-Framework -> Setup -> Quick Setup and click Sync Selected Modules.");
                 }
             }
         }
@@ -200,7 +200,8 @@ namespace OSK
                     else
                     {
                         MyLogger.LogError(
-                            $"[Inject] Thất bại: Không tìm thấy Module loại '{moduleType.Name}' để tiêm vào {target.GetType().Name}");
+                            $"[Inject] Cannot find module '{moduleType.Name}' for {target.GetType().Name}. " +
+                            "Fix: enable that module in OSK-Framework -> Setup -> Quick Setup, click Sync Selected Modules, then run the scene again.");
                     }
                 }
             }
@@ -218,12 +219,13 @@ namespace OSK
                     var deps = component.GetDependencies();
                     foreach (var dep in deps)
                     {
-                        if (GetModule(dep) == null)
-                        {
-                            MyLogger.LogError(
-                                $"[Dependency] Module '{component.GetType().Name}' requires '{dep.Name}' but it is missing!");
-                        }
+                    if (GetModule(dep) == null)
+                    {
+                        MyLogger.LogError(
+                                $"[Dependency] Module '{component.GetType().Name}' requires '{dep.Name}' but it is missing. " +
+                                "Fix: open OSK-Framework -> Setup -> Quick Setup, choose a preset that includes the dependency, then click Sync Selected Modules.");
                     }
+                }
                 }
 
                 current = current.Next;

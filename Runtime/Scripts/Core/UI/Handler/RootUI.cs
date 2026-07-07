@@ -149,35 +149,18 @@ namespace OSK
             if (Input.GetKeyDown(KeyCode.F2))
             {
                 ToggleDebugView();
-            }
-
-            // Shortcut on Mobile: 3 fingers long press (0.5s)
-            if (Input.touchCount == 5)
-            {
-                bool allHeld = true;
-                foreach (var touch in Input.touches)
-                {
-                    if (touch.phase != TouchPhase.Stationary) allHeld = false;
-                }
-
-                if (allHeld)
-                {
-                    // For simplicity, just check one frame for now, or you can add a timer
-                    ToggleDebugView();
-                }
-            }
+            } 
         }
 
         private void ToggleDebugView()
         {
-            var debugView = Main.UI.Get<DebugView>();
-            if (debugView != null && debugView.IsShowing)
+            if (Main.UI.TryGet<DebugConsoleViewDemo>(out var debugView) && debugView.IsShowing)
             {
                 debugView.Hide();
             }
             else
             {
-                Main.UI.Open<DebugView>();
+                Main.UI.Open<DebugConsoleViewDemo>();
             }
         }
 #endif
@@ -287,32 +270,32 @@ namespace OSK
 
         public T SpawnViewCache<T>(T view) where T : View
         { 
-            var _view = Instantiate(view, GetContainer(view.viewType), false);
-            _view.gameObject.SetActive(false);
-            _view.Initialize(this);
+            var getView = Instantiate(view, GetContainer(view.viewType), false);
+            getView.gameObject.SetActive(false);
+            getView.Initialize(this);
 
-            MyLogger.Log($"[View] Spawn view: {_view.name}");
-            if (!ListCacheView.Contains(_view))
+            MyLogger.Log($"[View] Spawn view: {getView.name}");
+            if (!ListCacheView.Contains(getView))
             {
-                ListCacheView.Add(_view);
-                _cacheByType[_view.GetType()] = _view;
+                ListCacheView.Add(getView);
+                _cacheByType[getView.GetType()] = getView;
                 IsDirtySort = true;
             }
 
-            return _view;
+            return getView;
         }
 
         public T SpawnAlert<T>(T view, bool usePool) where T : View
         {
             var container = GetContainer(view.viewType);
-            T _view = usePool
+            var getView = usePool
                 ? Main.Pool.Spawn<T>(KEY_POOL.KEY_UI_ALERT, view, container)
                 : Instantiate(view, container, false);
-            _view.gameObject.SetActive(true);
-            _view.Initialize(this);
+            getView.gameObject.SetActive(true);
+            getView.Initialize(this);
 
-            MyLogger.Log($"[View] Spawn Alert view: {_view.name}");
-            return _view;
+            MyLogger.Log($"[View] Spawn Alert view: {getView.name}");
+            return getView;
         }
 
         #endregion
@@ -321,8 +304,36 @@ namespace OSK
 
         public View Open(View view, object data = null, bool hidePrevView = false, bool checkShowing = true)
         {
-            var viewType = view.GetType(); 
-            _cacheByType.TryGetValue(viewType, out var _view);
+            if (view == null)
+            {
+                MyLogger.LogError("[View] Cannot open null view.");
+                return null;
+            }
+
+            var viewType = view.GetType();
+            if (!_cacheByType.TryGetValue(viewType, out var getView))
+            {
+                getView = ListCacheView.Find(x => x != null && x.GetType() == viewType);
+                if (getView != null)
+                {
+                    _cacheByType[viewType] = getView;
+                }
+                else if (!_initByType.TryGetValue(viewType, out var viewPrefab))
+                {
+                    MyLogger.LogError($"[View] Cannot open {viewType.Name}: not found in cache or ListViewSO.");
+                    return null;
+                }
+                else
+                {
+                    getView = SpawnViewCache(viewPrefab);
+                }
+            }
+
+            if (getView.IsShowing && checkShowing)
+            {
+                MyLogger.Log($"[View] Already showing: {getView.name}");
+                return getView;
+            }
 
             if (hidePrevView && ListViewHistory.Count > 0)
             {
@@ -330,35 +341,36 @@ namespace OSK
                 prevView.Hide();
             }
 
-            if (_view == null)
-            {
-                _initByType.TryGetValue(viewType, out var viewPrefab);
-                if (viewPrefab == null)
-                {
-                    MyLogger.LogError($"[View] Can't find view prefab for type: {viewType.Name}");
-                    return null;
-                }
-
-                _view = SpawnViewCache(viewPrefab);
-            }
-
-            if (_view.IsShowing && checkShowing)
-            {
-                MyLogger.Log($"[View] Opened view IsShowing: {_view.name}");
-                return _view;
-            }
-
-            _view.Open(data);
-            ListViewHistory.Push(_view);
-            MyLogger.Log($"[View] Opened view: {_view.name}");
-            return _view;
+            getView.Open(data);
+            ListViewHistory.Push(getView);
+            MyLogger.Log($"[View] Opened view: {getView.name}");
+            return getView;
         }
 
         public T Open<T>(object data = null, bool hidePrevView = false, bool checkShowing = true) where T : View
         {
-            var viewType = typeof(T); 
-            _cacheByType.TryGetValue(viewType, out var cached);
-            var _view = cached as T;
+            var viewType = typeof(T);
+            if (!TryGet<T>(out var getView))
+            {
+                if (!_initByType.TryGetValue(viewType, out var prefab))
+                {
+                    MyLogger.LogError($"[View] Cannot open {viewType.Name}: not found in cache or ListViewSO.");
+                    return null;
+                }
+
+                getView = SpawnViewCache(prefab) as T;
+                if (getView == null)
+                {
+                    MyLogger.LogError($"[View] Cannot open {viewType.Name}: registered view type mismatch.");
+                    return null;
+                }
+            }
+
+            if (getView.IsShowing && checkShowing)
+            {
+                MyLogger.Log($"[View] Already showing: {getView.name}");
+                return getView;
+            }
 
             if (hidePrevView && ListViewHistory.Count > 0)
             {
@@ -366,29 +378,10 @@ namespace OSK
                 prevView.Hide();
             }
 
-            if (_view == null)
-            {
-                _initByType.TryGetValue(viewType, out var initPrefab);
-                var viewPrefab = initPrefab as T;
-                if (viewPrefab == null)
-                {
-                    MyLogger.LogError($"[View] Can't find view prefab for type: {typeof(T).Name}");
-                    return null;
-                }
-
-                _view = SpawnViewCache(viewPrefab);
-            }
-
-            if (_view.IsShowing && checkShowing)
-            {
-                MyLogger.Log($"[View] Opened view: {_view.name}");
-                return _view;
-            }
-
-            _view.Open(data);
-            ListViewHistory.Push(_view);
-            MyLogger.Log($"[View] Opened view: {_view.name}");
-            return _view;
+            getView.Open(data);
+            ListViewHistory.Push(getView);
+            MyLogger.Log($"[View] Opened view: {getView.name}");
+            return getView;
         }
 
         public T TryOpen<T>(object data = null, bool hidePrevView = false) where T : View
@@ -415,8 +408,7 @@ namespace OSK
             Action<T> onComplete = null) where T : View
         {
             // Check cache
-            var cached = Get<T>(true);
-            if (cached != null)
+            if (TryGet<T>(out var cached))
             {
                 Open(cached, data, hidePrev);
                 onComplete?.Invoke(cached);
@@ -449,9 +441,9 @@ namespace OSK
         {
             // O(1) cached lookup
             _cacheByType.TryGetValue(typeof(T), out var cached);
-            var _view = cached as T;
+            var getView = cached as T;
 
-            if (_view == null)
+            if (getView == null)
             {
                 _initByType.TryGetValue(typeof(T), out var initPrefab);
                 var prefab = initPrefab as T;
@@ -462,12 +454,12 @@ namespace OSK
                     return;
                 }
 
-                _view = SpawnViewCache(prefab);
+                getView = SpawnViewCache(prefab);
             }
 
             var queued = new QueuedView
             {
-                view = _view,
+                view = getView,
                 data = data,
                 hidePrevView = hidePrev,
                 onOpened = v => onOpened?.Invoke(v as T)
@@ -585,49 +577,67 @@ namespace OSK
 
         public View Get(View view, bool isInitOnScene)
         {
-            var _view = GetAll(isInitOnScene).Find(x => x == view);
-            if (_view == null)
+            var getView = GetAll(isInitOnScene).Find(x => x == view);
+            if (getView == null)
             {
                 MyLogger.LogError($"[View] Can't find view: {view.name}");
                 return null;
             }
 
-            if (!_view.isInitOnScene)
+            if (!getView.isInitOnScene)
             {
                 MyLogger.LogError($"[View] {view.name} is not init on scene");
             }
 
-            return _view;
+            return getView;
         }
 
         public T Get<T>(bool isInitOnScene = true) where T : View
         {
-            // O(1) cached lookup
             if (isInitOnScene && _cacheByType.TryGetValue(typeof(T), out var cached))
                 return cached as T;
 
-            var _view = GetAll(isInitOnScene)?.Find(x => x is T) as T;
-            if (_view == null)
+            var view = GetAll(isInitOnScene)?.Find(x => x is T) as T;
+            if (view == null)
             {
-                MyLogger.LogError($"[View] Can't find view: {typeof(T).Name}");
+                MyLogger.LogError($"[View] Can't find view : {typeof(T).Name} InitOnScene {isInitOnScene}");
                 return null;
             }
 
-            if (!_view.isInitOnScene)
+            if (!view.isInitOnScene)
             {
                 MyLogger.LogError($"[View] {typeof(T).Name} is not init on scene");
             }
 
-            return _view;
+            return view;
+        }
+
+        public bool TryGet<T>(out T view) where T : View
+        {
+            if (_cacheByType.TryGetValue(typeof(T), out var cached))
+            {
+                view = cached as T;
+                return view != null;
+            }
+
+            view = ListCacheView.Find(x => x != null && x is T) as T;
+            if (view != null)
+            {
+                _cacheByType[typeof(T)] = view;
+                return true;
+            }
+
+            view = null;
+            return false;
         }
 
         public View Get(View view)
         {
-            var _view = GetAll(true).Find(x => x == view);
-            if (_view != null)
+            var getView = GetAll(true).Find(x => x == view);
+            if (getView != null)
             {
-                MyLogger.Log($"[View] Found view: {_view.name} is showing {_view.IsShowing}");
-                return _view;
+                MyLogger.Log($"[View] Found view: {getView.name} is showing {getView.IsShowing}");
+                return getView;
             }
 
             MyLogger.LogError($"[View] Can't find view: {view.name}");

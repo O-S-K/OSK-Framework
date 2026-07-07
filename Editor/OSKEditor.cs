@@ -11,19 +11,13 @@ namespace OSK
         [MenuItem("OSK-Framework/Create/ Framework", false,5)]
         public static void CreateWorldOnScene()
         {
-            if (FindObjectOfType<Main>() == null)
-            {
-                PrefabUtility.InstantiatePrefab(Resources.LoadAll<Main>("").First());
-            }
+            Selection.activeObject = OSKSetupWizard.EnsureMain();
         }
 
         [MenuItem("OSK-Framework/Create/ UIRoot", false,5)]
         public static void CreateHUDOnScene()
         {
-            if (FindObjectOfType<RootUI>() == null)
-            {
-                PrefabUtility.InstantiatePrefab(Resources.LoadAll<RootUI>("").First());
-            }
+            Selection.activeObject = OSKSetupWizard.EnsureRootUI();
         }
  
         [MenuItem("OSK-Framework/UI/Manager SO")]

@@ -43,6 +43,12 @@ public T Spawn<T>(string groupName, T prefab, Transform parent, Vector3 position
 
 // Spawns using a unique pre-registered string key
 public T SpawnByKey<T>(string key, Transform parent = null) where T : Object;
+
+// Registers a runtime-created template/prefab with a key.
+public bool RegisterFactory<T>(string key, Func<T> factory, string groupName = "Default") where T : Object;
+
+// Registers the factory once if needed, then spawns with the normal pool flow.
+public PoolBuilder<T> BuildOrCreate<T>(string key, Func<T> factory, string groupName = "Default") where T : Object;
 ```
 
 ### Despawning (Returning to Pool)
