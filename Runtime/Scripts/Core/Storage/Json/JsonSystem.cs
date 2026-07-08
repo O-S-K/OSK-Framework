@@ -50,7 +50,6 @@ namespace OSK
                 }
                 else
                 {
-                    // 🚀 ULTRA OPTIMIZATION: Stream directly to disk! Zero String Allocation!
                     using (StreamWriter sw = new StreamWriter(tempPath, false, Encoding.UTF8))
                     using (JsonTextWriter jw = new JsonTextWriter(sw))
                     {

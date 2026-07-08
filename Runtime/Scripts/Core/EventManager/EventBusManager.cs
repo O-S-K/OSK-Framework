@@ -67,6 +67,16 @@ namespace OSK
                 asyncSubscribers[eventType].Remove(callback);
             }
         }
+
+        public void ClearLast<T>() where T : GameEvent
+        {
+            lastEvents.Remove(typeof(T));
+        }
+
+        public void ClearAllLast()
+        {
+            lastEvents.Clear();
+        }
         #endregion
 
         #region Publish

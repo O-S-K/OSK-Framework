@@ -21,14 +21,14 @@ namespace OSK
         [SerializeField] private Button _closeButton;
         [SerializeField] private RectTransform _panelRoot;
 
-        private DebugConsoleManager _manager;
-        private float _nextRefreshTime;
-        private readonly float[] _fpsSamples = new float[24];
-        private RawImage _fpsSparkline;
-        private Slider _timeScaleSlider;
-        private Toggle _logToggle;
-        private Toggle _warningToggle;
-        private Toggle _errorToggle;
+        protected DebugConsoleManager _manager;
+        protected float _nextRefreshTime;
+        protected readonly float[] _fpsSamples = new float[24];
+        protected RawImage _fpsSparkline;
+        protected Slider _timeScaleSlider;
+        protected Toggle _logToggle;
+        protected Toggle _warningToggle;
+        protected Toggle _errorToggle;
 
         // Sets the view type and builds the runtime inspector if no prefab references exist.
         protected override void OnInit()

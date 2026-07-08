@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 
 namespace OSK
 {
-    internal sealed class DebugConsoleManager
+    public class DebugConsoleManager
     {
         private readonly List<LogEntry> _logs = new List<LogEntry>();
         private readonly StringBuilder _builder = new StringBuilder(4096);

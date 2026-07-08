@@ -876,15 +876,11 @@ namespace OSK
 
         private void EnsureContainers()
         {
-            _screenContainer =
-                EnsureCanvasContainer("ScreenCanvas", _screenCanvas, out _screenCanvas, out _screenScaler, 0);
-            _popupContainer =
-                EnsureCanvasContainer("PopupCanvas", _popupCanvas, out _popupCanvas, out _popupScaler, 10);
-            _notifContainer =
-                EnsureCanvasContainer("NotifCanvas", _notifCanvas, out _notifCanvas, out _notifScaler, 15);
-            _overlayContainer = EnsureCanvasContainer("OverlayCanvas", _overlayCanvas, out _overlayCanvas,
-                out _overlayScaler, 20);
-            _lockContainer = EnsureCanvasContainer("LockCanvas", _lockCanvas, out _lockCanvas, out _lockScaler, 100);
+            _screenContainer = EnsureCanvasContainer("ScreenCanvas", _screenContainer, out _screenCanvas, out _screenScaler, 0);
+            _popupContainer = EnsureCanvasContainer("PopupCanvas", _popupContainer, out _popupCanvas, out _popupScaler, 10);
+            _notifContainer = EnsureCanvasContainer("NotifCanvas", _notifContainer, out _notifCanvas, out _notifScaler, 15);
+            _overlayContainer = EnsureCanvasContainer("OverlayCanvas", _overlayContainer, out _overlayCanvas,  out _overlayScaler, 20);
+            _lockContainer = EnsureCanvasContainer("LockCanvas", _lockContainer, out _lockCanvas, out _lockScaler, 100);
 
             if (_lockContainer != null && _lockContainer.GetComponent<Image>() == null)
             {
@@ -895,25 +891,25 @@ namespace OSK
             }
         }
 
-        private Transform EnsureCanvasContainer(string name, Canvas existingCanvas, out Canvas canvas,
+        private Transform EnsureCanvasContainer(string name, Transform existingContainer, out Canvas canvas,
             out CanvasScaler scaler, int sortOrder)
         {
             Transform t;
-            if (existingCanvas != null)
+            if (existingContainer != null)
             {
-                canvas = existingCanvas;
-                scaler = existingCanvas.GetComponent<CanvasScaler>();
-                t = existingCanvas.transform;
+                t = existingContainer;
             }
             else
             {
                 var go = new GameObject(name, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler),
                     typeof(GraphicRaycaster));
                 go.transform.SetParent(transform, false);
-                canvas = go.GetOrAdd<Canvas>();
-                scaler = go.GetOrAdd<CanvasScaler>();
                 t = go.transform;
             }
+
+            canvas = t.gameObject.GetOrAdd<Canvas>();
+            scaler = t.gameObject.GetOrAdd<CanvasScaler>();
+            t.gameObject.GetOrAdd<GraphicRaycaster>();
 
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.worldCamera = _uiCamera;
