@@ -16,8 +16,7 @@ namespace OSK.Framework.Editor
         private static readonly Dictionary<string, string> RequiredPackages = new Dictionary<string, string>
         {
             { "OSK-UIFeel", "https://github.com/O-S-K/UIFeel.git" },
-            { "OSK-UIParticle", "https://github.com/O-S-K/OSK-UIParticle.git" },
-            { "OSK-Binders", "https://github.com/O-S-K/OSK-Binders.git"}
+            { "OSK-UIParticle", "https://github.com/O-S-K/OSK-UIParticle.git" }
         };
 
         // === INTERNAL STATE ===

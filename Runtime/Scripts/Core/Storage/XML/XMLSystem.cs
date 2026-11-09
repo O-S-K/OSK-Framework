@@ -22,46 +22,40 @@ namespace OSK
         public void Save<T>(string fileName, T data, bool encrypt = false)
         {
             string path = ResolvePath(fileName);
-            SaveResolved(path, data, encrypt);
+            WriteResolved(path, Serialize(data), encrypt);
         }
 
-        private void SaveResolved<T>(string path, T data, bool encrypt = false)
+        private static byte[] Serialize<T>(T data)
+        {
+            var serializer = new XmlSerializer(typeof(T));
+            using (var memoryStream = new MemoryStream())
+            {
+                serializer.Serialize(memoryStream, data);
+                return memoryStream.ToArray();
+            }
+        }
+
+        // Failures propagate so DataManager can tell the caller the save did not happen.
+        private static void WriteResolved(string path, byte[] bytes, bool encrypt)
         {
             string tempPath = path + ".tmp";
-            try
+
+            if (encrypt)
             {
-                var serializer = new XmlSerializer(typeof(T));
-                using (var memoryStream = new MemoryStream())
-                {
-                    // Serialize to memory stream first
-                    serializer.Serialize(memoryStream, data);
-                    byte[] bytes = memoryStream.ToArray();
-
-                    if (encrypt)
-                    {
-                        bytes = FileSecurity.Encrypt(bytes, IOUtility.encryptKey);
-                    }
-                    
-                    File.WriteAllBytes(tempPath, bytes);
-                }
-
-                // Safe Save: Swap temp file with real file
-                if (File.Exists(path)) File.Delete(path);
-                File.Move(tempPath, path);
-
-                MyLogger.Log($"✅ Saved XML (Safe Save): {path}");
+                bytes = FileSecurity.Encrypt(bytes, IOUtility.encryptKey);
             }
-            catch (Exception ex)
-            {
-                MyLogger.LogError($"❌ Save XML Error: {Path.GetFileName(path)} → {ex.Message}");
-            }
+
+            File.WriteAllBytes(tempPath, bytes);
+            IOUtility.CommitTempFile(tempPath, path);
+            MyLogger.Log($"✅ Saved XML (Safe Save): {path}");
         }
 
         public async Cysharp.Threading.Tasks.UniTask SaveAsync<T>(string fileName, T data, bool encrypt = false)
         {
             MyLogger.Log($"⏳ [Async] Starting background save for: {fileName}");
             string path = ResolvePath(fileName); // MUST be on Main Thread
-            await Cysharp.Threading.Tasks.UniTask.RunOnThreadPool(() => SaveResolved(path, data, encrypt));
+            byte[] bytes = Serialize(data); // On the main thread: gameplay may change data while the pool thread runs
+            await Cysharp.Threading.Tasks.UniTask.RunOnThreadPool(() => WriteResolved(path, bytes, encrypt));
         }
 
         public T Load<T>(string fileName, T defaultValue = default, bool isDecrypt = false)
@@ -81,7 +75,7 @@ namespace OSK
             try
             {
                 byte[] bytes = File.ReadAllBytes(path).DecryptSmart(IOUtility.encryptKey);
-                if (bytes == null) return defaultValue;
+                if (bytes == null) throw new IOException("File empty or corrupt");
                 
                 var serializer = new XmlSerializer(typeof(T));
                 using (var memoryStream = new MemoryStream(bytes))
@@ -93,6 +87,7 @@ namespace OSK
             catch (Exception ex)
             {
                 MyLogger.LogError($"❌ Load XML Error: {path}\n{ex.Message}");
+                IOUtility.PreserveCorruptFile(path);
                 return defaultValue;
             }
         }

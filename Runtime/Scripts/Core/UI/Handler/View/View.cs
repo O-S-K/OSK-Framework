@@ -158,6 +158,7 @@ namespace OSK
 
         public virtual bool Open(object data = null)
         {
+            KeepInHistoryOnHide = false;
             if (!IsViewContainerInitialized()) return false;
             
             if (!SetupData(data))
@@ -274,10 +275,20 @@ namespace OSK
             }
         }
 
+        /// <summary>Set by RootUI when it hides this view only because another opened on top (hidePrev).</summary>
+        public bool KeepInHistoryOnHide { get; set; }
+
+        private void LeaveHistory()
+        {
+            if (KeepInHistoryOnHide) KeepInHistoryOnHide = false;
+            else if (_rootUI != null) _rootUI.ForgetInHistory(this);
+        }
+
         public virtual void Hide()
         {
             if (!_isShowing) return;
 
+            LeaveHistory();
             _isShowing = false;
             IsClosing = true;
 
@@ -288,6 +299,7 @@ namespace OSK
 
         public void CloseImmediately()
         {
+            LeaveHistory();
             _isShowing = false;
             IsClosing = true;
 

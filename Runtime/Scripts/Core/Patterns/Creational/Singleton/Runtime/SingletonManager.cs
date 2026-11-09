@@ -13,15 +13,59 @@ namespace OSK
     {
         private static SingletonManager _instance;
 
+        public static bool HasInstance => _instance != null;
+
         public static SingletonManager Instance
         {
             get
             {
                 if (_instance != null) return _instance;
-                var go = new GameObject("SingletonManager");
+
+                _instance = FindFirstObjectByType<SingletonManager>();
+                if (_instance != null) return _instance;
+
+                if (!Application.isPlaying)
+                {
+                    // Trong Edit Mode, không bao giờ tạo GameObject lưu vào scene hierarchy.
+                    // Tạo một đối tượng ẩn tạm thời với HideAndDontSave để các lệnh gọi Get<T>()
+                    // an toàn trả về null mà không văng lỗi NRE hay làm bẩn scene hierarchy.
+                    var editGo = new GameObject("[OSK SingletonManager (EditMode)]")
+                    {
+                        hideFlags = HideFlags.HideAndDontSave
+                    };
+                    _instance = editGo.AddComponent<SingletonManager>();
+                    _instance.hideFlags = HideFlags.HideAndDontSave;
+                    return _instance;
+                }
+
+                var go = new GameObject("====== [OSK SingletonManager] ======");
                 _instance = go.AddComponent<SingletonManager>();
                 DontDestroyOnLoad(go);
                 return _instance;
+            }
+        }
+
+        private void Awake()
+        {
+            if (_instance == null)
+            {
+                _instance = this;
+                if (Application.isPlaying)
+                {
+                    DontDestroyOnLoad(gameObject);
+                }
+            }
+            else if (_instance != this)
+            {
+                // Tiêu hủy ngay lập tức các GameObject SingletonManager bị trùng
+                if (Application.isPlaying)
+                {
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(gameObject);
+                }
             }
         }
 
@@ -35,11 +79,21 @@ namespace OSK
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void InitializeManager()
         {
+            if (_instance != null && (_instance.gameObject.hideFlags & HideFlags.DontSave) != 0)
+            {
+                DestroyImmediate(_instance.gameObject);
+                _instance = null;
+            }
+
             if (_instance == null)
             {
-                var go = new GameObject("====== [OSK SingletonManager] ======");
-                _instance = go.AddComponent<SingletonManager>();
-                DontDestroyOnLoad(go);
+                _instance = FindFirstObjectByType<SingletonManager>();
+                if (_instance == null)
+                {
+                    var go = new GameObject("====== [OSK SingletonManager] ======");
+                    _instance = go.AddComponent<SingletonManager>();
+                    DontDestroyOnLoad(go);
+                }
             }
         }
 
@@ -53,13 +107,21 @@ namespace OSK
             if (instance == null) return;
 
             Type type = instance.GetType();
-            if (_globalSingletons.ContainsKey(type))
+            if (_globalSingletons.TryGetValue(type, out var existingInfo) && existingInfo != null && existingInfo.instance != null)
             {
-                if (_globalSingletons[type].instance != instance)
+                if (existingInfo.instance != instance)
                 {
-                    Destroy(_globalSingletons[type].instance.gameObject);
-                    _globalSingletons.Remove(type);
+                    if (Application.isPlaying)
+                    {
+                        Destroy(instance.gameObject);
+                    }
+                    else
+                    {
+                        DestroyImmediate(instance.gameObject);
+                    }
+                    return;
                 }
+                return;
             }
 
             _globalSingletons[type] = new SingletonInfo(instance);

@@ -24,63 +24,57 @@ namespace OSK
         public void Save<T>(string fileName, T data, bool encrypt = false)
         {
             string path = ResolvePath(fileName);
-            SaveResolved(path, data, encrypt);
+            WriteResolved(path, Serialize(data), encrypt);
         }
 
-        private void SaveResolved<T>(string path, T data, bool encrypt = false)
+        private static byte[] Serialize<T>(T data)
+        {
+            var settings = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Converters = { new Vector3Converter(), new QuaternionConverter() }
+            };
+
+            using (var ms = new MemoryStream())
+            {
+                // 🚀 ULTRA OPTIMIZATION: Stream straight to bytes, avoid strings completely
+                using (var sw = new StreamWriter(ms, new UTF8Encoding(false), 1024, true))
+                using (var jw = new JsonTextWriter(sw) { Formatting = Formatting.None })
+                {
+                    JsonSerializer.CreateDefault(settings).Serialize(jw, data);
+                }
+                return ms.ToArray();
+            }
+        }
+
+        // Failures propagate so DataManager can tell the caller the save did not happen.
+        private static void WriteResolved(string path, byte[] bytes, bool encrypt)
         {
             string tempPath = path + ".tmp";
-            try
+            bytes = DataCompressor.Compress(bytes);
+
+            if (encrypt)
             {
-                var settings = new JsonSerializerSettings
-                {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                    Converters = { new Vector3Converter(), new QuaternionConverter() }
-                };
-
-                byte[] bytes;
-                using (var ms = new MemoryStream())
-                {
-                    // 🚀 ULTRA OPTIMIZATION: Stream straight to bytes, avoid strings completely
-                    using (var sw = new StreamWriter(ms, new UTF8Encoding(false), 1024, true))
-                    using (var jw = new JsonTextWriter(sw) { Formatting = Formatting.None })
-                    {
-                        JsonSerializer.CreateDefault(settings).Serialize(jw, data);
-                    }
-                    bytes = ms.ToArray();
-                }
-
-                bytes = DataCompressor.Compress(bytes);
-
-                if (encrypt)
-                {
-                    bytes = FileSecurity.Encrypt(bytes, IOUtility.encryptKey);
-                }
-
-                using (var fs = new FileStream(tempPath, FileMode.Create))
-                using (var bw = new BinaryWriter(fs))
-                {
-                    bw.Write(bytes.Length);
-                    bw.Write(bytes);
-                }
-
-                // Safe Save: Swap temp file with real file
-                if (File.Exists(path)) File.Delete(path);
-                File.Move(tempPath, path);
-
-                MyLogger.Log($"✅ Saved (Safe Save): {path}");
+                bytes = FileSecurity.Encrypt(bytes, IOUtility.encryptKey);
             }
-            catch (Exception ex)
+
+            using (var fs = new FileStream(tempPath, FileMode.Create))
+            using (var bw = new BinaryWriter(fs))
             {
-                MyLogger.LogError($"❌ Save Error: {Path.GetFileName(path)} → {ex.Message}");
+                bw.Write(bytes.Length);
+                bw.Write(bytes);
             }
+
+            IOUtility.CommitTempFile(tempPath, path);
+            MyLogger.Log($"✅ Saved (Safe Save): {path}");
         }
 
         public async UniTask SaveAsync<T>(string fileName, T data, bool encrypt = false)
         {
             MyLogger.Log($"⏳ [Async] Starting background save for: {fileName}");
             string path = ResolvePath(fileName); // MUST be on Main Thread
-            await UniTask.RunOnThreadPool(() => SaveResolved(path, data, encrypt));
+            byte[] bytes = Serialize(data); // On the main thread: gameplay may change data while the pool thread runs
+            await UniTask.RunOnThreadPool(() => WriteResolved(path, bytes, encrypt));
         }
 
         public T Load<T>(string fileName, T defaultValue = default, bool isDecrypt = false)
@@ -101,7 +95,7 @@ namespace OSK
             {
                 byte[] bytes = File.ReadAllBytes(path);
                 byte[] data = bytes.DecryptSmart(IOUtility.encryptKey);
-                if (data == null) return defaultValue;
+                if (data == null) throw new IOException("File empty or corrupt");
 
                 MyLogger.Log($"✅ Loaded: {path}");
                 var settings = new JsonSerializerSettings { Converters = { new Vector3Converter(), new QuaternionConverter() } };
@@ -117,6 +111,7 @@ namespace OSK
             catch (Exception ex)
             {
                 MyLogger.LogError($"❌ Load Error: {Path.GetFileName(path)} → {ex.Message}");
+                IOUtility.PreserveCorruptFile(path);
                 return defaultValue;
             }
         }

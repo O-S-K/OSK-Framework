@@ -121,16 +121,30 @@ namespace OSK
 
         #endregion
 
+        private static RootUI s_live;
+
+        // Main.unity holds RootUI; reloading it for the menu must not leave a second camera, canvases and EventSystem.
+        private void Awake()
+        {
+            if (s_live != null && s_live != this) Destroy(gameObject);
+        }
+
         public void Initialize()
         {
+            s_live = this;
             gameObject.name = " ========== [RootUI] ==========";
             if (dontDestroyOnLoad)
                 DontDestroyOnLoad(gameObject);
 
             EnsureContainers();
 
-            var data = Main.Instance.configInit.data;
-            if (data.listViewS0 != null)
+            var data = Main.Instance.configInit?.data;
+            if (data != null && data.listViewS0 == null)
+            {
+                data.listViewS0 = Resources.Load<ListViewSO>("Data/ListViewSO");
+            }
+
+            if (data != null && data.listViewS0 != null)
             {
                 Preload();
             }
@@ -210,7 +224,17 @@ namespace OSK
 
         private void Preload()
         {
-            var listUIPopupSo = Main.Instance.configInit.data.listViewS0.ListView;
+            var listViewConfig = Main.Instance.configInit?.data?.listViewS0;
+            if (listViewConfig == null)
+            {
+                listViewConfig = Resources.Load<ListViewSO>("Data/ListViewSO");
+                if (listViewConfig != null && Main.Instance.configInit?.data != null)
+                {
+                    Main.Instance.configInit.data.listViewS0 = listViewConfig;
+                }
+            }
+
+            var listUIPopupSo = listViewConfig != null ? listViewConfig.ListView : null;
             if (listUIPopupSo == null)
             {
                 MyLogger.LogError("[View] is null");
@@ -338,10 +362,12 @@ namespace OSK
             if (hidePrevView && ListViewHistory.Count > 0)
             {
                 var prevView = ListViewHistory.Peek();
+                prevView.KeepInHistoryOnHide = true;
                 prevView.Hide();
             }
 
             getView.Open(data);
+            ForgetInHistory(getView);
             ListViewHistory.Push(getView);
             MyLogger.Log($"[View] Opened view: {getView.name}");
             return getView;
@@ -375,10 +401,12 @@ namespace OSK
             if (hidePrevView && ListViewHistory.Count > 0)
             {
                 var prevView = ListViewHistory.Peek();
+                prevView.KeepInHistoryOnHide = true;
                 prevView.Hide();
             }
 
             getView.Open(data);
+            ForgetInHistory(getView);
             ListViewHistory.Push(getView);
             MyLogger.Log($"[View] Opened view: {getView.name}");
             return getView;
@@ -780,6 +808,25 @@ namespace OSK
 
         #region Remove
 
+        /// <summary>Drops a view from anywhere in the history, so OpenPrevious never reopens a view the player closed.</summary>
+        public void ForgetInHistory(View view)
+        {
+            bool found = false;
+            foreach (var v in ListViewHistory)
+            {
+                if (v == view || v == null) { found = true; break; }
+            }
+            if (!found) return;
+
+            var kept = new List<View>(ListViewHistory.Count);
+            foreach (var v in ListViewHistory)
+            {
+                if (v != view && v != null) kept.Add(v);
+            }
+            kept.Reverse(); // Stack enumerates top first
+            ListViewHistory = new Stack<View>(kept);
+        }
+
         public void Remove(View view)
         {
             if (view == null || ListViewHistory.Count == 0)
@@ -843,6 +890,7 @@ namespace OSK
                 return;
 
             MyLogger.Log($"[View] Delete view: {view.name}");
+            ForgetInHistory(view);
             ListCacheView.Remove(view);
             _cacheByType.Remove(view.GetType());
             IsDirtySort = true;

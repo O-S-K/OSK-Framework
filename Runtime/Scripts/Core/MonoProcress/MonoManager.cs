@@ -115,7 +115,9 @@ namespace OSK
             for (int i = 0; i < _tempTickList.Count; i++)
             {
                 var t = _tempTickList[i];
-                if (t != null) t.Tick(deltaTime);
+                // One failing tick must not skip the rest of the frame (game time, input, the main-thread queue).
+                try { if (t != null) t.Tick(deltaTime); }
+                catch (Exception e) { Debug.LogException(e); }
             }
 
             // Execute Main thread queue
@@ -155,7 +157,8 @@ namespace OSK
             for (int i = 0; i < _tempFixedList.Count; i++)
             {
                 var t = _tempFixedList[i];
-                if (t != null) t.FixedTick(fixedDeltaTime);
+                try { if (t != null) t.FixedTick(fixedDeltaTime); }
+                catch (Exception e) { Debug.LogException(e); }
             }
         }
 
@@ -171,7 +174,8 @@ namespace OSK
             for (int i = 0; i < _tempLateList.Count; i++)
             {
                 var t = _tempLateList[i];
-                if (t != null) t.LateTick(deltaTime);
+                try { if (t != null) t.LateTick(deltaTime); }
+                catch (Exception e) { Debug.LogException(e); }
             }
         }
 

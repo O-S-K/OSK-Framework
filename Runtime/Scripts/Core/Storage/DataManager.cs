@@ -50,23 +50,26 @@ namespace OSK
         public void Unregister(SaveType key) => _typeMap.Remove(key);
 
         // ---------- Synchronous APIs (enum-based) ----------
-        public void Save<T>(SaveType type, string fileName, T data)
+        /// <returns>False when the save did not happen; the previous file is left untouched.</returns>
+        public bool Save<T>(SaveType type, string fileName, T data)
         {
             var fs = Resolve(type);
 
             if (fs == null)
             {
                 MyLogger.LogError($"DataManager.Save: Unknown SaveType {type}");
-                return;
+                return false;
             }
 
             try
             {
                 fs.Save(fileName, data, isEncrypt);
+                return true;
             }
             catch (Exception ex)
             {
                 MyLogger.LogError($"DataManager.Save ERROR: {fileName} ({type})\n{ex}");
+                return false;
             }
         }
 
@@ -92,22 +95,24 @@ namespace OSK
         }
 
         // ---------- Asynchronous APIs ----------
-        public async Cysharp.Threading.Tasks.UniTask SaveAsync<T>(SaveType type, string fileName, T data)
+        public async Cysharp.Threading.Tasks.UniTask<bool> SaveAsync<T>(SaveType type, string fileName, T data)
         {
             var fs = Resolve(type);
             if (fs == null)
             {
                 MyLogger.LogError($"DataManager.SaveAsync: Unknown SaveType {type}");
-                return;
+                return false;
             }
 
             try
             {
                 await fs.SaveAsync(fileName, data, isEncrypt);
+                return true;
             }
             catch (Exception ex)
             {
                 MyLogger.LogError($"DataManager.SaveAsync ERROR: {fileName} ({type})\n{ex}");
+                return false;
             }
         }
 

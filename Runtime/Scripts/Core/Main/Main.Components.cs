@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace OSK
 {
@@ -33,6 +34,7 @@ namespace OSK
         public static GameInit GameInit => EnsureModule<GameInit>();
 
         private static readonly Dictionary<Type, GameFrameworkComponent> k_Modules = new();
+        private static readonly HashSet<Type> k_WarnedModules = new();
 
         private static T EnsureModule<T>() where T : GameFrameworkComponent
         {
@@ -41,9 +43,15 @@ namespace OSK
                 return (T)module;
             }
 
-            throw new Exception(
-                $"[OSK Framework] Module '{typeof(T).Name}' is not ready. " +
-                "Fix: open OSK-Framework -> Setup -> Quick Setup, choose a preset that includes this module, then click Sync Selected Modules or Setup Current Scene.");
+            // Callers guard with `if (Main.UI != null)`, so a missing module must be null, not an exception.
+            if (k_WarnedModules.Add(typeof(T)))
+            {
+                Debug.LogWarning(
+                    $"[OSK Framework] Module '{typeof(T).Name}' is not ready. " +
+                    "Fix: open OSK-Framework -> Setup -> Quick Setup, choose a preset that includes this module, then click Sync Selected Modules or Setup Current Scene.");
+            }
+
+            return null;
         }
 
 
@@ -51,22 +59,39 @@ namespace OSK
 
         [HideLabel, InlineProperty] public MainModules mainModules;
 
-        [Title("ðŸš€ Entry Point")] [TypeFilter("GetProcedureTypes")] [SerializeField]
-        private Type _entranceProcedure;
+        // Unity cannot serialize System.Type, so the procedure is stored by its assembly-qualified name.
+        [Title("🚀 Entry Point")] [ValueDropdown(nameof(GetProcedureTypes))] [SerializeField]
+        private string _entranceProcedure;
 
-        public bool isDestroyingOnLoad = false;
+        [FormerlySerializedAs("isDestroyingOnLoad")]
+        public bool dontDestroyOnLoad = false;
 
-        private IEnumerable<Type> GetProcedureTypes()
+        private IEnumerable<ValueDropdownItem<string>> GetProcedureTypes()
         {
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
-                .Where(p => typeof(ProcedureNode).IsAssignableFrom(p) && !p.IsAbstract);
+                .Where(p => typeof(ProcedureNode).IsAssignableFrom(p) && !p.IsAbstract)
+                .Select(p => new ValueDropdownItem<string>(p.FullName, p.AssemblyQualifiedName));
         }
 
         public static Main Instance => SingletonManager.Instance.Get<Main>();
 
         protected void Awake()
         {
+            var existingMain = SingletonManager.Instance.Get<Main>();
+            if (existingMain != null && existingMain != this)
+            {
+                if (Application.isPlaying)
+                {
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(gameObject);
+                }
+                return;
+            }
+
             gameObject.name = "======== [OSK Framework] ==========";
 
             if (configInit != null) 
@@ -75,7 +100,7 @@ namespace OSK
             }
 
             SingletonManager.Instance.RegisterGlobal(this);
-            if (isDestroyingOnLoad)
+            if (dontDestroyOnLoad)
                 DontDestroyOnLoad(gameObject);
 
             InitModules();
@@ -254,10 +279,18 @@ namespace OSK
                 current = current.Next;
             }
 
-            if (Procedure != null && _entranceProcedure != null)
+            if (Procedure != null && !string.IsNullOrEmpty(_entranceProcedure))
             {
-                MyLogger.Log($"[Main] Starting Entrance Procedure: {_entranceProcedure.Name}");
-                Procedure.RunProcedureNode(_entranceProcedure);
+                var entranceType = Type.GetType(_entranceProcedure);
+                if (entranceType != null)
+                {
+                    MyLogger.Log($"[Main] Starting Entrance Procedure: {entranceType.Name}");
+                    Procedure.RunProcedureNode(entranceType);
+                }
+                else
+                {
+                    MyLogger.LogError($"[Main] Entrance Procedure '{_entranceProcedure}' was not found. Fix: pick it again on Main.");
+                }
             }
 
             MyLogger.Log("Init Data Components Done!");
@@ -273,7 +306,17 @@ namespace OSK
 
             if (configInit != null)
             {
-                Application.targetFrameRate = configInit.TargetFrameRate;
+                int targetVSync = Mathf.Max(0, configInit.VSyncCount);
+                QualitySettings.vSyncCount = targetVSync;
+                if (targetVSync > 0)
+                {
+                    Application.targetFrameRate = -1;
+                }
+                else
+                {
+                    Application.targetFrameRate = configInit.TargetFrameRate;
+                }
+
                 Application.runInBackground = configInit.RunInBackground;
                 Time.timeScale = configInit.GameSpeed;
                 Screen.sleepTimeout = configInit.NeverSleep ? SleepTimeout.NeverSleep : SleepTimeout.SystemSetting;
@@ -290,18 +333,6 @@ namespace OSK
                 IOUtility.directorySave = configInit.directoryPathSave;
                 IOUtility.customPath = configInit.CustomPathSave;
                 MyLogger.Log("Configs initialized successfully.");
-            }
-        }
-
-        private void OnDestroy()
-        {
-            if (isDestroyingOnLoad) return;
-
-            var current = SGameFrameworkComponents.First;
-            while (current != null)
-            {
-                current.Value.OnDestroy();
-                current = current.Next;
             }
         }
     }

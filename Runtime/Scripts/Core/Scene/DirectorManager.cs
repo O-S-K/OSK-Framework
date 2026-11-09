@@ -86,12 +86,20 @@ namespace OSK
             _loadingProgress = 0f;
             onStart?.Invoke();
 
+            // Đợi 1 frame để giao diện Loading kịp render lên màn hình trước khi bắt đầu tải scene
+            yield return null;
+
+            ThreadPriority originalPriority = Application.backgroundLoadingPriority;
+            Application.backgroundLoadingPriority = ThreadPriority.Normal; // Sunrise Story: Low (2ms/frame) làm load rất chậm; Normal (10ms/frame) cân bằng tốc độ và độ mượt màn loading
+
             List<AsyncOperation> ops = new List<AsyncOperation>();
             yield return PrepareScenes(scenes, async, ops);
 
             if (async && ops.Count > 0)
                 yield return HandleAsyncLoading(ops, fakeLoading, minLoadTime,
                     Array.ConvertAll(scenes, s => s.sceneName));
+
+            Application.backgroundLoadingPriority = originalPriority;
 
             //_isLoading = false;
             _loadingProgress = 1f;
@@ -105,25 +113,11 @@ namespace OSK
             // Nếu load mode là Single => clear những scene cũ nhưng giữ lại additive có autoRemove = false
             bool isSingleLoad = Array.Exists(scenes, s => s.loadMode == ELoadMode.Single);
 
-            // Nếu scene hiện tại đang là Single và có scene mới load => unload scene hiện tại
+            // LoadSceneMode.Single already replaces every loaded scene. Unloading them first fails on the active
+            // scene ("Unloading the last loaded scene is not supported"), so only forget them.
             if (isSingleLoad)
             {
-                List<string> scenesToRemove = new List<string>();
-
-                foreach (var loaded in LoadedScenes)
-                {
-                    // Nếu scene này không nằm trong danh sách load mới và autoRemove = true => xoá
-                    bool shouldRemove = scenes.All(s => s.sceneName != loaded || s.autoRemove != false);
-                    if (shouldRemove)
-                        scenesToRemove.Add(loaded);
-                }
-
-                // Thực hiện unload
-                foreach (var sceneName in scenesToRemove)
-                {
-                    yield return SceneManager.UnloadSceneAsync(sceneName);
-                    LoadedScenes.Remove(sceneName);
-                }
+                LoadedScenes.Clear();
             }
 
             // Load các scene mới

@@ -95,6 +95,27 @@ namespace OSK
             }
         }
 
+        /// <summary>Swaps a finished temp file into place; a crash leaves either the old or the new file, never neither.</summary>
+        public static void CommitTempFile(string tempPath, string path)
+        {
+            if (File.Exists(path)) File.Replace(tempPath, path, null);
+            else File.Move(tempPath, path);
+        }
+
+        /// <summary>Keeps a copy of an unreadable save, so the next save cannot overwrite the only copy.</summary>
+        public static void PreserveCorruptFile(string path)
+        {
+            try
+            {
+                File.Copy(path, path + ".corrupt", true);
+                MyLogger.LogError($"Unreadable save kept at: {path}.corrupt");
+            }
+            catch (System.Exception ex)
+            {
+                MyLogger.LogError($"Could not keep unreadable save {path}: {ex.Message}");
+            }
+        }
+
         public static List<string> GetAll(string fileName)
         {
             List<string> allFiles = new List<string>();

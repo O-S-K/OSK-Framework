@@ -51,27 +51,41 @@ namespace OSK
 
         public override void OnInit()
         {
-            var soundList = Main.Instance.configInit.data.listSoundSo;
+            var soundList = Main.Instance.configInit?.data?.listSoundSo;
+            if (soundList == null)
+            {
+                soundList = Resources.Load<ListSoundSO>("Data/ListSoundSO");
+                if (soundList != null && Main.Instance.configInit?.data != null)
+                {
+                    Main.Instance.configInit.data.listSoundSo = soundList;
+                }
+            }
+
             if (soundList == null)
             {
                 MyLogger.LogError("SoundSO is missing in ConfigInit.");
-                return;
             }
 
-            _listSoundData = soundList.ListSoundInfos ?? new List<SoundData>();
-            if (_listSoundData.Count == 0)
+            _listSoundData = soundList != null ? (soundList.ListSoundInfos ?? new List<SoundData>()) : new List<SoundData>();
+            if (soundList != null && _listSoundData.Count == 0)
             {
                 MyLogger.LogWarning("Sound data list is empty.");
             }
 
             RebuildLookupCaches();
 
-            _templateSource = new GameObject("AudioSource_Template").AddComponent<AudioSource>();
-            _templateSource.transform.parent = transform;
+            if (_templateSource == null)
+            {
+                _templateSource = new GameObject("AudioSource_Template").AddComponent<AudioSource>();
+                _templateSource.transform.parent = transform;
+            }
             _listSoundPlayings.Clear();
 
-            maxCapacityMusic = soundList.maxCapacityMusic;
-            maxCapacitySoundEffects = soundList.maxCapacitySFX;
+            if (soundList != null)
+            {
+                maxCapacityMusic = soundList.maxCapacityMusic;
+                maxCapacitySoundEffects = soundList.maxCapacitySFX;
+            }
 
             LoadSettings();
         }
@@ -316,7 +330,19 @@ namespace OSK
         private AudioSource CreateAndPlayAudioSource(AudioClip clip, SoundData data, float startTime, VolumeFade volume,
             bool loop, int priority, MinMaxFloat pitch, Transform target, int minDist, int maxDist)
         {
+            if (_templateSource == null)
+            {
+                _templateSource = new GameObject("AudioSource_Template").AddComponent<AudioSource>();
+                _templateSource.transform.parent = transform;
+            }
+
             var source = Main.Pool.Spawn(KEY_POOL.KEY_AUDIO_SOUND, _templateSource, _parentGroup);
+            if (source == null)
+            {
+                MyLogger.LogError("[Sound] Failed to spawn AudioSource from Pool.");
+                return null;
+            }
+
             source.Stop();
             source.name = clip.name;
             source.clip = clip;

@@ -33,11 +33,11 @@ public enum SaveType { Json, File, Xml, PlayerPrefs }
 public bool isEncrypt;
 
 // Core Synchronous Saving & Loading
-public void Save<T>(SaveType type, string fileName, T data);
+public bool Save<T>(SaveType type, string fileName, T data);
 public T Load<T>(SaveType type, string fileName, T defaultValue = default);
 
 // Core Asynchronous Saving & Loading (UniTask)
-public UniTask SaveAsync<T>(SaveType type, string fileName, T data);
+public UniTask<bool> SaveAsync<T>(SaveType type, string fileName, T data);
 public UniTask<T> LoadAsync<T>(SaveType type, string fileName, T defaultValue = default);
 
 // File Utilities

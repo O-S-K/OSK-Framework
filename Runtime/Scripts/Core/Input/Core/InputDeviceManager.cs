@@ -19,7 +19,12 @@ namespace OSK
 
         public override void OnInit()
         {
-            if(Main.Instance.configInit.data == null || Main.Instance.configInit.data.inputConfigSO == null)
+            if (Main.Instance.configInit?.data != null && Main.Instance.configInit.data.inputConfigSO == null)
+            {
+                Main.Instance.configInit.data.inputConfigSO = Resources.Load<InputConfigSO>("Data/InputConfigSO");
+            }
+
+            if (Main.Instance.configInit?.data == null || Main.Instance.configInit.data.inputConfigSO == null)
             {
                 MyLogger.LogWarning("InputDeviceManager: InputConfigSO is not assigned in Main config.");
                 return;

@@ -25,57 +25,47 @@ namespace OSK
         public void Save<T>(string fileName, T data, bool encrypt = false)
         {
             string path = ResolvePath(fileName);
-            SaveResolved(path, data, encrypt);
+            WriteResolved(path, Serialize(data), encrypt);
         }
 
-        private void SaveResolved<T>(string path, T data, bool encrypt = false)
+        private static string Serialize<T>(T data)
         {
-            try
+            var settings = new JsonSerializerSettings
             {
-                string tempPath = path + ".tmp";
-                var settings = new JsonSerializerSettings
-                {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                    Converters = { new Vector3Converter(), new QuaternionConverter() }
-                };
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Converters = { new Vector3Converter(), new QuaternionConverter() }
+            };
+            return JsonConvert.SerializeObject(data, Formatting.Indented, settings);
+        }
 
-                if (encrypt)
-                {
-                    string json = JsonConvert.SerializeObject(data, Formatting.Indented, settings);
-                    if (FormatDecimals && json.Length < 1000000)
-                        json = FormatJsonDecimals(json, DecimalPlaces);
-                    var bytes = Encoding.UTF8.GetBytes(json);
-                    bytes = DataCompressor.Compress(bytes);
-                    File.WriteAllBytes(tempPath, FileSecurity.Encrypt(bytes, IOUtility.encryptKey));
-                }
-                else
-                {
-                    using (StreamWriter sw = new StreamWriter(tempPath, false, Encoding.UTF8))
-                    using (JsonTextWriter jw = new JsonTextWriter(sw))
-                    {
-                        jw.Formatting = Formatting.Indented;
-                        var serializer = JsonSerializer.CreateDefault(settings);
-                        serializer.Serialize(jw, data);
-                    }
-                }
+        // Failures propagate so DataManager can tell the caller the save did not happen.
+        private void WriteResolved(string path, string json, bool encrypt)
+        {
+            string tempPath = path + ".tmp";
 
-                // Safe Save: Swap temp file with real file
-                if (File.Exists(path)) File.Delete(path);
-                File.Move(tempPath, path);
-
-                MyLogger.Log($"✅ Saved (Safe Save): {path}");
-            }
-            catch (System.Exception ex)
+            if (encrypt)
             {
-                MyLogger.LogError($"❌ Save Error: {Path.GetFileName(path)} → {ex.Message}");
+                if (FormatDecimals && json.Length < 1000000)
+                    json = FormatJsonDecimals(json, DecimalPlaces);
+                var bytes = Encoding.UTF8.GetBytes(json);
+                bytes = DataCompressor.Compress(bytes);
+                File.WriteAllBytes(tempPath, FileSecurity.Encrypt(bytes, IOUtility.encryptKey));
             }
+            else
+            {
+                File.WriteAllText(tempPath, json, Encoding.UTF8);
+            }
+
+            IOUtility.CommitTempFile(tempPath, path);
+            MyLogger.Log($"✅ Saved (Safe Save): {path}");
         }
 
         public async Cysharp.Threading.Tasks.UniTask SaveAsync<T>(string fileName, T data, bool encrypt = false)
         {
             MyLogger.Log($"⏳ [Async] Starting background save for: {fileName}");
             string path = ResolvePath(fileName); // MUST be on Main Thread
-            await Cysharp.Threading.Tasks.UniTask.RunOnThreadPool(() => SaveResolved(path, data, encrypt));
+            string json = Serialize(data); // On the main thread: gameplay may change data while the pool thread runs
+            await Cysharp.Threading.Tasks.UniTask.RunOnThreadPool(() => WriteResolved(path, json, encrypt));
         }
 
         public T Load<T>(string fileName, T defaultValue = default, bool decrypt = false)
@@ -123,6 +113,7 @@ namespace OSK
             catch (System.Exception ex)
             {
                 MyLogger.LogError($"❌ Load Error: {Path.GetFileName(path)} → {ex.Message}");
+                IOUtility.PreserveCorruptFile(path);
                 return defaultValue;
             }
         }

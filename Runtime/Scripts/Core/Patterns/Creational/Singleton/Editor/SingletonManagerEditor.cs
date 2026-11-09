@@ -16,7 +16,13 @@ public class SingletonManagerEditor : Editor
     {
         DrawDefaultInspector();
 
-        if (SingletonManager.Instance == null) return;
+        if (!Application.isPlaying)
+        {
+            EditorGUILayout.HelpBox("Danh sách Singleton chỉ hoạt động và theo dõi trong Play Mode.", MessageType.Info);
+            return;
+        }
+
+        if (!SingletonManager.HasInstance || SingletonManager.Instance == null) return;
 
         EditorGUILayout.Space();
         _searchFilter = EditorGUILayout.TextField("Filter (Type Name):", _searchFilter);
@@ -43,7 +49,8 @@ public class SingletonManagerEditor : Editor
         {
             if (state == PlayModeStateChange.ExitingPlayMode)
             {
-                if (SingletonManager.Instance != null)
+                // Chỉ dọn dẹp nếu instance đã tồn tại, KHÔNG gọi getter Instance vì có thể tự tạo mới GameObject trong scene
+                if (SingletonManager.HasInstance && SingletonManager.Instance != null)
                 {
                     SingletonManager.Instance.CleanAllSingletons();
                 }

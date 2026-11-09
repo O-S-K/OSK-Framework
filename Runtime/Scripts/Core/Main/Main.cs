@@ -31,33 +31,48 @@ namespace OSK
         private static readonly List<IFixedUpdateable> k_FixedUpdateables = new();
         private static readonly List<ILateUpdateable> k_LateUpdateables = new();
         
+        // Snapshots, because a tick may unregister itself and must not make the next item get skipped.
+        private static readonly List<IUpdateable> k_UpdateSnapshot = new();
+        private static readonly List<IFixedUpdateable> k_FixedUpdateSnapshot = new();
+        private static readonly List<ILateUpdateable> k_LateUpdateSnapshot = new();
+
         private static bool k_IsPaused = false;
         public static void SetPause(bool pause) => k_IsPaused = pause;
 
         private void Update()
         {
             if (k_IsPaused) return;
-            for (int i = 0; i < k_Updateables.Count; i++)
+            k_UpdateSnapshot.Clear();
+            k_UpdateSnapshot.AddRange(k_Updateables);
+            for (int i = 0; i < k_UpdateSnapshot.Count; i++)
             {
-                k_Updateables[i].OnUpdate();
+                // One failing module must not stop the rest of the frame, as a normal Unity Update would not.
+                try { k_UpdateSnapshot[i].OnUpdate(); }
+                catch (Exception e) { Debug.LogException(e); }
             }
         }
 
         private void FixedUpdate()
         {
             if (k_IsPaused) return;
-            for (int i = 0; i < k_FixedUpdateables.Count; i++)
+            k_FixedUpdateSnapshot.Clear();
+            k_FixedUpdateSnapshot.AddRange(k_FixedUpdateables);
+            for (int i = 0; i < k_FixedUpdateSnapshot.Count; i++)
             {
-                k_FixedUpdateables[i].OnFixedUpdate();
+                try { k_FixedUpdateSnapshot[i].OnFixedUpdate(); }
+                catch (Exception e) { Debug.LogException(e); }
             }
         }
 
         private void LateUpdate()
         {
             if (k_IsPaused) return;
-            for (int i = 0; i < k_LateUpdateables.Count; i++)
+            k_LateUpdateSnapshot.Clear();
+            k_LateUpdateSnapshot.AddRange(k_LateUpdateables);
+            for (int i = 0; i < k_LateUpdateSnapshot.Count; i++)
             {
-                k_LateUpdateables[i].OnLateUpdate();
+                try { k_LateUpdateSnapshot[i].OnLateUpdate(); }
+                catch (Exception e) { Debug.LogException(e); }
             }
         }
 
@@ -147,21 +162,10 @@ namespace OSK
                 return;
             }
 
-            Type type = gameFrameworkComponent.GetType();
-
-            var current = SGameFrameworkComponents.First;
-            while (current != null)
+            // By instance: a destroyed duplicate must not unregister the live module of the same type.
+            if (SGameFrameworkComponents.Remove(gameFrameworkComponent))
             {
-                if (current.Value.GetType() == type)
-                {
-                    SGameFrameworkComponents.Remove(current);
-                    
-                    // Remove from update lists if applicable
-                    UnRegisterTick(gameFrameworkComponent);
-                    return;
-                }
-
-                current = current.Next;
+                UnRegisterTick(gameFrameworkComponent);
             }
         }
         
